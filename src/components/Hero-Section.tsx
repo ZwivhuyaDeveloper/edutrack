@@ -25,7 +25,7 @@ function HeroSection() {
                 />
               </div>
             ),
-            className: "md:col-span-1",
+            className: "md:col-span-1 hidden sm:col-span-1 lg:col-span-1",
         },
         {
             header: (
@@ -40,7 +40,7 @@ function HeroSection() {
                 />
               </div>
             ),
-            className: "md:col-span-2 hidden lg:col-span-2",
+            className: "md:col-span-2 hidden sm:col-span-2 lg:col-span-2",
         },
         {
             header: (
@@ -55,7 +55,7 @@ function HeroSection() {
                 />
               </div>
             ),
-            className: "md:col-span-2 hidden lg:col-span-2",
+            className: "md:col-span-2 hidden sm:col-span-2 lg:col-span-2",
         },
         {
             header: (
