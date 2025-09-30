@@ -168,7 +168,7 @@ export default function AboutUs() {
               &ldquo;Smart Education Management&rdquo;  
             </h2>
             <p className="text-lg sm:text-xl max-w-3xl mx-auto text-gray-800">
-              Founded in 2025, EduTrack AI is revolutionizing how educational institutions manage student performance, 
+              Founded in 2025, EduTrack AI Software is revolutionizing how educational institutions manage student performance, 
               attendance, and communication through cutting-edge artificial intelligence.
             </p>
           </div>
