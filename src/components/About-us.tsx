@@ -60,16 +60,7 @@ export default function AboutUs() {
     {
       header: (
         <div className="relative w-full h-full flex flex-col justify-end p-6">
-          <div className="absolute inset-0">
-            <Image 
-              src={First} 
-              alt="Real-time Performance Tracking" 
-              fill 
-              quality={100} 
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/90"></div>
           <div className="relative z-10 bg-black/50 backdrop-blur-sm rounded-lg p-4">
             <div className="flex items-center mb-2">
               <Target className="w-6 h-6 text-white mr-2" />
@@ -79,21 +70,12 @@ export default function AboutUs() {
           </div>
         </div>
       ),
-      className: ""
+      className: "md:col-span-1"
     },
     {
       header: (
         <div className="relative w-full h-full flex flex-col justify-end p-6">
-          <div className="absolute inset-0">
-            <Image 
-              src={Second} 
-              alt="Attendance Management" 
-              fill 
-              quality={100} 
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/90"></div>
           <div className="relative z-10 bg-black/50 backdrop-blur-sm rounded-lg p-4">
             <div className="flex items-center mb-2">
               <CheckCircle className="w-6 h-6 text-white mr-2" />
@@ -108,16 +90,7 @@ export default function AboutUs() {
     {
       header: (
         <div className="relative w-full h-full flex flex-col justify-end p-6">
-          <div className="absolute inset-0">
-            <Image 
-              src={Third} 
-              alt="Behavior Monitoring" 
-              fill 
-              quality={100} 
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/90"></div>
           <div className="relative z-10 bg-black/50 backdrop-blur-sm rounded-lg p-4">
             <div className="flex items-center mb-2">
               <Heart className="w-6 h-6 text-white mr-2" />
@@ -132,26 +105,17 @@ export default function AboutUs() {
     {
       header: (
         <div className="relative w-full h-full flex flex-col justify-end p-6">
-          <div className="absolute inset-0">
-            <Image 
-              src={Fourth} 
-              alt="Communication Platform" 
-              fill 
-              quality={100} 
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/90"></div>
           <div className="relative z-10 bg-black/50 backdrop-blur-sm rounded-lg p-4">
             <div className="flex items-center mb-2">
               <Users className="w-6 h-6 text-white mr-2" />
               <h3 className="text-xl font-bold text-white">Channelled Communication</h3>
             </div>
-            <p className="text-gray-200 text-sm">Seamless communication between all stakeholders with targeted messaging.</p>
+            <p className="text-gray-200 text-sm">Streamlined messaging between principals, teachers, parents, and students.</p>
           </div>
         </div>
       ),
-      className: ""
+      className: "md:col-span-1"
     }
   ];
 
