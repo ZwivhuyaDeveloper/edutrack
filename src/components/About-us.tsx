@@ -28,7 +28,14 @@ export default function AboutUs() {
       title: "Our Values",
       description: "Innovation, excellence, and student success drive everything we do. We believe in technology that serves education, not the other way around.",
       color: "text-teal-800"
-    }
+    },
+    {
+      icon: Heart,
+      title: "Our Commitment",
+      description: "Dedicated to creating inclusive, accessible, and impactful educational technology that serves every student's unique learning journey.",
+      color: "text-teal-800"
+    },
+
   ];
 
   // Core values
@@ -60,13 +67,23 @@ export default function AboutUs() {
     {
       header: (
         <div className="relative w-full h-full flex flex-col justify-end p-6">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/90"></div>
-          <div className="relative z-10 bg-black/50 backdrop-blur-sm rounded-lg p-4">
+          <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-100">
+            <div className="absolute inset-0 opacity-60" style={{
+              backgroundImage: `repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(0, 0, 0, 0.1) 10px,
+                rgba(0, 0, 0, 0.1) 20px
+              )`
+            }}></div>
+          </div>
+          <div className="relative z-10 bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-gray-200">
             <div className="flex items-center mb-2">
-              <Target className="w-6 h-6 text-white mr-2" />
-              <h3 className="text-xl font-bold text-white">Real-time Performance</h3>
+              <Target className="w-6 h-6 text-primary mr-2" />
+              <h3 className="text-xl font-bold text-gray-900">Real-time Performance</h3>
             </div>
-            <p className="text-gray-200 text-sm">Track student progress instantly with comprehensive analytics and insights.</p>
+            <p className="text-gray-700 text-sm">Track student progress instantly with comprehensive analytics and insights.</p>
           </div>
         </div>
       ),
@@ -75,7 +92,17 @@ export default function AboutUs() {
     {
       header: (
         <div className="relative w-full h-full flex flex-col justify-end p-6">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/90"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/90">
+            <div className="absolute inset-0 opacity-50" style={{
+              backgroundImage: `repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255, 255, 255, 0.1) 10px,
+                rgba(255, 255, 255, 0.1) 20px
+              )`
+            }}></div>
+          </div>
           <div className="relative z-10 bg-black/50 backdrop-blur-sm rounded-lg p-4">
             <div className="flex items-center mb-2">
               <CheckCircle className="w-6 h-6 text-white mr-2" />
@@ -90,8 +117,18 @@ export default function AboutUs() {
     {
       header: (
         <div className="relative w-full h-full flex flex-col justify-end p-6">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/90"></div>
-          <div className="relative z-10 bg-black/50 backdrop-blur-sm rounded-lg p-4">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/90">
+            <div className="absolute inset-0 opacity-50" style={{
+              backgroundImage: `repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255, 255, 255, 0.1) 10px,
+                rgba(255, 255, 255, 0.1) 20px
+              )`
+            }}></div>
+          </div>
+          <div className="relative z-10 bg-black/20 backdrop-blur-sm rounded-lg p-4">
             <div className="flex items-center mb-2">
               <Heart className="w-6 h-6 text-white mr-2" />
               <h3 className="text-xl font-bold text-white">Behavior Insights</h3>
@@ -105,13 +142,23 @@ export default function AboutUs() {
     {
       header: (
         <div className="relative w-full h-full flex flex-col justify-end p-6">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/90"></div>
-          <div className="relative z-10 bg-black/50 backdrop-blur-sm rounded-lg p-4">
+          <div className="absolute inset-0 bg-gradient-to-br from-white to-gray-100">
+            <div className="absolute inset-0 opacity-50" style={{
+              backgroundImage: `repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(0, 0, 0, 0.1) 10px,
+                rgba(0, 0, 0, 0.1) 20px
+              )`
+            }}></div>
+          </div>
+          <div className="relative z-10 bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-gray-200">
             <div className="flex items-center mb-2">
-              <Users className="w-6 h-6 text-white mr-2" />
-              <h3 className="text-xl font-bold text-white">Channelled Communication</h3>
+              <Users className="w-6 h-6 text-primary mr-2" />
+              <h3 className="text-xl font-bold text-gray-900">Channelled Communication</h3>
             </div>
-            <p className="text-gray-200 text-sm">Streamlined messaging between principals, teachers, parents, and students.</p>
+            <p className="text-gray-700 text-sm">Streamlined messaging between principals, teachers, parents, and students.</p>
           </div>
         </div>
       ),

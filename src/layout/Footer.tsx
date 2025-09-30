@@ -39,7 +39,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="font-sans bg-gradient-to-b from-teal-900 to-teal-800 border-t border-gray-200 mt-20">
+    <footer className="font-sans bg-primary border-t border-gray-200 mt-20">
       <div className="max-w-7xl mx-auto px-8 sm:px-6 lg:px-8 py-8 sm:py-10 lg:py-12">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8">
