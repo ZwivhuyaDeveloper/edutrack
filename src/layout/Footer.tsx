@@ -2,7 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import logo from '@/assets/logo_white.png';
-import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin, X } from 'lucide-react';
 
 export default function Footer() {
   const footerLinks = {
@@ -40,7 +40,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="font-sans bg-gradient-to-b from-teal-800 to-teal-700 border-t border-gray-200 mt-20">
+    <footer className="font-sans bg-gradient-to-b from-teal-900 to-teal-800 border-t border-gray-200 mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 lg:py-12">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8">
@@ -57,7 +57,7 @@ export default function Footer() {
               </div>
               <span className="text-xl sm:text-2xl font-bold text-white">EduTrack</span>
             </div>
-            <p className="text-gray-100 text-sm sm:text-base leading-relaxed max-w-md">
+            <p className="text-gray-100 text-md sm:text-base leading-relaxed max-w-md">
               Empowering educators with intelligent tracking and analytics solutions. 
               Transform your educational institution with data-driven insights and 
               streamlined administrative processes.
@@ -67,22 +67,26 @@ export default function Footer() {
             <div className="space-y-3">
               <div className="flex items-center space-x-3 text-gray-100">
                 <Mail className="w-4 h-4 text-teal-300 flex-shrink-0" />
-                <span className="text-lg lg:text-sm sm:text-base">info@edutrack.com</span>
+                <span className="text-md lg:text-sm sm:text-base">info@edutrack-ai.com</span>
+              </div>
+              <div className="flex items-center space-x-3 text-gray-100">
+                <Mail className="w-4 h-4 text-teal-300 flex-shrink-0" />
+                <span className="text-md lg:text-sm sm:text-base">support@edutrack-ai.com</span>
               </div>
               <div className="flex items-center space-x-3 text-gray-100">
                 <Phone className="w-4 h-4 text-teal-300 flex-shrink-0" />
-                <span className="text-lg lg:text-sm sm:text-base">+1 (555) 123-4567</span>
+                <span className="text-md lg:text-sm sm:text-base">+1 (555) 123-4567</span>
               </div>
               <div className="flex items-start space-x-3 text-gray-100">
                 <MapPin className="w-4 h-4 text-teal-300 flex-shrink-0 mt-0.5" />
-                <span className="text-sm sm:text-base">123 Education St, Learning City, LC 12345</span>
+                <span className="text-md lg:text-sm sm:text-base">Cape Town, South Africa</span>
               </div>
             </div>
           </div>
 
           {/* Product Links */}
           <div className="space-y-4">
-            <h3 className="text-base sm:text-lg font-semibold text-white">Product</h3>
+            <h3 className="text-md sm:text-lg font-semibold text-white">Product</h3>
             <ul className="space-y-2 sm:space-y-3">
               {footerLinks.product.map((link) => (
                 <li key={link.name}>
@@ -154,7 +158,7 @@ export default function Footer() {
         <div className="border-t border-gray-300/30 mt-8 sm:mt-12 pt-6 sm:pt-8">
           <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
             <div className="text-gray-100 text-xs sm:text-sm text-center sm:text-left">
-              © 2024 EduTrack. All rights reserved.
+              © 2025 EduTrack AI Software. All rights reserved.
             </div>
             
             {/* Social Media Links */}
