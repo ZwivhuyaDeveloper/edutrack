@@ -20,12 +20,13 @@ function HeroSection() {
                   src={First} 
                   alt="Educational technology" 
                   fill 
+                  quality={100} 
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>
             ),
-            className: "md:col-span-1 lg:col-span-1 sm:h-[20rem] md:h-[15rem] lg:h-[10rem]",
+            className: "md:col-span-1 lg:col-span-1 h-[20rem] sm:h-[20rem] md:h-[15rem] lg:h-[10rem]",
         },
         {
             header: (
