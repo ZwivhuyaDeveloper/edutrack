@@ -156,7 +156,7 @@ export default function AboutUs() {
   ];
 
   return (
-    <div className="font-sans min-h-screen bg-gradient-to-b from-white to-gray-50">
+    <div className="font-sans min-h-screen bg-white">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-white text-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24 lg:py-32">
@@ -183,16 +183,16 @@ export default function AboutUs() {
               Our <span className="text-primary">Story</span>
             </h2>
             <div className="space-y-4 text-gray-600">
-              <p className="text-lg leading-relaxed">
+              <p className="text-lg font-medium leading-relaxed">
                 EduTrack AI Software was born from a simple yet powerful observation: educational institutions were drowning 
                 in administrative tasks while struggling to provide personalized attention to students who needed it most.
               </p>
-              <p className="text-lg leading-relaxed">
+              <p className="text-lg font-medium leading-relaxed">
                 Our team of educators, technologists, and data scientists came together with a shared vision: to create 
                 an intelligent platform that would automate routine tasks while providing actionable insights that 
                 could transform educational outcomes.
               </p>
-              <p className="text-lg leading-relaxed">
+              <p className="text-lg font-medium leading-relaxed">
                 Today, EduTrack AI Software serves schools across South Africa and beyond, empowering principals, teachers, 
                 parents, and learners with tools that make education more effective, efficient, and equitable.
               </p>
@@ -203,7 +203,7 @@ export default function AboutUs() {
               <div key={index} className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
                 <item.icon className={`w-8 h-8 ${item.color} mb-4`} />
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">{item.title}</h3>
-                <p className="text-gray-600 text-sm leading-relaxed">{item.description}</p>
+                <p className="text-gray-600 font-medium text-sm leading-relaxed">{item.description}</p>
               </div>
             ))}
           </div>
@@ -211,13 +211,13 @@ export default function AboutUs() {
       </div>
 
       {/* Core Values */}
-      <div className="bg-gray-50 py-16 sm:py-24">
+      <div className="bg-white py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
               Our <span className="text-primary">Core Values</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl font-medium text-gray-600 max-w-3xl mx-auto">
               The principles that guide every decision we make and every feature we build.
             </p>
           </div>
@@ -229,7 +229,7 @@ export default function AboutUs() {
                   <value.icon className="w-8 h-8 text-primary" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">{value.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{value.description}</p>
+                <p className="text-gray-600 font-medium leading-relaxed">{value.description}</p>
               </div>
             ))}
           </div>
@@ -264,7 +264,7 @@ export default function AboutUs() {
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
             Ready to Transform Your School?
           </h2>
-          <p className="text-xl text-primary mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-white mb-8 max-w-2xl mx-auto">
             Join hundreds of educational institutions already using EduTrack AI to enhance learning outcomes 
             and streamline administrative processes.
           </p>
@@ -273,7 +273,7 @@ export default function AboutUs() {
               Get Started For Free
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-teal-800 font-bold text-lg py-4 px-8 rounded-lg">
+            <Button size="lg" variant="outline" className="border-white text-primary hover:bg-white hover:text-primary font-bold text-lg py-4 px-8 rounded-lg">
               Contact Sales
             </Button>
           </div>
