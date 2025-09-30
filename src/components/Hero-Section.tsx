@@ -84,10 +84,12 @@ function HeroSection() {
                 <p className='text-gray-500 font-medium text-lg sm:text-xl max-w-2xl'>
                   Empowering Principals, Teachers, Parents, and Learners with <strong className='text-teal-800'> real-time performance, </strong> <strong className='text-teal-800'> attendance, </strong> <strong className='text-teal-800'> behavior tracking </strong> and <strong className='text-teal-800'> channelled communication </strong> — so no learner is left behind.
                 </p>
-                <div className='flex flex-row sm:flex-row gap-3 items-center w-full sm:w-auto justify-center lg:justify-start'>
-                    <Button variant="default" className='bg-teal-800 text-white font-bold text-sm md:text-lg lg:text-xl py-3 sm:py-5 px-4 sm:px-6 rounded-lg sm:w-auto'>Get Started For Free</Button>
-                    <Button variant="outline" className=' text-teal-800 font-bold text-sm md:text-lg lg:text-xl py-3 sm:py-5 px-4 sm:px-6 rounded-lg border-2 border-teal-800  sm:w-auto'>Contact</Button>
-                    <Button variant="outline" className=' text-teal-800 font-bold text-sm md:text-lg lg:text-xl py-3 sm:py-5 px-4 sm:px-6 rounded-lg border-2 border-teal-800  sm:w-auto flex items-center justify-center'><ArrowUpRightIcon strokeWidth={3}  className="w-8 h-8" /></Button>
+                <div className='flex flex-col sm:flex-row gap-3 items-center w-full sm:w-auto justify-center lg:justify-start'>
+                    <Button variant="default" className='bg-teal-800 text-white font-bold text-lg md:text-lg lg:text-xl py-3 sm:py-5 px-4 sm:px-6 rounded-lg sm:w-auto'>Get Started For Free</Button>
+                    <div className='flex flex-row gap-3 items-center w-full sm:w-auto justify-center lg:justify-start'>
+                      <Button variant="outline" className=' text-teal-800 font-bold text-lg md:text-lg lg:text-xl py-3 sm:py-5 px-4 sm:px-6 rounded-lg border-2 border-teal-800  sm:w-auto'>Contact</Button>
+                      <Button variant="outline" className=' text-teal-800 font-bold text-lg md:text-lg lg:text-xl py-3 sm:py-5 px-4 sm:px-6 rounded-lg border-2 border-teal-800  sm:w-auto flex items-center justify-center'><ArrowUpRightIcon strokeWidth={3}  className="w-8 h-8" /></Button>
+                    </div>
                 </div>
             </div>
 
