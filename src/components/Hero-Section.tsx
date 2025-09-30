@@ -80,16 +80,16 @@ function HeroSection() {
           <div className='flex font-sans flex-col  lg:flex-row items-center pt-30  lg:pt-50 gap-8 lg:gap-20 w-full h-full justify-between'>
           <div className='flex flex-col w-full lg:w-5xl h-full gap-6 lg:gap-10 items-center lg:items-start justify-center lg:justify-start text-center lg:text-left'>
                 <div>
-                    <span className='text-black text-4xl sm:text-4xl lg:text-5xl font-bold leading-tight'> <strong className='text-teal-800'> Comprehensive </strong>Smart Education <strong className='text-teal-800'>Software</strong></span>
+                    <span className='text-black text-4xl sm:text-4xl lg:text-5xl font-bold leading-tight'> <strong className='text-primary'> Comprehensive </strong>Smart Education <strong className='text-primary'>Software</strong></span>
                 </div>
                 <p className='text-gray-500 font-medium text-lg sm:text-xl max-w-2xl'>
-                  Empowering Principals, Teachers, Parents, and Learners with <strong className='text-teal-800'> Real-time Performance, </strong> <strong className='text-teal-800'> Attendance, </strong> <strong className='text-teal-800'> Behavior Tracking </strong> and <strong className='text-teal-800'> Channelled Communication </strong> — so no learner is left behind.
+                  Empowering Principals, Teachers, Parents, and Learners with <strong className='text-primary'> Real-time Performance, </strong> <strong className='text-primary'> Attendance, </strong> <strong className='text-primary'> Behavior Tracking </strong> and <strong className='text-primary'> Channelled Communication </strong> — so no learner is left behind.
                 </p>
                 <div className='flex flex-col sm:flex-row gap-3 items-center w-full sm:w-auto justify-center lg:justify-start'>
-                    <Button variant="default" className='bg-teal-800 text-white font-bold text-lg md:text-lg lg:text-xl py-3 sm:py-5 px-4 sm:px-6 rounded-lg sm:w-auto'>Get Started For Free</Button>
+                    <Button variant="default" className='bg-primary text-white font-bold text-lg md:text-lg lg:text-xl py-3 sm:py-5 px-4 sm:px-6 rounded-lg sm:w-auto'>Get Started For Free</Button>
                     <div className='flex flex-row gap-3 items-center w-full sm:w-auto justify-center lg:justify-start'>
-                      <Button variant="outline" className=' text-teal-800 font-bold text-lg md:text-lg lg:text-xl py-3 sm:py-5 px-4 sm:px-6 rounded-lg border-2 border-teal-800  sm:w-auto'>Contact</Button>
-                      <Button variant="outline" className=' text-teal-800 font-bold text-lg md:text-lg lg:text-xl py-3 sm:py-5 px-4 sm:px-6 rounded-lg border-2 border-teal-800  sm:w-auto flex items-center justify-center'><ArrowUpRightIcon strokeWidth={3}  className="w-8 h-8" /></Button>
+                      <Button variant="outline" className=' text-primary font-bold text-lg md:text-lg lg:text-xl py-3 sm:py-5 px-4 sm:px-6 rounded-lg border-2 border-primary  sm:w-auto'>Contact</Button>
+                      <Button variant="outline" className=' text-primary font-bold text-lg md:text-lg lg:text-xl py-3 sm:py-5 px-4 sm:px-6 rounded-lg border-2 border-primary  sm:w-auto flex items-center justify-center'><ArrowUpRightIcon strokeWidth={3}  className="w-8 h-8" /></Button>
                     </div>
                 </div>
             </div>

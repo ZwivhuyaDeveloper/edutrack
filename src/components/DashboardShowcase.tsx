@@ -1,5 +1,9 @@
 import React from 'react';
 import Image from 'next/image';
+import First from '@/assets/MAIN_PAGE.png';
+import Second from '@/assets/ASSIGNMENTS_PAGE.png';
+import Third from '@/assets/MESSAGE_DASHBOARD.png';
+import Fourth from '@/assets/REPORT_PAGE.png';
 
 interface DashboardShowcaseProps {
   className?: string;
@@ -10,25 +14,25 @@ export default function DashboardShowcase({ className = "" }: DashboardShowcaseP
     {
       title: "Main Dashboard",
       description: "Comprehensive overview of student performance, attendance, and key metrics at a glance.",
-      image: "/assets/MAIN_PAGE.png",
+      image: First,
       alt: "Main Dashboard Overview"
     },
     {
       title: "Assignments Management",
       description: "Streamlined assignment creation, distribution, and grading system for teachers.",
-      image: "/assets/ASSIGNMENTS_PAGE.png",
+      image: Second,
       alt: "Assignments Management Interface"
     },
     {
       title: "Message Dashboard",
       description: "Centralized communication hub connecting principals, teachers, parents, and students.",
-      image: "/assets/MESSAGE_DASHBOARD.png",
+      image: Third,
       alt: "Message Communication Dashboard"
     },
     {
       title: "Analytics & Reports",
       description: "Detailed AI-powered insights and comprehensive reports on student progress.",
-      image: "/assets/REPORT_PAGE.png",
+      image: Fourth,
       alt: "Analytics and Reports Dashboard"
     }
   ];

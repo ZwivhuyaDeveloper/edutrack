@@ -269,27 +269,6 @@ export default function AboutUs() {
         </BentoGrid>
       </div>
 
-      {/* CTA Section */}
-      <div className="bg-gradient-to-r from-primary to-primary py-16 sm:py-24">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-            Ready to Transform Your School?
-          </h2>
-          <p className="text-xl text-white mb-8 max-w-2xl mx-auto">
-            Join hundreds of educational institutions already using EduTrack AI to enhance learning outcomes 
-            and streamline administrative processes.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button size="lg" className="bg-white text-primary hover:bg-gray-100 font-bold text-lg py-4 px-8 rounded-lg">
-              Get Started For Free
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-            <Button size="lg" variant="outline" className="border-white text-primary hover:bg-white hover:text-primary font-bold text-lg py-4 px-8 rounded-lg">
-              Contact
-            </Button>
-          </div>
-        </div>
-      </div>
     </div> 
   );
 }

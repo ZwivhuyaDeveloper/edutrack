@@ -1,4 +1,5 @@
 import AboutUs from "@/components/About-us";
+import DashboardShowcase from "@/components/DashboardShowcase";
 import HeroSection from "@/components/Hero-Section";
 import Footer from "@/layout/Footer";
 import NavMenu from "@/layout/NavMenu";
@@ -9,6 +10,7 @@ export default function Home() {
       <NavMenu />
       <HeroSection />
       <AboutUs />
+      <DashboardShowcase />
       <Footer />
     </div>
   );
