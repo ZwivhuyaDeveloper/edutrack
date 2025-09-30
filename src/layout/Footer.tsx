@@ -67,11 +67,11 @@ export default function Footer() {
             <div className="space-y-3">
               <div className="flex items-center space-x-3 text-gray-100">
                 <Mail className="w-4 h-4 text-teal-300 flex-shrink-0" />
-                <span className="text-sm sm:text-base">info@edutrack.com</span>
+                <span className="text-lg lg:text-sm sm:text-base">info@edutrack.com</span>
               </div>
               <div className="flex items-center space-x-3 text-gray-100">
                 <Phone className="w-4 h-4 text-teal-300 flex-shrink-0" />
-                <span className="text-sm sm:text-base">+1 (555) 123-4567</span>
+                <span className="text-lg lg:text-sm sm:text-base">+1 (555) 123-4567</span>
               </div>
               <div className="flex items-start space-x-3 text-gray-100">
                 <MapPin className="w-4 h-4 text-teal-300 flex-shrink-0 mt-0.5" />
