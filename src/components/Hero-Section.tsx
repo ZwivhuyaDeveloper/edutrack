@@ -83,7 +83,7 @@ function HeroSection() {
                     <span className='text-black text-4xl sm:text-4xl lg:text-5xl font-bold leading-tight'> <strong className='text-teal-800'> Comprehensive </strong>Smart Education <strong className='text-teal-800'>Software</strong></span>
                 </div>
                 <p className='text-gray-500 font-medium text-lg sm:text-xl max-w-2xl'>
-                  Empowering Principals, Teachers, Parents, and Learners with <strong className='text-teal-800'> real-time performance, </strong> <strong className='text-teal-800'> attendance, </strong> <strong className='text-teal-800'> behavior tracking </strong> and <strong className='text-teal-800'> channelled communication </strong> — so no learner is left behind.
+                  Empowering Principals, Teachers, Parents, and Learners with <strong className='text-teal-800'> Real-time Performance, </strong> <strong className='text-teal-800'> Attendance, </strong> <strong className='text-teal-800'> Behavior Tracking </strong> and <strong className='text-teal-800'> Channelled Communication </strong> — so no learner is left behind.
                 </p>
                 <div className='flex flex-col sm:flex-row gap-3 items-center w-full sm:w-auto justify-center lg:justify-start'>
                     <Button variant="default" className='bg-teal-800 text-white font-bold text-lg md:text-lg lg:text-xl py-3 sm:py-5 px-4 sm:px-6 rounded-lg sm:w-auto'>Get Started For Free</Button>
