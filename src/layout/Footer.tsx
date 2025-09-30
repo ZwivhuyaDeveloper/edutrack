@@ -10,7 +10,6 @@ export default function Footer() {
       { name: 'Features', href: '#features' },
       { name: 'Pricing', href: '#pricing' },
       { name: 'Demo', href: '#demo' },
-      { name: 'Integrations', href: '#integrations' },
     ],
     company: [
       { name: 'About Us', href: '#about' },
@@ -41,7 +40,7 @@ export default function Footer() {
 
   return (
     <footer className="font-sans bg-gradient-to-b from-teal-900 to-teal-800 border-t border-gray-200 mt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 lg:py-12">
+      <div className="max-w-7xl mx-auto px-8 sm:px-6 lg:px-8 py-8 sm:py-10 lg:py-12">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8">
           {/* Company Info */}
@@ -55,7 +54,10 @@ export default function Footer() {
                   className="object-contain"
                 />
               </div>
-              <span className="text-xl sm:text-2xl font-bold text-white">EduTrack</span>
+              <div className="flex flex-col items-center">
+                <span className="text-xl sm:text-2xl font-bold text-white">EduTrack</span>
+                <span className="text-xs sm:text-sm text-white font-semibold tracking-widest">AI SOFTWARE</span>
+              </div>
             </div>
             <p className="text-gray-100 text-md sm:text-base leading-relaxed max-w-md">
               Empowering educators with intelligent tracking and analytics solutions. 
@@ -86,7 +88,7 @@ export default function Footer() {
 
           {/* Product Links */}
           <div className="space-y-4">
-            <h3 className="text-md sm:text-lg font-semibold text-white">Product</h3>
+            <h3 className="text-xl sm:text-lg font-semibold text-white">Product</h3>
             <ul className="space-y-2 sm:space-y-3">
               {footerLinks.product.map((link) => (
                 <li key={link.name}>
@@ -103,7 +105,7 @@ export default function Footer() {
 
           {/* Company Links */}
           <div className="space-y-4">
-            <h3 className="text-base sm:text-lg font-semibold text-white">Company</h3>
+            <h3 className="text-xl sm:text-lg font-semibold text-white">Company</h3>
             <ul className="space-y-2 sm:space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
@@ -120,8 +122,8 @@ export default function Footer() {
 
           {/* Support & Legal Links */}
           <div className="space-y-4 sm:space-y-6">
-            <div>
-              <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Support</h3>
+            <div className="space-y-4">
+              <h3 className="text-xl sm:text-lg font-semibold text-white mb-3 sm:mb-4">Support</h3>
               <ul className="space-y-2 sm:space-y-3">
                 {footerLinks.support.map((link) => (
                   <li key={link.name}>
@@ -136,8 +138,8 @@ export default function Footer() {
               </ul>
             </div>
             
-            <div>
-              <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Legal</h3>
+            <div className="space-y-4">
+              <h3 className="text-xl sm:text-lg font-semibold text-white mb-3 sm:mb-4">Legal</h3>
               <ul className="space-y-2 sm:space-y-3">
                 {footerLinks.legal.map((link) => (
                   <li key={link.name}>
