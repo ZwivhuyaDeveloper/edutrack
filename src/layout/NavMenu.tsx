@@ -86,10 +86,10 @@ export default function Navbar({ className }: { className?: string }) {
 
           {/* Desktop Buttons */}
           <div className="hidden lg:flex items-center space-x-3">
-            <Button variant="outline" className="text-sm md:text-base font-semibold text-teal-700 border-2 border-teal-700 px-4 py-2">
+            <Button variant="outline" className="text-sm md:text-base font-semibold text-primary border-2 border-primary px-4 py-2">
               Login
             </Button>
-            <Button variant="default" className="text-sm md:text-base font-semibold bg-teal-700 px-4 py-2">
+            <Button variant="default" className="text-sm md:text-base font-semibold bg-primary px-4 py-2">
               Register
             </Button>
           </div>
@@ -98,7 +98,7 @@ export default function Navbar({ className }: { className?: string }) {
           <div className="lg:hidden flex items-center">
             <Button
               onClick={toggleMenu}
-              className="inline-flex items-center justify-center p-3 bg-teal-700 text-white rounded-md hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-teal-500 transition-all duration-200 transform hover:scale-105 active:scale-95"
+              className="inline-flex items-center justify-center p-3 bg-primary text-white rounded-md hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-teal-500 transition-all duration-200 transform hover:scale-105 active:scale-95"
               aria-expanded={isMenuOpen}
               aria-controls="mobile-menu"
               aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
@@ -144,11 +144,11 @@ export default function Navbar({ className }: { className?: string }) {
                 setActive("About us");
                 setIsMenuOpen(false);
               }}
-              className={`text-left px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 transform hover:translate-x-1 ${active === "About us" ? "text-teal-700 bg-teal-50 border-l-4 border-teal-700" : "text-gray-700 hover:text-teal-700 hover:bg-gray-50 hover:shadow-sm"}`}
+              className={`text-left px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 transform hover:translate-x-1 ${active === "About us" ? "text-primary bg-primary border-l-4 border-primary" : "text-gray-700 hover:text-primary hover:bg-gray-50 hover:shadow-sm"}`}
             >
               <div className="flex items-center justify-between">
                 <span>About us</span>
-                <svg className={`w-4 h-4 transition-transform duration-200 ${active === "About us" ? "rotate-90 text-teal-700" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={`w-4 h-4 transition-transform duration-200 ${active === "About us" ? "rotate-90 text-primary" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
@@ -158,11 +158,11 @@ export default function Navbar({ className }: { className?: string }) {
                 setActive("Pricing");
                 setIsMenuOpen(false);
               }}
-              className={`text-left px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 transform hover:translate-x-1 ${active === "Pricing" ? "text-teal-700 bg-teal-50 border-l-4 border-teal-700" : "text-gray-700 hover:text-teal-700 hover:bg-gray-50 hover:shadow-sm"}`}
+              className={`text-left px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 transform hover:translate-x-1 ${active === "Pricing" ? "text-primary bg-primary border-l-4 border-primary" : "text-gray-700 hover:text-primary hover:bg-gray-50 hover:shadow-sm"}`}
             >
               <div className="flex items-center justify-between">
                 <span>Pricing</span>
-                <svg className={`w-4 h-4 transition-transform duration-200 ${active === "Pricing" ? "rotate-90 text-teal-700" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={`w-4 h-4 transition-transform duration-200 ${active === "Pricing" ? "rotate-90 text-primary" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
@@ -172,11 +172,11 @@ export default function Navbar({ className }: { className?: string }) {
                 setActive("Learn More");
                 setIsMenuOpen(false);
               }}
-              className={`text-left px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 transform hover:translate-x-1 ${active === "Learn More" ? "text-teal-700 bg-teal-50 border-l-4 border-teal-700" : "text-gray-700 hover:text-teal-700 hover:bg-gray-50 hover:shadow-sm"}`}
+              className={`text-left px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 transform hover:translate-x-1 ${active === "Learn More" ? "text-primary bg-primary border-l-4 border-primary" : "text-gray-700 hover:text-primary hover:bg-gray-50 hover:shadow-sm"}`}
             >
               <div className="flex items-center justify-between">
                 <span>Learn More</span>
-                <svg className={`w-4 h-4 transition-transform duration-200 ${active === "Learn More" ? "rotate-90 text-teal-700" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={`w-4 h-4 transition-transform duration-200 ${active === "Learn More" ? "rotate-90 text-primary" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
@@ -185,14 +185,14 @@ export default function Navbar({ className }: { className?: string }) {
           <div className="flex flex-col space-y-3 px-4 py-4 border-t border-gray-200 bg-gray-50/50">
             <Button 
               variant="outline" 
-              className="w-full text-base font-semibold text-teal-700 border-2 border-teal-700 py-3 transition-all duration-200 hover:bg-teal-50 hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full text-base font-semibold text-primary border-2 border-primary py-3 transition-all duration-200 hover:bg-primary hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
               onClick={() => setIsMenuOpen(false)}
             >
               Login
             </Button>
             <Button 
               variant="default" 
-              className="w-full text-base font-semibold bg-teal-800 py-3 transition-all duration-200 hover:bg-teal-800 hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full text-base font-semibold bg-primary py-3 transition-all duration-200 hover:bg-primary hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
               onClick={() => setIsMenuOpen(false)}
             >
               Register
