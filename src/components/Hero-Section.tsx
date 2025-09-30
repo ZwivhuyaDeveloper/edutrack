@@ -40,7 +40,7 @@ function HeroSection() {
                 />
               </div>
             ),
-            className: "md:col-span-2",
+            className: "md:col-span-2 hidden lg:col-span-2",
         },
         {
             header: (
@@ -55,7 +55,7 @@ function HeroSection() {
                 />
               </div>
             ),
-            className: "md:col-span-2",
+            className: "md:col-span-2 hidden lg:col-span-2",
         },
         {
             header: (
@@ -70,7 +70,7 @@ function HeroSection() {
                 />
               </div>
             ),
-            className: "md:col-span-1",
+            className: "md:col-span-1 hidden lg:col-span-1",
         },
       ];
     return (
