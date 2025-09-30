@@ -162,7 +162,7 @@ export default function AboutUs() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24 lg:py-32">
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl lg:text-4xl font-bold mb-6">
-              About <span className="text-teal-800">EduTrack AI Software</span> 
+              About <span className="text-primary">EduTrack AI Software</span> 
             </h1>
             <h2 className="text-xl italic sm:text-2xl font-medium lg:text-3xl mb-8 max-w-4xl mx-auto text-teal-800">
               &ldquo;Smart Education Management&rdquo;  
@@ -180,7 +180,7 @@ export default function AboutUs() {
         <div className="grid grid-cols-1  lg:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
-              Our <span className="text-teal-600">Story</span>
+              Our <span className="text-primary">Story</span>
             </h2>
             <div className="space-y-4 text-gray-600">
               <p className="text-lg leading-relaxed">
@@ -215,7 +215,7 @@ export default function AboutUs() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Our <span className="text-teal-600">Core Values</span>
+              Our <span className="text-primary">Core Values</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               The principles that guide every decision we make and every feature we build.
@@ -226,7 +226,7 @@ export default function AboutUs() {
             {coreValues.map((value, index) => (
               <div key={index} className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 text-center">
                 <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <value.icon className="w-8 h-8 text-teal-600" />
+                  <value.icon className="w-8 h-8 text-primary" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">{value.title}</h3>
                 <p className="text-gray-600 leading-relaxed">{value.description}</p>
@@ -240,7 +240,7 @@ export default function AboutUs() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
         <div className="text-center mb-16">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
-            What Makes Us <span className="text-teal-600">Different</span>
+            What Makes Us <span className="text-primary">Different</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Our comprehensive approach to educational technology ensures no learner is left behind.
@@ -259,17 +259,17 @@ export default function AboutUs() {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-gradient-to-r from-teal-800 to-teal-600 py-16 sm:py-24">
+      <div className="bg-gradient-to-r from-primary to-teal-800 py-16 sm:py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
             Ready to Transform Your School?
           </h2>
-          <p className="text-xl text-teal-100 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-primary mb-8 max-w-2xl mx-auto">
             Join hundreds of educational institutions already using EduTrack AI to enhance learning outcomes 
             and streamline administrative processes.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button size="lg" className="bg-white text-teal-800 hover:bg-gray-100 font-bold text-lg py-4 px-8 rounded-lg">
+            <Button size="lg" className="bg-white text-primary hover:bg-gray-100 font-bold text-lg py-4 px-8 rounded-lg">
               Get Started For Free
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
