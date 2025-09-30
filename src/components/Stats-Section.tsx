@@ -112,7 +112,7 @@ const StatItem: React.FC<StatItemProps> = ({ number, label, index }) => {
             return (
                 <div 
                     key={charIndex} 
-                    className={`flex flex-col items-center justify-center ${isSpecialChar ? 'w-2 h-4' : 'w-4 h-6'} mx-[calc(0.4rem)]`}
+                    className={`flex flex-col items-center justify-center ${isSpecialChar ? 'w-2 h-4' : 'w-4 h-6'} lg:mx-[calc(0.3rem)] mx-[calc(0.1rem)]`}
                 >
                     <span className="text-[clamp(1.5rem,4vw,3rem)] font-bold text-teal-800 leading-none">
                         {char}
@@ -125,7 +125,7 @@ const StatItem: React.FC<StatItemProps> = ({ number, label, index }) => {
     return (
         <div
             ref={ref}
-            className="transition-transform duration-200 ease-in-out cursor-default p-2.5 md:p-3 rounded-lg bg-white/50 border border-white/25 hover:translate-y-[-4px] hover:bg-white/75 hover:shadow-none"
+            className="transition-transform duration-200 ease-in-out justify-center items-center cursor-default p-2.5 md:p-3 rounded-lg bg-white/50 border border-white/25 hover:translate-y-[-4px] hover:bg-white/75 hover:shadow-none"
         >
             <div className="flex items-center justify-center h-[clamp(1.5rem,4vw,3rem)] mb-1">
                 {getVerticalDigits(count, number)}

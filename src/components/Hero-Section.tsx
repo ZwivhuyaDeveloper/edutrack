@@ -76,13 +76,19 @@ function HeroSection() {
     return (
         <div className='px-4 lg:px-60 w-full h-full'>
 
-          <div className='flex font-sans flex-col  lg:flex-row items-center pt-40  lg:pt-50 gap-8 lg:gap-20 w-full h-full justify-between'>
+          <div className='flex font-sans flex-col  lg:flex-row items-center pt-30  lg:pt-50 gap-8 lg:gap-20 w-full h-full justify-between'>
           <div className='flex flex-col w-full lg:w-5xl h-full gap-6 lg:gap-10 items-center lg:items-start justify-center lg:justify-start text-center lg:text-left'>
                 <div>
-                    <span className='text-black text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight'> <strong className='text-teal-800'> Comprehensive </strong>Smart Education <strong className='text-teal-800'>Software</strong></span>
+                    <span className='text-black text-4xl sm:text-4xl lg:text-5xl font-bold leading-tight'> <strong className='text-teal-800'> Comprehensive </strong>Smart Education <strong className='text-teal-800'>Software</strong></span>
                 </div>
                 <p className='text-gray-500 font-medium text-lg sm:text-xl max-w-2xl'>
-                    Empowering Students, Teacher and Administrator with the power of <strong className='text-teal-800'>Artificial Intelligence</strong> to manage students <strong className='text-teal-800'>reports</strong>, <strong className='text-teal-800'>performance</strong> and <strong className='text-teal-800'>grading</strong>
+                  Empowering Principals, Teachers, Parents, and Learners with
+                  <strong className='text-teal-800'>real-time performance,</strong> 
+                  <strong className='text-teal-800'>attendance,</strong>
+                   <strong className='text-teal-800'>behavior tracking</strong>
+                   and
+                   <strong className='text-teal-800'>channelled communication</strong>
+                   — so no learner is left behind.
                 </p>
                 <div className='flex flex-row sm:flex-row gap-3 items-center w-full sm:w-auto justify-center lg:justify-start'>
                     <Button variant="default" className='bg-teal-800 text-white font-bold text-lg sm:text-xl py-3 sm:py-5 px-4 sm:px-6 rounded-lg sm:w-auto'>Get Started For Free</Button>
