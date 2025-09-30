@@ -236,8 +236,8 @@ export default function AboutUs() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {coreValues.map((value, index) => (
               <div key={index} className="bg-white p-8 rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 text-center">
-                <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <value.icon className="w-8 h-8 text-primary" />
+                <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-6">
+                  <value.icon className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">{value.title}</h3>
                 <p className="text-gray-600 font-medium leading-relaxed">{value.description}</p>
