@@ -161,8 +161,8 @@ export default function AboutUs() {
       <div className="relative overflow-hidden bg-white text-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24 lg:py-32">
           <div className="text-center">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6">
-              About <span className="text-teal-800">EduTrack AI</span>
+            <h1 className="text-4xl sm:text-5xl lg:text-5xl font-bold mb-6">
+              About <span className="text-teal-800">EduTrack AI Software</span>
             </h1>
             <p className="text-xl sm:text-2xl lg:text-3xl mb-8 max-w-4xl mx-auto text-teal-800">
               Transforming Education Through Intelligent Technology
