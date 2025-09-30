@@ -25,7 +25,7 @@ function HeroSection() {
                 />
               </div>
             ),
-            className: "md:col-span-1",
+            className: "md:col-span-1 lg:col-span-1 h-[20rem]",
         },
         {
             header: (
@@ -40,7 +40,7 @@ function HeroSection() {
                 />
               </div>
             ),
-            className: "md:col-span-2",
+            className: "md:col-span-2 lg:col-span-2 hidden lg:block md:block",
         },
         {
             header: (
@@ -55,7 +55,7 @@ function HeroSection() {
                 />
               </div>
             ),
-            className: "md:col-span-2",
+            className: "md:col-span-2 lg:col-span-2 hidden lg:block md:block",
         },
         {
             header: (
@@ -70,7 +70,7 @@ function HeroSection() {
                 />
               </div>
             ),
-            className: "md:col-span-1",
+            className: "md:col-span-1 lg:col-span-1 hidden lg:block md:block",
         },
       ];
     return (
@@ -103,7 +103,9 @@ function HeroSection() {
             </BentoGrid>
             </div>
           </div>
-        <StatsSection /> 
+          <div className='mt-40 md:mt-4 lg:mt-0'>
+            <StatsSection />
+          </div>
         </div>
     );
 }
