@@ -156,16 +156,16 @@ export default function AboutUs() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+    <div className="font-sans min-h-screen bg-gradient-to-b from-white to-gray-50">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-white text-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24 lg:py-32">
           <div className="text-center">
             <h1 className="text-4xl sm:text-5xl lg:text-5xl font-bold mb-6">
-              About <span className="text-teal-800">EduTrack AI Software</span>
+              About <span className="text-teal-800">EduTrack</span> AI <span className='text-teal-800'> Software </span>
             </h1>
-            <p className="text-xl sm:text-2xl lg:text-3xl mb-8 max-w-4xl mx-auto text-teal-800">
-              Transforming Education Through Intelligent Technology
+            <p className="text-xl sm:text-2xl font-medium lg:text-3xl mb-8 max-w-4xl mx-auto text-teal-800">
+              Smart Education Software 
             </p>
             <p className="text-lg sm:text-xl max-w-3xl mx-auto text-gray-800">
               Founded in 2025, EduTrack AI is revolutionizing how educational institutions manage student performance, 
