@@ -184,7 +184,7 @@ export default function AboutUs() {
             </h2>
             <div className="space-y-4 text-gray-600">
               <p className="text-lg leading-relaxed">
-                EduTrack AI was born from a simple yet powerful observation: educational institutions were drowning 
+                EduTrack AI Software was born from a simple yet powerful observation: educational institutions were drowning 
                 in administrative tasks while struggling to provide personalized attention to students who needed it most.
               </p>
               <p className="text-lg leading-relaxed">
@@ -193,7 +193,7 @@ export default function AboutUs() {
                 could transform educational outcomes.
               </p>
               <p className="text-lg leading-relaxed">
-                Today, EduTrack AI serves schools across South Africa and beyond, empowering principals, teachers, 
+                Today, EduTrack AI Software serves schools across South Africa and beyond, empowering principals, teachers, 
                 parents, and learners with tools that make education more effective, efficient, and equitable.
               </p>
             </div>
