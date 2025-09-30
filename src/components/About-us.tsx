@@ -164,9 +164,9 @@ export default function AboutUs() {
             <h1 className="text-4xl sm:text-5xl lg:text-4xl font-bold mb-6">
               About <span className="text-teal-800">EduTrack</span> AI <span className='text-teal-800'> Software </span>
             </h1>
-            <p className="text-xl italic sm:text-2xl font-medium lg:text-3xl mb-8 max-w-4xl mx-auto text-teal-800">
-              "Smart Education Management"  
-            </p>
+            <h2 className="text-xl italic sm:text-2xl font-medium lg:text-3xl mb-8 max-w-4xl mx-auto text-teal-800">
+              &ldquo;Smart Education Management&rdquo;  
+            </h2>
             <p className="text-lg sm:text-xl max-w-3xl mx-auto text-gray-800">
               Founded in 2025, EduTrack AI is revolutionizing how educational institutions manage student performance, 
               attendance, and communication through cutting-edge artificial intelligence.
