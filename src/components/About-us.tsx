@@ -3,10 +3,10 @@ import Image from 'next/image';
 import { Button } from './ui/button';
 import { BentoGrid, BentoGridItem } from './ui/bento-grid';
 import { Target, Users, Award, BookOpen, Heart, Lightbulb, ArrowRight, CheckCircle } from 'lucide-react';
-import First from '@/assets/drawing_1.png';
-import Second from '@/assets/top_hero.png';
-import Third from '@/assets/bottom_hero.png';
-import Fourth from '@/assets/drawing_2.png';
+import First from '@/assets/MAIN_PAGE.png';
+import Second from '@/assets/ASSIGNMENTS_PAGE.png';
+import Third from '@/assets/MESSAGE_DASHBOARD.png';
+import Fourth from '@/assets/REPORT_PAGE.png';
 
 export default function AboutUs() {
   // Mission & Vision data
@@ -259,7 +259,7 @@ export default function AboutUs() {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-gradient-to-r from-primary to-teal-800 py-16 sm:py-24">
+      <div className="bg-gradient-to-r from-primary to-primary py-16 sm:py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
             Ready to Transform Your School?
@@ -274,7 +274,7 @@ export default function AboutUs() {
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             <Button size="lg" variant="outline" className="border-white text-primary hover:bg-white hover:text-primary font-bold text-lg py-4 px-8 rounded-lg">
-              Contact Sales
+              Contact
             </Button>
           </div>
         </div>
