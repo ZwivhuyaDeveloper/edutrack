@@ -33,7 +33,8 @@ function HeroSection() {
                 <Image 
                   src={Second} 
                   alt="AI innovation in education" 
-                  fill 
+                  fill
+                  quality={100} 
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 66vw"
                 />
@@ -48,6 +49,7 @@ function HeroSection() {
                   src={Third} 
                   alt="AI innovation in education" 
                   fill 
+                  quality={100} 
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 66vw"
                 />
@@ -62,6 +64,7 @@ function HeroSection() {
                   src={Fourth} 
                   alt="Educational technology" 
                   fill 
+                  quality={100} 
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
@@ -76,7 +79,7 @@ function HeroSection() {
           <div className='flex font-sans flex-col  lg:flex-row items-center pt-40  lg:pt-50 gap-8 lg:gap-20 w-full h-full justify-between'>
           <div className='flex flex-col w-full lg:w-5xl h-full gap-6 lg:gap-10 items-center lg:items-start justify-center lg:justify-start text-center lg:text-left'>
                 <div>
-                    <span className='text-black text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight'> <strong className='text-teal-800'> Comprehensive </strong>AI Software for <strong className='text-teal-800'>Education</strong></span>
+                    <span className='text-black text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight'> <strong className='text-teal-800'> Comprehensive </strong>Smart Education <strong className='text-teal-800'>Software</strong></span>
                 </div>
                 <p className='text-gray-500 font-medium text-lg sm:text-xl max-w-2xl'>
                     Empowering Students, Teacher and Administrator with the power of <strong className='text-teal-800'>Artificial Intelligence</strong> to manage students <strong className='text-teal-800'>reports</strong>, <strong className='text-teal-800'>performance</strong> and <strong className='text-teal-800'>grading</strong>

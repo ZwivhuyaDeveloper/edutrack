@@ -55,7 +55,7 @@ export default function Navbar({ className }: { className?: string }) {
   return (
     <div
       data-nav-container
-      className={cn("fixed font-sans top-0 inset-x-0 max-w-full mx-auto py-3 z-50 bg-white/95 backdrop-blur-sm border-b border-none", className)}
+      className={cn("fixed font-sans top-0 inset-x-0 max-w-full mx-auto py-4 z-50 bg-white/95 backdrop-blur-sm border-b border-none", className)}
     >
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-40 ">
         <div className="flex justify-between items-center h-16">
