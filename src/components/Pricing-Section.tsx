@@ -38,7 +38,7 @@ const PricingSection: React.FC = () => {
         "Basic integrations",
         "Custom branding"
       ] : [
-        "Per Learner Per Yearly (Save 17%)",
+        "Per Learner Per Year (Save 17%)",
         "Everything in Monthly, plus:",
         "Priority email & chat support",
         "Advanced AI features",

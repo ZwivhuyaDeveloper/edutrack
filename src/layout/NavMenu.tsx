@@ -63,7 +63,7 @@ export default function Navbar({ className }: { className?: string }) {
           <div className="flex flex-row space-x-0 items-center">
             <Image src={logo} alt="Logo" quality={100} width={45} height={100} className="sm:w-[50px] sm:h-[45
               px] md:w-[50px] md:h-[60px] p-0" />
-            <div className="flex justify-center  flex-col items-start ml-2 sm:ml-3">
+            <div className="flex justify-center space-y-0  flex-col items-start ml-2 sm:ml-3">
               <span className="text-lg sm:text-xl md:text-2xl font-bold">EduTrack</span>
               <span className="text-xs sm:text-sm text-black font-semibold tracking-widest">AI SOFTWARE</span>
             </div>
