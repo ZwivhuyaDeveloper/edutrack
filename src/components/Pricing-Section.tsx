@@ -19,13 +19,14 @@ const PricingSection: React.FC = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
 
   const pricingTiers: PricingTier[] = [
-
     {
       name: "Professional",
       price: billingCycle === 'monthly' ? "R16.70" : "R200.00",
       period: billingCycle === 'monthly' ? "Monthly" : "Yearly",
-      description: "Ideal for growing schools needing comprehensive features",
-      features: [
+      description: billingCycle === 'monthly' 
+        ? "Flexible monthly plan for schools wanting to try our comprehensive platform"
+        : "Best value annual plan with 2 months free and priority features",
+      features: billingCycle === 'monthly' ? [
         "Per Learner Per Month",
         "Advanced attendance tracking",
         "Comprehensive grade book",
@@ -36,19 +37,34 @@ const PricingSection: React.FC = () => {
         "Mobile app access",
         "Basic integrations",
         "Custom branding"
-      ],
-      notIncluded: [
-        "Unlimited students",
+      ] : [
+        "Per Learner Per Yearly (Save 17%)",
+        "Everything in Monthly, plus:",
+        "Priority email & chat support",
         "Advanced AI features",
+        "Custom integrations",
+        "Early access to new features",
+        "Dedicated onboarding session",
+        "Monthly performance reports",
+        "Custom branding",
+        "Mobile app access"
+      ],
+      notIncluded: billingCycle === 'monthly' ? [
         "Priority support",
+        "Advanced AI features",
+        "Custom integrations",
         "White-label solution",
         "Custom development"
+      ] : [
+        "White-label solution",
+        "Custom development",
+        "API access",
+        "SLA guarantee"
       ],
       highlighted: true,
       popular: true,
-      ctaText: "Start Free Trial"
-    },
-
+      ctaText: billingCycle === 'monthly' ? "Start Free Trial" : "Get Started"
+    }
   ];
 
   return (
