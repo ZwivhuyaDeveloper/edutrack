@@ -1,11 +1,11 @@
 "use client"
 
 import React, { useState } from 'react';
-import { Check, X, Star, ArrowRight } from 'lucide-react';
+import { Check, X, Star, ArrowRight, Globe } from 'lucide-react';
 
 interface PricingTier {
   name: string;
-  price: string;
+  basePrice: number; // Base price in ZAR
   period: string;
   description: string;
   features: string[];
@@ -15,13 +15,83 @@ interface PricingTier {
   ctaText: string;
 }
 
+interface Country {
+  code: string;
+  name: string;
+  currency: string;
+  symbol: string;
+  exchangeRate: number; // Rate from ZAR to this currency
+  flag: string;
+}
+
 const PricingSection: React.FC = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
+  const [selectedCountry, setSelectedCountry] = useState<string>('ZA');
+  
+  const countries: Country[] = [
+    {
+      code: 'ZA',
+      name: 'South Africa',
+      currency: 'ZAR',
+      symbol: 'R',
+      exchangeRate: 1,
+      flag: '🇿🇦'
+    },
+    {
+      code: 'US',
+      name: 'United States',
+      currency: 'USD',
+      symbol: '$',
+      exchangeRate: 0.055,
+      flag: '🇺🇸'
+    },
+    {
+      code: 'GB',
+      name: 'United Kingdom',
+      currency: 'GBP',
+      symbol: '£',
+      exchangeRate: 0.043,
+      flag: '🇬🇧'
+    },
+    {
+      code: 'EU',
+      name: 'European Union',
+      currency: 'EUR',
+      symbol: '€',
+      exchangeRate: 0.050,
+      flag: '🇪🇺'
+    },
+    {
+      code: 'AU',
+      name: 'Australia',
+      currency: 'AUD',
+      symbol: 'A$',
+      exchangeRate: 0.082,
+      flag: '🇦🇺'
+    },
+    {
+      code: 'CA',
+      name: 'Canada',
+      currency: 'CAD',
+      symbol: 'C$',
+      exchangeRate: 0.075,
+      flag: '🇨🇦'
+    }
+  ];
+  
+  const formatPrice = (price: number, country: Country): string => {
+    const convertedPrice = price * country.exchangeRate;
+    return `${country.symbol}${convertedPrice.toFixed(2)}`;
+  };
+  
+  const getCurrentCountry = (): Country => {
+    return countries.find(c => c.code === selectedCountry) || countries[0];
+  };
 
   const pricingTiers: PricingTier[] = [
     {
       name: "Professional",
-      price: billingCycle === 'monthly' ? "R16.70" : "R200.00",
+      basePrice: billingCycle === 'monthly' ? 16.70 : 200.00,
       period: billingCycle === 'monthly' ? "Monthly" : "Yearly",
       description: billingCycle === 'monthly' 
         ? "Flexible monthly plan for schools wanting to try our comprehensive platform"
@@ -85,6 +155,23 @@ const PricingSection: React.FC = () => {
             we have the perfect plan to enhance learning outcomes and streamline administration.
           </p>
           
+          {/* Country Selector */}
+          <div className="flex items-center justify-center mb-6">
+            <Globe className="w-5 h-5 text-gray-500 mr-2" />
+            <select
+              value={selectedCountry}
+              onChange={(e) => setSelectedCountry(e.target.value)}
+              aria-label="Select country and currency"
+              className="bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent"
+            >
+              {countries.map((country) => (
+                <option key={country.code} value={country.code}>
+                  {country.flag} {country.name} ({country.currency})
+                </option>
+              ))}
+            </select>
+          </div>
+          
           {/* Billing Toggle */}
           <div className="inline-flex items-center bg-gray-100 rounded-full p-1 mb-8">
             <button
@@ -138,8 +225,13 @@ const PricingSection: React.FC = () => {
               <div className="text-center mb-8">
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">{tier.name}</h3>
                 <div className="mb-4">
-                  <span className="text-4xl md:text-5xl font-bold text-primary">{tier.price}</span>
+                  <span className="text-4xl md:text-5xl font-bold text-primary">
+                    {formatPrice(tier.basePrice, getCurrentCountry())}
+                  </span>
                   <span className="text-gray-600 text-lg">{tier.period}</span>
+                  <div className="text-sm text-gray-500 mt-1">
+                    {getCurrentCountry().currency}
+                  </div>
                 </div>
                 <p className="text-gray-600">{tier.description}</p>
               </div>
@@ -216,10 +308,10 @@ const PricingSection: React.FC = () => {
         <div className="mt-16 text-center">
           <p className="text-gray-600 mb-8">Trusted by educational institutions worldwide</p>
           <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
-            <div className="text-2xl font-bold text-gray-400">Secure</div>
-            <div className="text-2xl font-bold text-gray-400">Reliable</div>
-            <div className="text-2xl font-bold text-gray-400">Scalable</div>
-            <div className="text-2xl font-bold text-gray-400">24/7 Support</div>
+            <div className="text-2xl font-bold text-gray-500">Secure</div>
+            <div className="text-2xl font-bold text-gray-500">Reliable</div>
+            <div className="text-2xl font-bold text-gray-500">Scalable</div>
+            <div className="text-2xl font-bold text-gray-500">24/7 Support</div>
           </div>
         </div>
       </div>
