@@ -98,7 +98,7 @@ export default function Navbar({ className }: { className?: string }) {
               className="text-base md:text-md font-semibold hover:text-primary transition-colors duration-200"
               onClick={(e) => handleSmoothScroll(e, '#about')}
             >
-              AboutUs
+              About Us
             </a>
             <a 
               href="#products" 

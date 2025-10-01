@@ -106,7 +106,7 @@ const ContactForm: React.FC = () => {
               <p className="text-white mb-6">
                 Our support team is available to help you with any questions about our platform, pricing, or implementation.
               </p>
-              <button className="bg-white text-primary px-6 py-3 rounded-lg font-semibold hover:bg-primary/80 transition-colors">
+              <button className="bg-white text-primary px-6 py-3 rounded-lg font-semibold hover:bg-white/80 transition-colors">
                 Start Live Chat
               </button>
             </div>
