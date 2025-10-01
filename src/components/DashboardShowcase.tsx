@@ -38,7 +38,7 @@ export default function DashboardShowcase({ className = "" }: DashboardShowcaseP
   ];
 
   return (
-    <div className={`w-full px-4 ${className}`}>
+    <div className={`font-sans w-full px-4 ${className}`}>
       <div className="text-center mb-12">
         <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
           Platform <span className="text-primary">Dashboard</span> Tour

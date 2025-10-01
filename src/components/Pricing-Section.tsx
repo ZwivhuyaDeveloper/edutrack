@@ -68,7 +68,7 @@ const PricingSection: React.FC = () => {
   ];
 
   return (
-    <div className="w-full px-4 py-16 bg-white">
+    <div className="font-sans w-full px-4 py-16 bg-white">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
