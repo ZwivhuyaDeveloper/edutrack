@@ -38,7 +38,7 @@ export default function DashboardShowcase({ className = "" }: DashboardShowcaseP
   ];
 
   return (
-    <div className={`w-full ${className}`}>
+    <div className={`w-full px-4 ${className}`}>
       <div className="text-center mb-12">
         <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
           Platform <span className="text-primary">Dashboard</span> Tour
@@ -87,7 +87,7 @@ export default function DashboardShowcase({ className = "" }: DashboardShowcaseP
           </div>
         ))}
       </div>
-
+ 
       {/* Call to Action */}
       <div className="text-center mt-12">
         <div className="inline-flex items-center bg-primary/10 text-primary px-6 py-3 rounded-full">

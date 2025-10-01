@@ -114,7 +114,7 @@ const StatItem: React.FC<StatItemProps> = ({ number, label, index }) => {
                     key={charIndex} 
                     className={`flex flex-col items-center justify-center ${isSpecialChar ? 'w-2 h-4' : 'w-4 h-6'} lg:mx-[calc(0.4rem)] md:mx-[calc(0.2rem)] mx-[calc(0.02rem)]`}
                 >
-                    <span className="lg:text-5xl md:text-4xl text-3xl font-bold text-teal-800 leading-none">
+                    <span className="lg:text-5xl md:text-4xl text-3xl font-bold text-primary leading-none">
                         {char}
                     </span>
                 </div>

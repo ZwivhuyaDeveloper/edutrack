@@ -103,7 +103,7 @@ export default function AboutUs() {
               )`
             }}></div>
           </div>
-          <div className="relative z-10 bg-black/50 backdrop-blur-sm rounded-lg p-4">
+          <div className="relative z-10 bg-black/20 backdrop-blur-sm rounded-lg p-4">
             <div className="flex items-center mb-2">
               <CheckCircle className="w-6 h-6 text-white mr-2" />
               <h3 className="text-xl font-bold text-white">Smart Attendance</h3>
