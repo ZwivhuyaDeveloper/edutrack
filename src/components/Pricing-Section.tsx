@@ -60,7 +60,7 @@ const PricingSection: React.FC = () => {
             <Star className="w-4 h-4 mr-2" />
             <span className="text-sm font-semibold">Flexible Pricing Plans</span>
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-4xl md:text-4xl font-bold text-gray-900 mb-6">
             Choose the Perfect Plan for Your
             <span className="text-primary"> Educational Needs</span>
           </h2>
@@ -98,7 +98,7 @@ const PricingSection: React.FC = () => {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-8 mx-80 mb-16">
           {pricingTiers.map((tier, index) => (
             <div
               key={index}
