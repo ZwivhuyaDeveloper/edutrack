@@ -98,7 +98,7 @@ const PricingSection: React.FC = () => {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-8 mx-80 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-8lg:mx-80 mb-16">
           {pricingTiers.map((tier, index) => (
             <div
               key={index}
