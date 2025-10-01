@@ -125,8 +125,8 @@ const EducationComparison: React.FC = () => {
           </div>
         </div>
 
-        {/* Comparison Table */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+        {/* Comparison Table - Desktop */}
+        <div className="hidden lg:block bg-white rounded-2xl shadow-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
@@ -170,6 +170,49 @@ const EducationComparison: React.FC = () => {
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* Comparison Cards - Mobile */}
+        <div className="lg:hidden space-y-6">
+          {comparisonData.map((item, index) => (
+            <div key={index} className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300">
+              {/* Card Header */}
+              <div className="bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-gray-900 text-sm">{item.problem}</h3>
+                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getImpactColor(item.impact)}`}>
+                    {getImpactIcon(item.impact)}
+                    <span className="ml-1 capitalize text-primary">{item.impact}</span>
+                  </span>
+                </div>
+              </div>
+              
+              {/* Card Content */}
+              <div className="p-4 space-y-4">
+                {/* Current State */}
+                <div className="space-y-2">
+                  <div className="flex items-center text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    <XCircle className="w-3 h-3 mr-1 text-red-500" />
+                    Current State
+                  </div>
+                  <div className="text-gray-600 text-sm leading-relaxed pl-4 border-l-2 border-red-200">
+                    {item.currentSolution}
+                  </div>
+                </div>
+                
+                {/* Solution */}
+                <div className="space-y-2">
+                  <div className="flex items-center text-xs font-medium text-primary uppercase tracking-wide">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    EduTrack Solution
+                  </div>
+                  <div className="text-primary text-sm font-medium leading-relaxed pl-4 border-l-2 border-primary/30">
+                    {item.ourSolution}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Key Benefits */}
