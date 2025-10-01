@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { MenuItem } from "../components/ui/navbar-menu";
-import logo from "@/assets/frame_white.png";
+import logo from "@/assets/Standalone_Logo.png";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
