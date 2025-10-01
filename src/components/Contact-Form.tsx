@@ -83,7 +83,7 @@ const ContactForm: React.FC = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold text-primary">Phone</h4>
-                    <p className="text-gray-600">+27 11 234 5678</p>
+                    <p className="text-gray-600">+1 (555) 123-4567</p>
                     <p className="text-gray-600">Mon-Fri 9AM-5PM</p>
                   </div>
                 </div>
