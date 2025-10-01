@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import { Monitor } from 'lucide-react';
 import First from '@/assets/MAIN_PAGE.png';
 import Second from '@/assets/ASSIGNMENTS_PAGE.png';
 import Third from '@/assets/MESSAGE_DASHBOARD.png';
@@ -40,6 +41,10 @@ export default function DashboardShowcase({ className = "" }: DashboardShowcaseP
   return (
     <div className={`font-sans w-full px-4 ${className}`}>
       <div className="text-center mb-12">
+        <div className="inline-flex items-center bg-primary/10 text-primary px-4 py-2 rounded-full mb-6">
+          <Monitor className="w-4 h-4 mr-2" />
+          <span className="text-sm font-semibold">Interface Showcase</span>
+        </div>
         <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
           Platform <span className="text-primary">Dashboard</span> Tour
         </h2>

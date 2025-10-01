@@ -1,5 +1,6 @@
 import AboutUs from "@/components/About-us";
 import DashboardShowcase from "@/components/DashboardShowcase";
+import EducationComparison from "@/components/Education-Comparison";
 import HeroSection from "@/components/Hero-Section";
 import PricingSection from "@/components/Pricing-Section";
 import ContactForm from "@/components/Contact-Form";
@@ -13,6 +14,7 @@ export default function Home() {
       <HeroSection />
       <AboutUs />
       <DashboardShowcase />
+      <EducationComparison />
       <PricingSection />
       <ContactForm />
       <Footer />

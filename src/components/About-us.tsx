@@ -167,7 +167,7 @@ export default function AboutUs() {
   ];
 
   return (
-    <div className="font-sans min-h-screen bg-white">
+    <div className="font-sans min-h-screen bg-white mb-20">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-white text-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24 lg:py-32">
@@ -190,6 +190,10 @@ export default function AboutUs() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
         <div className="grid grid-cols-1  lg:grid-cols-2 gap-12 items-center">
           <div>
+            <div className="inline-flex items-center bg-primary/10 text-primary px-4 py-2 rounded-full mb-6">
+              <BookOpen className="w-4 h-4 mr-2" />
+              <span className="text-sm font-semibold">Our Journey</span>
+            </div>
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
               Our <span className="text-primary">Story</span>
             </h2>
@@ -225,6 +229,10 @@ export default function AboutUs() {
       <div className="bg-white py-16 sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
+            <div className="inline-flex items-center bg-primary/10 text-primary px-4 py-2 rounded-full mb-6">
+              <Heart className="w-4 h-4 mr-2" />
+              <span className="text-sm font-semibold">What Drives Us</span>
+            </div>
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
               Our <span className="text-primary">Core Values</span>
             </h2>
@@ -250,6 +258,10 @@ export default function AboutUs() {
       {/* Features Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
         <div className="text-center mb-16">
+          <div className="inline-flex items-center bg-primary/10 text-primary px-4 py-2 rounded-full mb-6">
+            <Lightbulb className="w-4 h-4 mr-2" />
+            <span className="text-sm font-semibold">Unique Approach</span>
+          </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
             What Makes Us <span className="text-primary">Different</span>
           </h2>
