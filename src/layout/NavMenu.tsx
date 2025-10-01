@@ -1,14 +1,36 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MenuItem } from "../components/ui/navbar-menu";
 import logo from "@/assets/Standalone_Logo.png";
-import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 
 export default function Navbar({ className }: { className?: string }) {
+  
+  const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    const targetElement = document.getElementById(targetId.replace('#', ''));
+    if (targetElement) {
+      const headerOffset = 80; // Account for fixed navbar height
+      const elementPosition = targetElement.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Add smooth scrolling CSS to the document
+  useEffect(() => {
+    document.documentElement.style.scrollBehavior = 'smooth';
+    return () => {
+      document.documentElement.style.scrollBehavior = 'auto';
+    };
+  }, []);
   const [active, setActive] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -71,18 +93,41 @@ export default function Navbar({ className }: { className?: string }) {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-12">
-            <Link href="/features" className="text-base md:text-md font-semibold">
+            <a 
+              href="#about" 
+              className="text-base md:text-md font-semibold hover:text-primary transition-colors duration-200"
+              onClick={(e) => handleSmoothScroll(e, '#about')}
+            >
+              AboutUs
+            </a>
+            <a 
+              href="#products" 
+              className="text-base md:text-md font-semibold hover:text-primary transition-colors duration-200"
+              onClick={(e) => handleSmoothScroll(e, '#products')}
+            >
+              Products
+            </a>
+            <a 
+              href="#features" 
+              className="text-base md:text-md font-semibold hover:text-primary transition-colors duration-200"
+              onClick={(e) => handleSmoothScroll(e, '#features')}
+            >
               Features
-            </Link>
-            <Link href="/about" className="text-base md:text-md font-semibold">
-              About us
-            </Link>
-            <Link href="/pricing" className="text-base md:text-md font-semibold">
+            </a>
+            <a 
+              href="#pricing" 
+              className="text-base md:text-md font-semibold hover:text-primary transition-colors duration-200"
+              onClick={(e) => handleSmoothScroll(e, '#pricing')}
+            >
               Pricing
-            </Link>
-            <Link href="/learn-more" className="text-base md:text-md font-semibold">
-              Learn More
-            </Link>
+            </a>
+            <a 
+              href="#contact" 
+              className="text-base md:text-md font-semibold hover:text-primary transition-colors duration-200"
+              onClick={(e) => handleSmoothScroll(e, '#contact')}
+            >
+              Contact Us
+            </a>
           </div>
 
           {/* Desktop Buttons */}
@@ -126,40 +171,58 @@ export default function Navbar({ className }: { className?: string }) {
       >
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white/98 border-t border-gray-200 shadow-xl backdrop-blur-sm">
           <div className="flex flex-col space-y-1 py-4">
-            <button
-              onClick={() => {
-                setActive("Features");
+            <a
+              href="#about"
+              onClick={(e) => {
+                handleSmoothScroll(e, '#about');
                 setIsMenuOpen(false);
               }}
-              className={`text-left px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 transform hover:translate-x-1 ${active === "Features" ? "text-teal-700 bg-teal-50 border-l-4 border-teal-700" : "text-gray-700 hover:text-teal-700 hover:bg-gray-50 hover:shadow-sm"}`}
+              className={`text-left px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 transform hover:translate-x-1 block ${active === "About us" ? "text-primary bg-primary/10 border-l-4 border-primary" : "text-gray-700 hover:text-primary hover:bg-gray-50 hover:shadow-sm"}`}
             >
               <div className="flex items-center justify-between">
-                <span>Features</span>
-                <svg className={`w-4 h-4 transition-transform duration-200 ${active === "Features" ? "rotate-90 text-teal-700" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </button>
-            <button
-              onClick={() => {
-                setActive("About us");
-                setIsMenuOpen(false);
-              }}
-              className={`text-left px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 transform hover:translate-x-1 ${active === "About us" ? "text-primary bg-primary border-l-4 border-primary" : "text-gray-700 hover:text-primary hover:bg-gray-50 hover:shadow-sm"}`}
-            >
-              <div className="flex items-center justify-between">
-                <span>About us</span>
+                <span>About Us</span>
                 <svg className={`w-4 h-4 transition-transform duration-200 ${active === "About us" ? "rotate-90 text-primary" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
-            </button>
-            <button
-              onClick={() => {
-                setActive("Pricing");
+            </a>
+            <a
+              href="#products"
+              onClick={(e) => {
+                handleSmoothScroll(e, '#products');
                 setIsMenuOpen(false);
               }}
-              className={`text-left px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 transform hover:translate-x-1 ${active === "Pricing" ? "text-primary bg-primary border-l-4 border-primary" : "text-gray-700 hover:text-primary hover:bg-gray-50 hover:shadow-sm"}`}
+              className={`text-left px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 transform hover:translate-x-1 block ${active === "Products" ? "text-primary bg-primary/10 border-l-4 border-primary" : "text-gray-700 hover:text-primary hover:bg-gray-50 hover:shadow-sm"}`}
+            >
+              <div className="flex items-center justify-between">
+                <span>Products</span>
+                <svg className={`w-4 h-4 transition-transform duration-200 ${active === "Products" ? "rotate-90 text-primary" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </a>
+            <a
+              href="#features"
+              onClick={(e) => {
+                handleSmoothScroll(e, '#features');
+                setIsMenuOpen(false);
+              }}
+              className={`text-left px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 transform hover:translate-x-1 block ${active === "Features" ? "text-primary bg-primary/10 border-l-4 border-primary" : "text-gray-700 hover:text-primary hover:bg-gray-50 hover:shadow-sm"}`}
+            >
+              <div className="flex items-center justify-between">
+                <span>Features</span>
+                <svg className={`w-4 h-4 transition-transform duration-200 ${active === "Features" ? "rotate-90 text-primary" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </a>
+            <a
+              href="#pricing"
+              onClick={(e) => {
+                handleSmoothScroll(e, '#pricing');
+                setIsMenuOpen(false);
+              }}
+              className={`text-left px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 transform hover:translate-x-1 block ${active === "Pricing" ? "text-primary bg-primary/10 border-l-4 border-primary" : "text-gray-700 hover:text-primary hover:bg-gray-50 hover:shadow-sm"}`}
             >
               <div className="flex items-center justify-between">
                 <span>Pricing</span>
@@ -167,21 +230,22 @@ export default function Navbar({ className }: { className?: string }) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
-            </button>
-            <button
-              onClick={() => {
-                setActive("Learn More");
+            </a>
+            <a
+              href="#contact"
+              onClick={(e) => {
+                handleSmoothScroll(e, '#contact');
                 setIsMenuOpen(false);
               }}
-              className={`text-left px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 transform hover:translate-x-1 ${active === "Learn More" ? "text-primary bg-primary border-l-4 border-primary" : "text-gray-700 hover:text-primary hover:bg-gray-50 hover:shadow-sm"}`}
+              className={`text-left px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 transform hover:translate-x-1 block ${active === "Contact Us" ? "text-primary bg-primary/10 border-l-4 border-primary" : "text-gray-700 hover:text-primary hover:bg-gray-50 hover:shadow-sm"}`}
             >
               <div className="flex items-center justify-between">
-                <span>Learn More</span>
-                <svg className={`w-4 h-4 transition-transform duration-200 ${active === "Learn More" ? "rotate-90 text-primary" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span>Contact Us</span>
+                <svg className={`w-4 h-4 transition-transform duration-200 ${active === "Contact Us" ? "rotate-90 text-primary" : "text-gray-400"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
-            </button>
+            </a>
           </div>
           <div className="flex flex-col space-y-3 px-4 py-4 border-t border-gray-200 bg-gray-50/50">
             <Button 

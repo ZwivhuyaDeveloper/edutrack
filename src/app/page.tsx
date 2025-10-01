@@ -12,11 +12,21 @@ export default function Home() {
     <div className="max-h-screen max-w-screen">
       <NavMenu />
       <HeroSection />
-      <AboutUs />
-      <DashboardShowcase />
-      <EducationComparison />
-      <PricingSection />
-      <ContactForm />
+      <div id="about">
+        <AboutUs />
+      </div>
+      <div id="products">
+        <DashboardShowcase />
+      </div>
+      <div id="features">
+        <EducationComparison />
+      </div>
+      <div id="pricing">
+        <PricingSection />
+      </div>
+      <div id="contact">
+        <ContactForm />
+      </div>
       <Footer />
     </div>
   );
