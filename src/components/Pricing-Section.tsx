@@ -162,7 +162,7 @@ const PricingSection: React.FC = () => {
               value={selectedCountry}
               onChange={(e) => setSelectedCountry(e.target.value)}
               aria-label="Select country and currency"
-              className="bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="font-sans bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent"
             >
               {countries.map((country) => (
                 <option key={country.code} value={country.code}>

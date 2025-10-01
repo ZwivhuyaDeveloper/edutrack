@@ -95,9 +95,7 @@ const ContactForm: React.FC = () => {
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">Office</h4>
-                    <p className="text-gray-600">123 Education Street</p>
-                    <p className="text-gray-600">Johannesburg, South Africa</p>
+                    <p className="text-gray-600">Cape Town, South Africa</p>
                   </div>
                 </div>
               </div>
