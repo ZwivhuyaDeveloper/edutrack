@@ -25,7 +25,7 @@ export const MenuItem = ({
 }: {
   setActive: (item: string) => void;
   active: string | null;
-  item: string;
+  item: string; 
   children?: React.ReactNode;
   className?: string;
 }) => {

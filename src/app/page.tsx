@@ -1,6 +1,7 @@
 import AboutUs from "@/components/About-us";
 import DashboardShowcase from "@/components/DashboardShowcase";
 import HeroSection from "@/components/Hero-Section";
+import PricingSection from "@/components/Pricing-Section";
 import Footer from "@/layout/Footer";
 import NavMenu from "@/layout/NavMenu";
 
@@ -11,6 +12,7 @@ export default function Home() {
       <HeroSection />
       <AboutUs />
       <DashboardShowcase />
+      <PricingSection />
       <Footer />
     </div>
   );
