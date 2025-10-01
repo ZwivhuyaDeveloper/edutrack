@@ -1,7 +1,67 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { Check, X, Star, ArrowRight, Globe } from 'lucide-react';
+
+interface FlagProps {
+  countryCode: string;
+  className?: string;
+}
+
+const Flag: React.FC<FlagProps> = ({ countryCode, className = '' }) => {
+  // Country code to flagcdn.com code mapping
+  const flagCodeMap: Record<string, string> = {
+    'ZA': 'za',
+    'US': 'us',
+    'GB': 'gb',
+    'EU': 'eu',
+    'AU': 'au',
+    'CA': 'ca'
+  };
+
+  const flagCode = flagCodeMap[countryCode] || countryCode.toLowerCase();
+  
+  // Country names for alt text
+  const countryNames: Record<string, string> = {
+    'ZA': 'South Africa',
+    'US': 'United States',
+    'GB': 'United Kingdom',
+    'EU': 'European Union',
+    'AU': 'Australia',
+    'CA': 'Canada'
+  };
+
+  const countryName = countryNames[countryCode] || countryCode;
+  
+  return (
+    <Image
+      src={`https://flagcdn.com/16x12/${flagCode}.png`}
+      alt={`${countryName} flag`}
+      width={16}
+      height={12}
+      className={`inline-block align-middle ${className}`}
+      onError={(e) => {
+        // Fallback to emoji if image fails to load
+        const fallbackMap: Record<string, string> = {
+          'ZA': '🇿🇦',
+          'US': '🇺🇸',
+          'GB': '🇬🇧',
+          'EU': '🇪🇺',
+          'AU': '🇦🇺',
+          'CA': '🇨🇦'
+        };
+        const fallback = fallbackMap[countryCode] || '🏳️';
+        const span = document.createElement('span');
+        span.textContent = fallback;
+        span.className = `inline-block align-middle ${className}`;
+        span.setAttribute('aria-label', `${countryName} flag`);
+        span.setAttribute('role', 'img');
+        e.currentTarget.parentNode?.replaceChild(span, e.currentTarget);
+      }}
+    />
+  );
+};
 
 interface PricingTier {
   name: string;
@@ -27,6 +87,22 @@ interface Country {
 const PricingSection: React.FC = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
   const [selectedCountry, setSelectedCountry] = useState<string>('ZA');
+  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
   
   const countries: Country[] = [
     {
@@ -158,18 +234,48 @@ const PricingSection: React.FC = () => {
           {/* Country Selector */}
           <div className="flex items-center justify-center mb-6">
             <Globe className="w-5 h-5 text-gray-500 mr-2" />
-            <select
-              value={selectedCountry}
-              onChange={(e) => setSelectedCountry(e.target.value)}
-              aria-label="Select country and currency"
-              className="font-sans bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent"
-            >
-              {countries.map((country) => (
-                <option key={country.code} value={country.code}>
-                  {country.flag} {country.name} ({country.currency})
-                </option>
-              ))}
-            </select>
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="font-sans bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 focus:ring-2 focus:ring-primary focus:border-transparent min-w-[200px] flex items-center justify-between"
+                aria-label="Select country and currency"
+                aria-expanded={isDropdownOpen ? 'true' : 'false'}
+              >
+                <div className="flex items-center">
+                  <Flag countryCode={selectedCountry} className="mr-2" />
+                  <span>{getCurrentCountry().name} ({getCurrentCountry().currency})</span>
+                </div>
+                <svg 
+                  className={`w-4 h-4 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {isDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                  {countries.map((country) => (
+                    <button
+                      key={country.code}
+                      onClick={() => {
+                        setSelectedCountry(country.code);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`w-full px-4 py-2 text-left text-sm font-medium flex items-center hover:bg-gray-50 transition-colors duration-150 ${
+                        selectedCountry === country.code ? 'bg-primary/10 text-primary' : 'text-gray-700'
+                      }`}
+                    >
+                      <Flag countryCode={country.code} className="mr-3" />
+                      <span>{country.name}</span>
+                      <span className="ml-auto text-gray-500">({country.currency})</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           
           {/* Billing Toggle */}
