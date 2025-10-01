@@ -1,7 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import logo from '@/assets/logo_white.png';
+import logo from '@/assets/frame_white.png';
 import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin, X } from 'lucide-react';
 
 export default function Footer() {

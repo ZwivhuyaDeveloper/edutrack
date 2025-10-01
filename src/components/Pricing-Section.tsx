@@ -19,37 +19,14 @@ const PricingSection: React.FC = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
 
   const pricingTiers: PricingTier[] = [
-    {
-      name: "Starter",
-      price: billingCycle === 'monthly' ? "$6.70" : "$67.0",
-      period: billingCycle === 'monthly' ? "/month" : "/year",
-      description: "Perfect for small schools and individual teachers getting started",
-      features: [
-        "Up to 100 students",
-        "Basic attendance tracking",
-        "Simple grade book",
-        "Parent messaging",
-        "Basic reporting",
-        "Email support",
-        "Mobile app access"
-      ],
-      notIncluded: [
-        "Advanced analytics",
-        "AI-powered insights",
-        "Custom integrations",
-        "Priority support",
-        "White-label options"
-      ],
-      highlighted: false,
-      ctaText: "Get Started"
-    },
+
     {
       name: "Professional",
-      price: billingCycle === 'monthly' ? "$12.70" : "$127.00",
-      period: billingCycle === 'monthly' ? "/month" : "/year",
+      price: billingCycle === 'monthly' ? "R16.70" : "R200.00",
+      period: billingCycle === 'monthly' ? "Monthly" : "Yearly",
       description: "Ideal for growing schools needing comprehensive features",
       features: [
-        "Up to 500 students",
+        "Per Learner Per Month",
         "Advanced attendance tracking",
         "Comprehensive grade book",
         "Parent & student portals",
@@ -71,33 +48,11 @@ const PricingSection: React.FC = () => {
       popular: true,
       ctaText: "Start Free Trial"
     },
-    {
-      name: "Enterprise",
-      price: "Custom",
-      period: "",
-      description: "For large institutions and districts requiring maximum flexibility",
-      features: [
-        "Unlimited students",
-        "Complete feature access",
-        "Advanced AI & ML features",
-        "Priority 24/7 support",
-        "White-label solution",
-        "Custom integrations",
-        "API access",
-        "Dedicated account manager",
-        "Custom development",
-        "Advanced security",
-        "SLA guarantee",
-        "Training & onboarding"
-      ],
-      notIncluded: [],
-      highlighted: false,
-      ctaText: "Contact Sales"
-    }
+
   ];
 
   return (
-    <div className="w-full px-4 py-16 bg-gradient-to-b from-gray-50 to-white">
+    <div className="w-full px-4 py-16 bg-white">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
@@ -143,7 +98,7 @@ const PricingSection: React.FC = () => {
         </div>
 
         {/* Pricing Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-8 mb-16">
           {pricingTiers.map((tier, index) => (
             <div
               key={index}
