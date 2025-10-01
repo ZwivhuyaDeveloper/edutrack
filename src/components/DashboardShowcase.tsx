@@ -145,7 +145,7 @@ export default function DashboardShowcase({ className = "" }: DashboardShowcaseP
   const currentRole = roleData[activeRole];
 
   return (
-    <div className={`font-sans w-full px-4 ${className}`}>
+    <div className={`font-sans w-full px-4 mb-20 ${className}`}>
       <div className="text-center mb-12">
         <div className="inline-flex items-center bg-primary/10 text-primary px-4 py-2 rounded-full mb-6">
           <Monitor className="w-4 h-4 mr-2" />
