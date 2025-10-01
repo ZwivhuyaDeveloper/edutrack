@@ -168,7 +168,7 @@ export default function DashboardShowcase({ className = "" }: DashboardShowcaseP
               <button
                 key={key}
                 onClick={() => setActiveRole(key as 'learner' | 'teacher' | 'principal' | 'parent')}
-                className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 font-medium text-sm ${
+                className={`flex items-center px-4 py-3 rounded-lg transition-all duration-200 font-medium lg:text-sm md:text-sm text-xs ${
                   activeRole === key
                     ? 'bg-white text-primary shadow-md'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
