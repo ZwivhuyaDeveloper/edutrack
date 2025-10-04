@@ -2,30 +2,15 @@
 
 import * as React from "react"
 import {
-  AudioWaveform,
-  BarChart,
-  Blocks,
   BlocksIcon,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  GalleryVerticalEndIcon,
   Grid,
-  Map,
   MessageCircle,
   MessageCirclePlus,
-  MessageSquarePlus,
-  Newspaper,
   PaperclipIcon,
-  PieChart,
-  Settings2,
-  SquareTerminal,
+  Newspaper,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
 import {
@@ -37,6 +22,54 @@ import {
 } from "@/components/ui/sidebar"
 import Image from "next/image"
 import logo from "@/assets/Standalone_Logo.png"
+
+// Role-based navigation data
+const getRoleBasedNavigation = (userRole: string) => {
+  const baseNav = [
+    {
+      title: "Dashboard",
+      url: "#",
+      icon: BlocksIcon,
+      isActive: true,
+    },
+    {
+      title: "Assignments",
+      url: "#",
+      icon: PaperclipIcon,
+    },
+    {
+      title: "Reports",
+      url: "#",
+      icon: Newspaper,
+    },
+    {
+      title: "Messages",
+      url: "#",
+      icon: MessageCirclePlus,
+    },
+  ]
+
+  // Customize navigation based on role
+  switch (userRole) {
+    case "teacher":
+      return baseNav.map(item => ({
+        ...item,
+        title: item.title === "Dashboard" ? "Teacher Dashboard" : item.title,
+      }))
+    case "principal":
+      return baseNav.map(item => ({
+        ...item,
+        title: item.title === "Dashboard" ? "Principal Dashboard" : item.title,
+      }))
+    case "parent":
+      return baseNav.map(item => ({
+        ...item,
+        title: item.title === "Dashboard" ? "Parent Dashboard" : item.title,
+      }))
+    default: // learner
+      return baseNav
+  }
+}
 
 // This is sample data.
 const data = {
@@ -52,32 +85,6 @@ const data = {
       plan: "AI SOFTWARE",
     },
 
-  ],
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "#",
-      icon: BlocksIcon,
-      isActive: true,
-    },
-    {
-      title: "Assignments",
-      url: "#",
-      icon: PaperclipIcon,
-
-    },
-    {
-      title: "Reports",
-      url: "#",
-      icon: Newspaper,
-
-    },
-    {
-      title: "Messages",
-      url: "#",
-      icon: MessageCirclePlus,
-
-    },
   ],
   pages: [
     {
@@ -104,20 +111,25 @@ const data = {
 }
 
 type PageType = "dashboard" | "assignments" | "reports" | "messages"
+type UserRole = "learner" | "teacher" | "principal" | "parent"
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   onNavigate?: (page: PageType) => void
   activePage?: PageType
+  userRole?: UserRole
 }
 
-export function AppSidebar({ onNavigate, activePage, ...props }: AppSidebarProps) {
+export function AppSidebar({ onNavigate, activePage, userRole = "learner", ...props }: AppSidebarProps) {
+  // Get role-based navigation items
+  const navItems = React.useMemo(() => getRoleBasedNavigation(userRole), [userRole])
+
   return (
-    <Sidebar collapsible="icon" {...props} className="items-center">
+    <Sidebar collapsible="icon" {...props} className="items-center font-sans">
       <SidebarHeader className="mb-12 ml-1 mt-5">
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} onNavigate={onNavigate} activePage={activePage} />
+        <NavMain items={navItems} onNavigate={onNavigate} activePage={activePage} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />

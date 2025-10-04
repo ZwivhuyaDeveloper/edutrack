@@ -38,7 +38,9 @@ interface NavMainProps {
 export function NavMain({ items, onNavigate, activePage }: NavMainProps) {
   const handleItemClick = (title: string) => {
     if (onNavigate) {
-      switch (title.toLowerCase()) {
+      // Extract base title for navigation (remove role prefix)
+      const baseTitle = title.toLowerCase().replace(/^(teacher|principal|parent)\s+/, '')
+      switch (baseTitle) {
         case "dashboard":
           onNavigate("dashboard")
           break
@@ -55,15 +57,20 @@ export function NavMain({ items, onNavigate, activePage }: NavMainProps) {
     }
   }
 
+  const isItemActive = (title: string) => {
+    const baseTitle = title.toLowerCase().replace(/^(teacher|principal|parent)\s+/, '')
+    return activePage === baseTitle
+  }
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
-      <SidebarMenu>
+      <SidebarMenu className="font-sans">
         {items.map((item) => (
           <Collapsible
             key={item.title}
             asChild
-            defaultOpen={item.isActive || activePage === item.title.toLowerCase()}
+            defaultOpen={item.isActive || isItemActive(item.title)}
             className="group/collapsible"
           >
             <SidebarMenuItem>
@@ -74,20 +81,27 @@ export function NavMain({ items, onNavigate, activePage }: NavMainProps) {
                   onClick={() => handleItemClick(item.title)}
                   className={`
                     transition-colors duration-200 ease-in-out
-                    ${activePage === item.title.toLowerCase()
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                    }
+                    ${(() => {
+                      // Handle role-based title matching
+                      const baseTitle = item.title.toLowerCase().replace(/^(teacher|principal|parent)\s+/, '')
+                      return activePage === baseTitle
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    })()}
                   `}
                 >
                   <div className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors duration-200 ${
-                    activePage === item.title.toLowerCase()
-                      ? "text-primary-foreground"
-                      : "text-sidebar-foreground/70 group-hover:text-sidebar-accent-foreground"
+                    (() => {
+                      // Handle role-based title matching
+                      const baseTitle = item.title.toLowerCase().replace(/^(teacher|principal|parent)\s+/, '')
+                      return activePage === baseTitle
+                        ? "text-primary-foreground"
+                        : "text-sidebar-foreground/70 group-hover:text-sidebar-accent-foreground"
+                    })()
                   }`}>
                     {item.icon && <item.icon size={18} />}
                   </div>
-                  <span className="ml-3 font-medium">
+                  <span className="ml-1 font-medium">
                     {item.title}
                   </span>
                 </SidebarMenuButton>
