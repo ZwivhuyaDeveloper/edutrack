@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronRight, Circle, Dot, type LucideIcon } from "lucide-react"
+import { type LucideIcon } from "lucide-react"
 
 import {
   Collapsible,
@@ -72,13 +72,24 @@ export function NavMain({ items, onNavigate, activePage }: NavMainProps) {
                   size="default"
                   tooltip={item.title}
                   onClick={() => handleItemClick(item.title)}
-                  className={activePage === item.title.toLowerCase() ? "bg-sidebar-accent" : ""}
+                  className={`
+                    transition-colors duration-200 ease-in-out
+                    ${activePage === item.title.toLowerCase()
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    }
+                  `}
                 >
-                  <span className="size-8">
-                    {item.icon && <item.icon size={25} />}
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-md transition-colors duration-200 ${
+                    activePage === item.title.toLowerCase()
+                      ? "text-primary-foreground"
+                      : "text-sidebar-foreground/70 group-hover:text-sidebar-accent-foreground"
+                  }`}>
+                    {item.icon && <item.icon size={18} />}
+                  </div>
+                  <span className="ml-3 font-medium">
+                    {item.title}
                   </span>
-                  <span>{item.title}</span>
-                  <Dot className="ml-auto size-2 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                 </SidebarMenuButton>
               </CollapsibleTrigger>
               <CollapsibleContent>
