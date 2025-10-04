@@ -112,7 +112,6 @@
   --sidebar-ring: oklch(0.527 0.154 150.069);
 }
 
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -121,7 +120,6 @@
     @apply bg-background text-foreground;
   }
 }
-
 
 .ticker-view {
   height: auto;
