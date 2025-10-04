@@ -127,7 +127,7 @@ export default function Page() {
     <SidebarProvider>
       <AppSidebar onNavigate={setActivePage} activePage={activePage} userRole={userRole} />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center justify-between px-4 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 font-sans">
+        <header className="flex h-16 shrink-0 bg-zinc-100 rounded-xl shadow-lg mx-4 mt-6 mb-4 items-center justify-between px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 font-sans border border-gray-200/50">
           {/* Left section - Sidebar trigger */}
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
@@ -194,7 +194,7 @@ export default function Page() {
         </header>
 
         {/* Main content area */}
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0 font-sans">
+        <div className="flex flex-1 bg-zinc-100 flex-col gap-4 p-4 pt-0 font-sans">
           {renderPageContent()}
         </div>
       </SidebarInset>

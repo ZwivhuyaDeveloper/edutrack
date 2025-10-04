@@ -29,6 +29,8 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@/components/ui/toggle-group"
+import { Book } from "lucide-react"
+import { Separator } from '@/components/ui/separator';
 
 export const description = "An interactive area chart"
 
@@ -165,15 +167,12 @@ export function ChartAreaInteractive() {
   })
 
   return (
-    <Card className="@container/card">
-      <CardHeader>
-        <CardTitle>Total Visitors</CardTitle>
-        <CardDescription>
-          <span className="hidden @[540px]/card:block">
-            Total for the last 3 months
-          </span>
-          <span className="@[540px]/card:hidden">Last 3 months</span>
-        </CardDescription>
+    <Card className="font-sans @container/card pt-0 pb-0 border-0 bg-transparent gap-2 rounded-4xl shadow-none">
+      <CardHeader className="w-full px-0">
+        <CardTitle className="flex items-center w-full text-lg text-primary gap-1">
+          <Book strokeWidth={2} className="mr-2 size-7" />
+          Academic Performance
+        </CardTitle>
         <CardAction>
           <ToggleGroup
             type="single"
@@ -208,10 +207,11 @@ export function ChartAreaInteractive() {
           </Select>
         </CardAction>
       </CardHeader>
-      <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+      <Separator orientation="horizontal" className="mr-2 h-px w-full bg-foreground/20" />
+      <CardContent className="px-1 pt-4 sm:px-1 sm:pt-6">
         <ChartContainer
           config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
+          className="aspect-auto h-[200px] w-full"
         >
           <AreaChart data={filteredData}>
             <defs>
