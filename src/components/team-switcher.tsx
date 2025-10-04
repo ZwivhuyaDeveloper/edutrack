@@ -55,7 +55,7 @@ export function TeamSwitcher({
               </div>
               <div className={`grid flex-1 text-left leading-tight ${isCollapsed ? 'hidden' : ''}`}>
                 <span className="truncate text-md font-bold">{activeTeam.name}</span>
-                <span className="truncate text-xs font-medium tracking-wider">{activeTeam.plan}</span>
+                <span className="truncate text-xs font-medium tracking-widest">{activeTeam.plan}</span>
               </div>
               <ChevronsUpDown className={`ml-auto ${isCollapsed ? 'hidden' : ''}`} />
             </SidebarMenuButton>

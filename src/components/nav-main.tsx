@@ -18,9 +18,9 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
 
-export function NavMain({
-  items,
-}: {
+type PageType = "dashboard" | "assignments" | "reports" | "messages"
+
+interface NavMainProps {
   items: {
     title: string
     url: string
@@ -31,7 +31,30 @@ export function NavMain({
       url: string
     }[]
   }[]
-}) {
+  onNavigate?: (page: PageType) => void
+  activePage?: PageType
+}
+
+export function NavMain({ items, onNavigate, activePage }: NavMainProps) {
+  const handleItemClick = (title: string) => {
+    if (onNavigate) {
+      switch (title.toLowerCase()) {
+        case "dashboard":
+          onNavigate("dashboard")
+          break
+        case "assignments":
+          onNavigate("assignments")
+          break
+        case "reports":
+          onNavigate("reports")
+          break
+        case "messages":
+          onNavigate("messages")
+          break
+      }
+    }
+  }
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
@@ -40,17 +63,22 @@ export function NavMain({
           <Collapsible
             key={item.title}
             asChild
-            defaultOpen={item.isActive}
+            defaultOpen={item.isActive || activePage === item.title.toLowerCase()}
             className="group/collapsible"
           >
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
-                <SidebarMenuButton size="default" tooltip={item.title}>
+                <SidebarMenuButton
+                  size="default"
+                  tooltip={item.title}
+                  onClick={() => handleItemClick(item.title)}
+                  className={activePage === item.title.toLowerCase() ? "bg-sidebar-accent" : ""}
+                >
                   <span className="size-8">
                     {item.icon && <item.icon size={25} />}
                   </span>
                   <span>{item.title}</span>
-                  <Dot  className="ml-auto size-2 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                  <Dot className="ml-auto size-2 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                 </SidebarMenuButton>
               </CollapsibleTrigger>
               <CollapsibleContent>

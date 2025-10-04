@@ -37,7 +37,6 @@ import {
 } from "@/components/ui/sidebar"
 import Image from "next/image"
 import logo from "@/assets/Standalone_Logo.png"
-import { IconReport } from "@tabler/icons-react"
 
 // This is sample data.
 const data = {
@@ -70,7 +69,7 @@ const data = {
     {
       title: "Reports",
       url: "#",
-      icon: IconReport,
+      icon: Newspaper,
 
     },
     {
@@ -104,14 +103,21 @@ const data = {
   ],
 }
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+type PageType = "dashboard" | "assignments" | "reports" | "messages"
+
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  onNavigate?: (page: PageType) => void
+  activePage?: PageType
+}
+
+export function AppSidebar({ onNavigate, activePage, ...props }: AppSidebarProps) {
   return (
     <Sidebar collapsible="icon" {...props} className="items-center">
       <SidebarHeader className="mb-12 ml-1 mt-5">
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={data.navMain} onNavigate={onNavigate} activePage={activePage} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
