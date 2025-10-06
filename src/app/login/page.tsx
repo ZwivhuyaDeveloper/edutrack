@@ -216,6 +216,19 @@ export default function LoginPage() {
               </div>
             </div>
           </div>
+
+          <div className="mt-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              Don&apos;t have an account?{' '}
+              <button
+                type="button"
+                onClick={() => router.push('/register')}
+                className="text-primary hover:text-primary/80 font-medium"
+              >
+                Sign up here
+              </button>
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

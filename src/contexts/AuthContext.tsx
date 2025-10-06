@@ -4,12 +4,26 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 
 export type UserRole = "learner" | "teacher" | "principal" | "parent"
 
+export interface RegistrationData {
+  name: string
+  email: string
+  password: string
+  role: UserRole
+  relatedUserIds?: string[] // For parent-child relationships
+}
+
 export interface User {
   id: string
   name: string
   email: string
   role: UserRole
   avatar?: string
+}
+
+export interface ParentChildRelationship {
+  parentId: string
+  childId: string
+  relationship: 'parent' | 'guardian'
 }
 
 interface AuthContextType {
@@ -21,6 +35,10 @@ interface AuthContextType {
   hasRole: (role: UserRole) => boolean
   canAccess: (allowedRoles: UserRole[]) => boolean
   switchRole: (newRole: UserRole) => boolean
+  register: (userData: RegistrationData) => Promise<boolean>
+  getRelatedUsers: (userId: string) => User[]
+  getChildrenForParent: (parentId: string) => User[]
+  getParentForChild: (childId: string) => User | null
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -66,8 +84,24 @@ const mockUsers: Record<string, { password: string; user: User }> = {
       role: 'parent',
       avatar: '/placeholder-avatar.jpg'
     }
+  },
+  'learner2@edutrack.com': {
+    password: 'password123',
+    user: {
+      id: '5',
+      name: 'Jane Student',
+      email: 'learner2@edutrack.com',
+      role: 'learner',
+      avatar: '/placeholder-avatar.jpg'
+    }
   }
 }
+
+// Mock parent-child relationships
+const mockParentChildRelationships: ParentChildRelationship[] = [
+  { parentId: '4', childId: '1', relationship: 'parent' }, // Lisa Parent -> John Student
+  { parentId: '4', childId: '5', relationship: 'parent' }, // Lisa Parent -> Jane Student
+]
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
@@ -108,6 +142,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return false
   }
 
+  const register = async (userData: RegistrationData): Promise<boolean> => {
+    setIsLoading(true)
+
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    // Check if email already exists
+    if (mockUsers[userData.email.toLowerCase()]) {
+      setIsLoading(false)
+      return false
+    }
+
+    // Create new user
+    const newUser: User = {
+      id: (Object.keys(mockUsers).length + 1).toString(),
+      name: userData.name,
+      email: userData.email,
+      role: userData.role,
+      avatar: '/placeholder-avatar.jpg'
+    }
+
+    // Add to mock users
+    mockUsers[userData.email.toLowerCase()] = {
+      password: userData.password,
+      user: newUser
+    }
+
+    // Handle parent-child relationships if provided
+    if (userData.relatedUserIds && userData.relatedUserIds.length > 0) {
+      userData.relatedUserIds.forEach(relatedId => {
+        if (userData.role === 'parent') {
+          mockParentChildRelationships.push({
+            parentId: newUser.id,
+            childId: relatedId,
+            relationship: 'parent'
+          })
+        } else if (userData.role === 'learner') {
+          mockParentChildRelationships.push({
+            parentId: relatedId,
+            childId: newUser.id,
+            relationship: 'parent'
+          })
+        }
+      })
+    }
+
+    setIsLoading(false)
+    return true
+  }
+
   const logout = () => {
     setUser(null)
     localStorage.removeItem('edutrack_user')
@@ -133,6 +217,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return user ? allowedRoles.includes(user.role) : false
   }
 
+  const getRelatedUsers = (userId: string): User[] => {
+    const relatedUsers: User[] = []
+
+    // Find relationships for this user
+    mockParentChildRelationships.forEach(relationship => {
+      if (relationship.parentId === userId || relationship.childId === userId) {
+        const relatedUserId = relationship.parentId === userId ? relationship.childId : relationship.parentId
+        const relatedUser = Object.values(mockUsers).find(mockUser => mockUser.user.id === relatedUserId)?.user
+        if (relatedUser) {
+          relatedUsers.push(relatedUser)
+        }
+      }
+    })
+
+    return relatedUsers
+  }
+
+  const getChildrenForParent = (parentId: string): User[] => {
+    const children: User[] = []
+
+    mockParentChildRelationships.forEach(relationship => {
+      if (relationship.parentId === parentId) {
+        const child = Object.values(mockUsers).find(mockUser => mockUser.user.id === relationship.childId)?.user
+        if (child) {
+          children.push(child)
+        }
+      }
+    })
+
+    return children
+  }
+
+  const getParentForChild = (childId: string): User | null => {
+    const relationship = mockParentChildRelationships.find(rel => rel.childId === childId)
+    if (relationship) {
+      return Object.values(mockUsers).find(mockUser => mockUser.user.id === relationship.parentId)?.user || null
+    }
+    return null
+  }
+
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
@@ -141,7 +265,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     hasRole,
     canAccess,
-    switchRole
+    switchRole,
+    register,
+    getRelatedUsers,
+    getChildrenForParent,
+    getParentForChild
   }
 
   return (
