@@ -1,12 +1,26 @@
 import { NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
 import { getCurrentUser, getDashboardRoute, PERMISSIONS } from '@/lib/auth'
 
 export async function GET() {
   try {
+    // First check if user is authenticated with Clerk
+    const { userId } = await auth()
+    
+    console.log('[/api/users/me] Clerk userId:', userId)
+    
+    if (!userId) {
+      console.log('[/api/users/me] No Clerk userId found - returning 401')
+      return NextResponse.json({ error: 'Unauthorized - Not authenticated with Clerk' }, { status: 401 })
+    }
+    
     const user = await getCurrentUser()
     
+    console.log('[/api/users/me] Database user found:', user ? 'Yes' : 'No')
+    
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      console.log('[/api/users/me] User authenticated with Clerk but not found in database')
+      return NextResponse.json({ error: 'User not found in database' }, { status: 404 })
     }
 
     // Get role-specific profile

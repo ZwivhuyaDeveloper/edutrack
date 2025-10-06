@@ -126,50 +126,34 @@ export default function SchoolSetupPage() {
     setError('')
 
     try {
-      // Step 1: Create Clerk organization (this will trigger webhook to create school)
-      const orgResponse = await fetch('/api/organizations', {
+      // Step 1: Create school directly in database
+      const schoolResponse = await fetch('/api/schools', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           name: formData.name,
-          slug: formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-          createdBy: user?.id,
-        }),
-      })
-
-      const orgData = await orgResponse.json()
-
-      if (!orgResponse.ok) {
-        throw new Error(orgData.error || 'Failed to create organization')
-      }
-
-      const organizationId = orgData.organization.id
-
-      // Step 2: Update school details in database (webhook created basic school)
-      const schoolResponse = await fetch(`/api/schools/${organizationId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          address: formData.address,
+          address: formData.address || undefined,
           city: formData.city,
           state: formData.state,
-          zipCode: formData.zipCode,
+          zipCode: formData.zipCode || undefined,
           country: formData.country,
-          phone: formData.phone,
-          email: formData.email,
-          website: formData.website,
+          phone: formData.phone || undefined,
+          email: formData.email || undefined,
+          website: formData.website || undefined,
         }),
       })
 
+      const schoolData = await schoolResponse.json()
+
       if (!schoolResponse.ok) {
-        console.error('Failed to update school details')
+        throw new Error(schoolData.error || 'Failed to create school')
       }
 
-      // Step 3: Create principal user profile with the new school
+      const schoolId = schoolData.school.id
+
+      // Step 2: Create/Update principal user profile with the new school
       const userResponse = await fetch('/api/users', {
         method: 'POST',
         headers: {
@@ -177,7 +161,7 @@ export default function SchoolSetupPage() {
         },
         body: JSON.stringify({
           role: 'PRINCIPAL',
-          schoolId: organizationId,
+          schoolId: schoolId,
           firstName: user?.firstName || '',
           lastName: user?.lastName || '',
           email: user?.primaryEmailAddress?.emailAddress || '',
@@ -203,11 +187,11 @@ export default function SchoolSetupPage() {
         throw new Error(userData.error || 'Failed to create principal profile')
       }
 
-      toast.success('School organization and principal profile created successfully! Welcome to EduTrack.')
+      toast.success('School and principal profile created successfully! Welcome to EduTrack.')
 
-      // Redirect to dashboard
+      // Redirect to main dashboard (will show principal home page)
       setTimeout(() => {
-        router.push('/dashboard/principal')
+        router.push('/dashboard')
       }, 1500)
 
     } catch (error) {

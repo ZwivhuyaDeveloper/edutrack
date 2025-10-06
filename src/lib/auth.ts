@@ -8,7 +8,10 @@ import { UserRole } from '@prisma/client'
 export async function getCurrentUser() {
   const { userId } = await auth()
   
+  console.log('[getCurrentUser] Clerk userId:', userId)
+  
   if (!userId) {
+    console.log('[getCurrentUser] No userId from Clerk auth()')
     return null
   }
 
@@ -33,6 +36,8 @@ export async function getCurrentUser() {
       clerkProfile: true
     }
   })
+
+  console.log('[getCurrentUser] User found in DB:', user ? `Yes (${user.email})` : 'No')
 
   return user
 }
@@ -249,25 +254,11 @@ export async function hasPermission(permission: string): Promise<boolean> {
 }
 
 /**
- * Get default dashboard route for user role
+ * Get default dashboard route
+ * All roles use the main /dashboard which dynamically loads role-specific content
  */
-export function getDashboardRoute(role: UserRole): string {
-  switch (role) {
-    case 'STUDENT':
-      return '/dashboard/student'
-    case 'TEACHER':
-      return '/dashboard/teacher'
-    case 'PARENT':
-      return '/dashboard/parent'
-    case 'PRINCIPAL':
-      return '/dashboard/principal'
-    case 'CLERK':
-      return '/dashboard/clerk'
-    case 'ADMIN':
-      return '/dashboard/admin'
-    default:
-      return '/dashboard'
-  }
+export function getDashboardRoute(): string {
+  return '/dashboard'
 }
 
 /**

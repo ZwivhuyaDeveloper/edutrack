@@ -140,8 +140,10 @@ export default function Page() {
       }
     }
 
+    // Principals go directly to setup-school page
     if (selectedRole === 'PRINCIPAL') {
-      setStep('school-setup')
+      toast.success('Redirecting to school setup...')
+      router.push('/setup-school')
     } else {
       setStep('school')
     }
@@ -244,12 +246,9 @@ export default function Page() {
       toast.success('Registration completed successfully!')
       setStep('complete')
       
+      // Redirect to dashboard after successful registration
       setTimeout(() => {
-        if (selectedRole === 'PRINCIPAL') {
-          router.push('/setup-school')
-        } else {
-          router.push('/dashboard')
-        }
+        router.push('/dashboard')
       }, 2000)
     } catch (error) {
       console.error('Registration error:', error)
@@ -1150,7 +1149,7 @@ export default function Page() {
             </div>
             <CardTitle className="text-2xl font-bold">Registration Complete!</CardTitle>
             <CardDescription>
-              Your account has been created successfully. Redirecting to {selectedRole === 'PRINCIPAL' ? 'school setup' : 'dashboard'}...
+              Your account has been created successfully. Redirecting to dashboard...
             </CardDescription>
           </CardHeader>
         </Card>

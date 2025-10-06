@@ -11,8 +11,8 @@ const createSchoolSchema = z.object({
   zipCode: z.string().optional(),
   country: z.string().default('US'),
   phone: z.string().optional(),
-  email: z.string().email().optional(),
-  website: z.string().url().optional(),
+  email: z.string().email().optional().or(z.literal('')),
+  website: z.string().url().optional().or(z.literal('')),
 })
 
 export async function GET(request: NextRequest) {
