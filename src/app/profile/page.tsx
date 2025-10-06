@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useUser } from '@clerk/nextjs'
+import { useUser, useClerk } from '@clerk/nextjs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Loader2, User, Mail, Building2, Calendar, Phone, MapPin, GraduationCap, Briefcase, Users, Shield, ArrowLeft } from 'lucide-react'
+import { Loader2, User, Mail, Building2, Calendar, Phone, MapPin, GraduationCap, Briefcase, Users, Shield, ArrowLeft, LogOut } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface UserProfile {
@@ -28,6 +28,7 @@ interface UserProfile {
     state: string
     country: string
   } | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   profile: any
   createdAt: string
   updatedAt: string
@@ -39,7 +40,18 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
   const [error, setError] = useState('')
   const { user: clerkUser, isLoaded } = useUser()
+  const { signOut } = useClerk()
   const router = useRouter()
+
+  const handleLogout = async () => {
+    try {
+      await signOut()
+      router.push('/')
+    } catch (error) {
+      console.error('Error signing out:', error)
+      toast.error('Failed to sign out')
+    }
+  }
 
   useEffect(() => {
     async function fetchProfile() {
@@ -148,14 +160,23 @@ export default function ProfilePage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => router.push('/dashboard')}
-            className="mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/dashboard')}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleLogout}
+              className="gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </Button>
+          </div>
           <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
           <p className="text-gray-600 mt-1">View and manage your account information</p>
         </div>

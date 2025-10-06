@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { getCurrentUser, getDashboardRoute, PERMISSIONS } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
@@ -71,6 +72,57 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Error fetching user:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const { userId } = await auth()
+    
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { firstName, lastName } = body
+
+    // Update user in database
+    const updatedUser = await prisma.user.update({
+      where: { clerkId: userId },
+      data: {
+        ...(firstName && { firstName }),
+        ...(lastName && { lastName }),
+      },
+      include: {
+        school: true,
+        studentProfile: true,
+        teacherProfile: true,
+        parentProfile: true,
+        principalProfile: true,
+      }
+    })
+
+    return NextResponse.json({
+      user: {
+        id: updatedUser.id,
+        clerkId: updatedUser.clerkId,
+        email: updatedUser.email,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        fullName: `${updatedUser.firstName} ${updatedUser.lastName}`,
+        role: updatedUser.role,
+        isActive: updatedUser.isActive,
+        school: updatedUser.school,
+        createdAt: updatedUser.createdAt,
+        updatedAt: updatedUser.updatedAt
+      }
+    })
+  } catch (error) {
+    console.error('Error updating user:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
