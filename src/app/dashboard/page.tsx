@@ -6,6 +6,9 @@ import { useUser, useClerk } from "@clerk/nextjs"
 import { AppSidebar } from "@/components/app-sidebar"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
   Avatar,
   AvatarFallback,
@@ -40,37 +43,86 @@ import {
   MessageSquare,
   Award,
   TrendingUp,
+  Loader2,
+  AlertCircle,
+  Building2,
 } from "lucide-react"
 
 // Define user roles and page types
 type PageType = "dashboard" | "assignments" | "reports" | "messages"
+type UserRole = 'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL' | 'CLERK' | 'ADMIN'
 
 // Role-based page components mapping
-const rolePageMap = {
-  learner: {
+const rolePageMap: Record<string, Record<PageType, () => Promise<{ default: React.ComponentType }>>> = {
+  STUDENT: {
     dashboard: () => import("./learner/home/page").then(mod => ({ default: mod.default })),
     assignments: () => import("./learner/assignments/page").then(mod => ({ default: mod.default })),
     reports: () => import("./learner/reports/page").then(mod => ({ default: mod.default })),
     messages: () => import("./learner/messages/page").then(mod => ({ default: mod.default })),
   },
-  teacher: {
+  TEACHER: {
     dashboard: () => import("./teacher/home/page").then(mod => ({ default: mod.default })),
     assignments: () => import("./teacher/assignments/page").then(mod => ({ default: mod.default })),
     reports: () => import("./teacher/reports/page").then(mod => ({ default: mod.default })),
     messages: () => import("./teacher/messages/page").then(mod => ({ default: mod.default })),
   },
-  principal: {
+  PRINCIPAL: {
     dashboard: () => import("./principal/home/page").then(mod => ({ default: mod.default })),
     assignments: () => import("./principal/assignments/page").then(mod => ({ default: mod.default })),
     reports: () => import("./principal/reports/page").then(mod => ({ default: mod.default })),
     messages: () => import("./principal/messages/page").then(mod => ({ default: mod.default })),
   },
-  parent: {
+  PARENT: {
     dashboard: () => import("./parent/home/page").then(mod => ({ default: mod.default })),
     assignments: () => import("./parent/assignments/page").then(mod => ({ default: mod.default })),
     reports: () => import("./parent/reports/page").then(mod => ({ default: mod.default })),
     messages: () => import("./parent/messages/page").then(mod => ({ default: mod.default })),
   },
+  CLERK: {
+    dashboard: () => Promise.resolve({ default: () => <ClerkDashboardPlaceholder /> }),
+    assignments: () => Promise.resolve({ default: () => <div>Clerk Assignments</div> }),
+    reports: () => Promise.resolve({ default: () => <div>Clerk Reports</div> }),
+    messages: () => Promise.resolve({ default: () => <div>Clerk Messages</div> }),
+  },
+  ADMIN: {
+    dashboard: () => Promise.resolve({ default: () => <AdminDashboardPlaceholder /> }),
+    assignments: () => Promise.resolve({ default: () => <div>Admin Assignments</div> }),
+    reports: () => Promise.resolve({ default: () => <div>Admin Reports</div> }),
+    messages: () => Promise.resolve({ default: () => <div>Admin Messages</div> }),
+  },
+}
+
+// Placeholder components for roles without dedicated pages yet
+function ClerkDashboardPlaceholder() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Clerk Dashboard</CardTitle>
+        <CardDescription>Administrative staff dashboard</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-muted-foreground">
+          Clerk dashboard features are coming soon. You&apos;ll be able to manage student records, fees, and administrative tasks here.
+        </p>
+      </CardContent>
+    </Card>
+  )
+}
+
+function AdminDashboardPlaceholder() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Admin Dashboard</CardTitle>
+        <CardDescription>System administrator dashboard</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-muted-foreground">
+          Admin dashboard features are coming soon. You&apos;ll have full system access and management capabilities here.
+        </p>
+      </CardContent>
+    </Card>
+  )
 }
 
 interface DatabaseUser {
@@ -79,15 +131,25 @@ interface DatabaseUser {
   email: string
   firstName: string
   lastName: string
-  role: 'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL'
+  fullName: string
+  role: 'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL' | 'CLERK' | 'ADMIN'
+  avatar?: string
+  isActive: boolean
   school: {
     id: string
     name: string
+    city?: string
+    state?: string
+    logo?: string
   }
+  profile?: unknown
+  permissions?: Record<string, boolean>
+  dashboardRoute?: string
   studentProfile?: unknown
   teacherProfile?: unknown
   parentProfile?: unknown
   principalProfile?: unknown
+  clerkProfile?: unknown
 }
 
 function DashboardContent() {
@@ -140,15 +202,15 @@ function DashboardContent() {
     const loadComponents = async () => {
       const components = {} as Record<PageType, React.ComponentType>
 
-      // Map database role to component mapping
-      const roleMap = {
-        STUDENT: rolePageMap.learner,
-        TEACHER: rolePageMap.teacher,
-        PRINCIPAL: rolePageMap.principal,
-        PARENT: rolePageMap.parent
+      // Get role-specific page map
+      const rolePages = rolePageMap[dbUser.role]
+      
+      if (!rolePages) {
+        console.error(`No page map found for role: ${dbUser.role}`)
+        return
       }
 
-      for (const [pageType, importFn] of Object.entries(roleMap[dbUser.role])) {
+      for (const [pageType, importFn] of Object.entries(rolePages)) {
         try {
           const mod = await importFn()
           components[pageType as PageType] = mod.default
@@ -212,8 +274,20 @@ function DashboardContent() {
           subtitle: 'Connected',
           badge: 'bg-purple-100 text-purple-800'
         }
+      case 'CLERK':
+        return {
+          title: 'Clerk',
+          subtitle: 'Administrative Staff',
+          badge: 'bg-orange-100 text-orange-800'
+        }
+      case 'ADMIN':
+        return {
+          title: 'Admin',
+          subtitle: 'System Administrator',
+          badge: 'bg-gray-100 text-gray-800'
+        }
       default:
-        return { title: 'User', subtitle: '', badge: '' }
+        return { title: 'User', subtitle: '', badge: 'bg-gray-100 text-gray-800' }
     }
   }
 
@@ -353,6 +427,64 @@ function DashboardContent() {
             label: 'Teacher Communication',
             description: 'Contact teachers',
             action: () => console.log('Teacher Communication')
+          }
+        )
+        break
+
+      case 'CLERK':
+        roleSpecificItems.push(
+          {
+            icon: Users,
+            label: 'Student Management',
+            description: 'Manage student records',
+            action: () => console.log('Student Management')
+          },
+          {
+            icon: FileText,
+            label: 'Fee Management',
+            description: 'Process fees and payments',
+            action: () => console.log('Fee Management')
+          },
+          {
+            icon: Calendar,
+            label: 'Attendance Records',
+            description: 'View and manage attendance',
+            action: () => console.log('Attendance Records')
+          },
+          {
+            icon: TrendingUp,
+            label: 'Reports',
+            description: 'Generate administrative reports',
+            action: () => console.log('Reports')
+          }
+        )
+        break
+
+      case 'ADMIN':
+        roleSpecificItems.push(
+          {
+            icon: Shield,
+            label: 'System Management',
+            description: 'Manage system settings',
+            action: () => console.log('System Management')
+          },
+          {
+            icon: Users,
+            label: 'User Management',
+            description: 'Manage all users',
+            action: () => console.log('User Management')
+          },
+          {
+            icon: FileText,
+            label: 'Audit Logs',
+            description: 'View system audit logs',
+            action: () => console.log('Audit Logs')
+          },
+          {
+            icon: Settings,
+            label: 'Global Settings',
+            description: 'Configure system-wide settings',
+            action: () => console.log('Global Settings')
           }
         )
         break
