@@ -162,14 +162,14 @@ export default function Navbar({ className }: { className?: string }) {
                   className="text-sm md:text-base font-semibold text-primary border-2 border-primary px-4 py-2"
                   onClick={() => router.push('/sign-in')}
                 >
-                  Login
+                  Sign In
                 </Button>
                 <Button
                   variant="default"
                   className="text-sm md:text-base font-semibold bg-primary px-4 py-2"
                   onClick={() => router.push('/sign-up')}
                 >
-                  Register
+                  Sign Up
                 </Button>
               </>
             )}
@@ -317,21 +317,21 @@ export default function Navbar({ className }: { className?: string }) {
                   variant="outline"
                   className="w-full text-base font-semibold text-primary border-2 border-primary py-3 transition-all duration-200 hover:bg-primary hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
                   onClick={() => {
-                    router.push('/login');
+                    router.push('/sign-in');
                     setIsMenuOpen(false);
                   }}
                 >
-                  Login
+                  Sign In
                 </Button>
                 <Button
                   variant="default"
                   className="w-full text-base font-semibold bg-primary py-3 transition-all duration-200 hover:bg-primary hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
                   onClick={() => {
-                    router.push('/login');
+                    router.push('/sign-up');
                     setIsMenuOpen(false);
                   }}
                 >
-                  Register
+                  Sign Up
                 </Button>
               </>
             )}

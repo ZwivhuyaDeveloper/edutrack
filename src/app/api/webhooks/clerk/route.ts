@@ -49,65 +49,123 @@ export async function POST(request: NextRequest) {
 
   // Handle the webhook
   const eventType = evt.type
+  console.log('Webhook received:', eventType)
 
-  if (eventType === 'user.created') {
-    const { id, email_addresses, first_name, last_name } = evt.data
+  // Handle organization events
+  if (eventType === 'organization.created') {
+    const { id, name, slug } = evt.data
+    console.log('Organization created:', { id, name, slug })
 
-    // Find existing user by email
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        email: email_addresses[0]?.email_address,
-        clerkId: '' // Only match users without Clerk ID
-      }
+    // Create school in database linked to Clerk organization
+    try {
+      await prisma.school.create({
+        data: {
+          id: id, // Use Clerk org ID as school ID for easy mapping
+          name: name,
+          address: '',
+          city: '',
+          state: '',
+          zipCode: '',
+          country: 'US',
+          isActive: true,
+        }
+      })
+      console.log('School created in database:', id)
+    } catch (error) {
+      console.error('Error creating school:', error)
+    }
+  }
+
+  if (eventType === 'organization.updated') {
+    const { id, name } = evt.data
+    console.log('Organization updated:', { id, name })
+
+    try {
+      await prisma.school.update({
+        where: { id },
+        data: { name }
+      })
+      console.log('School updated in database:', id)
+    } catch (error) {
+      console.error('Error updating school:', error)
+    }
+  }
+
+  if (eventType === 'organization.deleted') {
+    const { id } = evt.data
+    console.log('Organization deleted:', id)
+
+    try {
+      await prisma.school.update({
+        where: { id },
+        data: { isActive: false }
+      })
+      console.log('School deactivated in database:', id)
+    } catch (error) {
+      console.error('Error deactivating school:', error)
+    }
+  }
+
+  // Handle organization membership events
+  if (eventType === 'organizationMembership.created') {
+    const { organization, public_user_data } = evt.data
+    console.log('Organization membership created:', {
+      orgId: organization.id,
+      userId: public_user_data.user_id
     })
 
-    if (existingUser) {
-      // Update existing user with Clerk ID and activate
-      await prisma.user.update({
-        where: { id: existingUser.id },
-        data: {
-          clerkId: id,
-          isActive: true,
-          firstName: first_name || existingUser.firstName,
-          lastName: last_name || existingUser.lastName
-        }
-      })
-    } else {
-      // Create new user (this shouldn't happen in our flow, but handle it)
-      await prisma.user.create({
-        data: {
-          clerkId: id,
-          email: email_addresses[0]?.email_address || '',
-          firstName: first_name || '',
-          lastName: last_name || '',
-          role: 'STUDENT', // Default role, will be updated during signup
-          schoolId: '', // Will be updated during signup
-          isActive: true
-        }
-      })
-    }
+    // User will be linked to school through the sign-up flow
+    // This webhook just logs the membership for now
+  }
+
+  // Handle user events
+  if (eventType === 'user.created') {
+    const { id, email_addresses, first_name, last_name } = evt.data
+    console.log('User created in Clerk:', { id, email: email_addresses[0]?.email_address })
+
+    // Don't create user in database yet - wait for profile completion
+    // The sign-up flow will create the user with role and school
   }
 
   if (eventType === 'user.updated') {
     const { id, email_addresses, first_name, last_name } = evt.data
+    console.log('User updated in Clerk:', { id })
 
-    await prisma.user.update({
-      where: { clerkId: id },
-      data: {
-        email: email_addresses[0]?.email_address || '',
-        firstName: first_name || '',
-        lastName: last_name || ''
+    try {
+      // Only update if user exists in database
+      const existingUser = await prisma.user.findUnique({
+        where: { clerkId: id }
+      })
+
+      if (existingUser) {
+        await prisma.user.update({
+          where: { clerkId: id },
+          data: {
+            email: email_addresses[0]?.email_address || existingUser.email,
+            firstName: first_name || existingUser.firstName,
+            lastName: last_name || existingUser.lastName
+          }
+        })
+        console.log('User updated in database:', id)
       }
-    })
+    } catch (error) {
+      console.error('Error updating user:', error)
+    }
   }
 
   if (eventType === 'user.deleted') {
     const { id } = evt.data
+    console.log('User deleted in Clerk:', id)
 
-    await prisma.user.update({
-      where: { clerkId: id },
-      data: { isActive: false }
-    })
+    try {
+      await prisma.user.update({
+        where: { clerkId: id },
+        data: { isActive: false }
+      })
+      console.log('User deactivated in database:', id)
+    } catch (error) {
+      console.error('Error deactivating user:', error)
+    }
   }
 
   return new Response('', { status: 200 })

@@ -24,12 +24,16 @@ export default function Home() {
     if (isSignedIn) {
       router.push('/dashboard')
     } else {
-      setShowAuthOptions(true)
+      router.push('/sign-up')
     }
   }
 
   const handleLogin = () => {
     router.push('/sign-in')
+  }
+
+  const handleSignUp = () => {
+    router.push('/sign-up')
   }
 
   const handleContinueAsGuest = () => {
@@ -58,12 +62,15 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button onClick={handleLogin} className="w-full" size="lg">
+            <Button onClick={handleSignUp} className="w-full" size="lg">
+              <UserPlus className="mr-2 h-5 w-5" />
+              Create Account
+            </Button>
+            <Button variant="outline" onClick={handleLogin} className="w-full" size="lg">
               <LogIn className="mr-2 h-5 w-5" />
               Sign In
             </Button>
-            <Button variant="outline" onClick={handleContinueAsGuest} className="w-full" size="lg">
-              <UserPlus className="mr-2 h-5 w-5" />
+            <Button variant="ghost" onClick={handleContinueAsGuest} className="w-full" size="lg">
               Continue as Guest
             </Button>
           </CardContent>

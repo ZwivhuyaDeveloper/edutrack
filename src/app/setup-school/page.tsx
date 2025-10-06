@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, ArrowLeft, Building2, Phone, Globe } from 'lucide-react'
+import { Loader2, ArrowLeft, Building2, Phone, Globe, UserCheck } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface SchoolFormData {
@@ -22,6 +22,20 @@ interface SchoolFormData {
   website: string
 }
 
+interface PrincipalProfileData {
+  employeeId: string
+  hireDate: string
+  phone: string
+  address: string
+  emergencyContact: string
+  qualifications: string
+  yearsOfExperience: string
+  previousSchool: string
+  educationBackground: string
+  salary: string
+  administrativeArea: string
+}
+
 export default function SchoolSetupPage() {
   const [formData, setFormData] = useState<SchoolFormData>({
     name: '',
@@ -34,16 +48,52 @@ export default function SchoolSetupPage() {
     email: '',
     website: ''
   })
+  const [principalData, setPrincipalData] = useState<PrincipalProfileData>({
+    employeeId: '',
+    hireDate: '',
+    phone: '',
+    address: '',
+    emergencyContact: '',
+    qualifications: '',
+    yearsOfExperience: '',
+    previousSchool: '',
+    educationBackground: '',
+    salary: '',
+    administrativeArea: ''
+  })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const { user, isLoaded } = useUser()
   const router = useRouter()
 
-  // Redirect if not authenticated
+  // Check if user is authenticated and verify they should be here
   useEffect(() => {
-    if (isLoaded && !user) {
-      router.push('/sign-in')
+    async function checkAuth() {
+      if (!isLoaded) return
+      
+      if (!user) {
+        router.push('/sign-in')
+        return
+      }
+
+      try {
+        // Check if user already has a profile
+        const response = await fetch('/api/users/me')
+        if (response.ok) {
+          // User already has profile, redirect to dashboard
+          router.push('/dashboard')
+        } else if (response.status === 404) {
+          // User doesn't have profile yet, this is correct - they should be here
+          setIsCheckingAuth(false)
+        }
+      } catch (error) {
+        console.error('Error checking auth:', error)
+        setIsCheckingAuth(false)
+      }
     }
+
+    checkAuth()
   }, [isLoaded, user, router])
 
   const handleInputChange = (field: keyof SchoolFormData, value: string) => {
@@ -76,33 +126,88 @@ export default function SchoolSetupPage() {
     setError('')
 
     try {
-      const response = await fetch('/api/schools', {
+      // Step 1: Create Clerk organization (this will trigger webhook to create school)
+      const orgResponse = await fetch('/api/organizations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...formData,
-          // Only include optional fields if they have values
-          ...(formData.address && { address: formData.address }),
-          ...(formData.zipCode && { zipCode: formData.zipCode }),
-          ...(formData.phone && { phone: formData.phone }),
-          ...(formData.email && { email: formData.email }),
-          ...(formData.website && { website: formData.website }),
+          name: formData.name,
+          slug: formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          createdBy: user?.id,
         }),
       })
 
-      const data = await response.json()
+      const orgData = await orgResponse.json()
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create school')
+      if (!orgResponse.ok) {
+        throw new Error(orgData.error || 'Failed to create organization')
       }
 
-      toast.success('School created successfully! Welcome to EduTrack.')
+      const organizationId = orgData.organization.id
+
+      // Step 2: Update school details in database (webhook created basic school)
+      const schoolResponse = await fetch(`/api/schools/${organizationId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zipCode: formData.zipCode,
+          country: formData.country,
+          phone: formData.phone,
+          email: formData.email,
+          website: formData.website,
+        }),
+      })
+
+      if (!schoolResponse.ok) {
+        console.error('Failed to update school details')
+      }
+
+      // Step 3: Create principal user profile with the new school
+      const userResponse = await fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          role: 'PRINCIPAL',
+          schoolId: organizationId,
+          firstName: user?.firstName || '',
+          lastName: user?.lastName || '',
+          email: user?.primaryEmailAddress?.emailAddress || '',
+          principalProfile: {
+            employeeId: principalData.employeeId,
+            hireDate: principalData.hireDate || undefined,
+            phone: principalData.phone,
+            address: principalData.address,
+            emergencyContact: principalData.emergencyContact,
+            qualifications: principalData.qualifications,
+            yearsOfExperience: principalData.yearsOfExperience ? parseInt(principalData.yearsOfExperience) : undefined,
+            previousSchool: principalData.previousSchool,
+            educationBackground: principalData.educationBackground,
+            salary: principalData.salary ? parseFloat(principalData.salary) : undefined,
+            administrativeArea: principalData.administrativeArea,
+          }
+        }),
+      })
+
+      const userData = await userResponse.json()
+
+      if (!userResponse.ok) {
+        throw new Error(userData.error || 'Failed to create principal profile')
+      }
+
+      toast.success('School organization and principal profile created successfully! Welcome to EduTrack.')
 
       // Redirect to dashboard
       setTimeout(() => {
-        router.push('/dashboard')
+        router.push('/dashboard/principal')
       }, 1500)
 
     } catch (error) {
@@ -115,10 +220,13 @@ export default function SchoolSetupPage() {
     }
   }
 
-  if (!isLoaded) {
+  if (!isLoaded || isCheckingAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2  border-primary"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Verifying access...</p>
+        </div>
       </div>
     )
   }
@@ -140,10 +248,10 @@ export default function SchoolSetupPage() {
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <CardTitle className="text-2xl font-bold">Create Your School</CardTitle>
+            <CardTitle className="text-2xl font-bold">Create Your School & Principal Profile</CardTitle>
           </div>
           <CardDescription>
-            Set up your school information. As the principal, you&apos;ll be able to manage students, teachers, and school settings.
+            Set up your school information and your principal profile. You&apos;ll be registered as the school&apos;s principal and can manage students, teachers, and school settings.
           </CardDescription>
         </CardHeader>
 
@@ -309,6 +417,87 @@ export default function SchoolSetupPage() {
                     className="pl-10 w-full"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Principal Profile Section */}
+            <div className="space-y-4 border-t pt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <UserCheck className="h-5 w-5 text-orange-600" />
+                <h3 className="text-lg font-semibold">Your Principal Profile</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="principalEmployeeId" className="block text-sm font-medium text-gray-700 mb-2">
+                    Employee ID
+                  </label>
+                  <Input
+                    id="principalEmployeeId"
+                    type="text"
+                    value={principalData.employeeId}
+                    onChange={(e) => setPrincipalData(prev => ({ ...prev, employeeId: e.target.value }))}
+                    placeholder="Employee ID"
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="principalPhone" className="block text-sm font-medium text-gray-700 mb-2">
+                    Your Phone Number
+                  </label>
+                  <Input
+                    id="principalPhone"
+                    type="tel"
+                    value={principalData.phone}
+                    onChange={(e) => setPrincipalData(prev => ({ ...prev, phone: e.target.value }))}
+                    placeholder="(555) 123-4567"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="principalQualifications" className="block text-sm font-medium text-gray-700 mb-2">
+                    Qualifications
+                  </label>
+                  <Input
+                    id="principalQualifications"
+                    type="text"
+                    value={principalData.qualifications}
+                    onChange={(e) => setPrincipalData(prev => ({ ...prev, qualifications: e.target.value }))}
+                    placeholder="Degrees, certifications"
+                    className="w-full"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="principalYearsOfExperience" className="block text-sm font-medium text-gray-700 mb-2">
+                    Years of Experience
+                  </label>
+                  <Input
+                    id="principalYearsOfExperience"
+                    type="number"
+                    value={principalData.yearsOfExperience}
+                    onChange={(e) => setPrincipalData(prev => ({ ...prev, yearsOfExperience: e.target.value }))}
+                    placeholder="Years in education"
+                    className="w-full"
+                    min="0"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="principalAdministrativeArea" className="block text-sm font-medium text-gray-700 mb-2">
+                  Administrative Area
+                </label>
+                <Input
+                  id="principalAdministrativeArea"
+                  type="text"
+                  value={principalData.administrativeArea}
+                  onChange={(e) => setPrincipalData(prev => ({ ...prev, administrativeArea: e.target.value }))}
+                  placeholder="e.g., Academic Affairs, Student Services"
+                  className="w-full"
+                />
               </div>
             </div>
 

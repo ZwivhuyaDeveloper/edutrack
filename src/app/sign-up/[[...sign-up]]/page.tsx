@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useUser } from '@clerk/nextjs'
+import { useUser, SignUp } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -32,7 +32,7 @@ export default function Page() {
   const { user, isLoaded } = useUser()
   const router = useRouter()
 
-  // Role-specific profile data
+  // Role-specific profile data (name and email come from Clerk, not here)
   const [profileData, setProfileData] = useState({
     // Student fields
     student: {
@@ -72,11 +72,27 @@ export default function Page() {
     }
   })
 
-  // Redirect if already authenticated
+  // Check if user is authenticated and has completed profile
   useEffect(() => {
-    if (isLoaded && user) {
-      router.push('/dashboard')
+    async function checkUserProfile() {
+      if (isLoaded && user) {
+        try {
+          const response = await fetch('/api/users/me')
+          if (response.ok) {
+            // User has completed profile, redirect to dashboard
+            router.push('/dashboard')
+          } else if (response.status === 404) {
+            // User authenticated but no profile - show role selection
+            setStep('role')
+          }
+        } catch (error) {
+          console.error('Error checking user profile:', error)
+          setStep('role')
+        }
+      }
     }
+
+    checkUserProfile()
   }, [isLoaded, user, router])
 
   // Fetch schools when school selection step is reached
@@ -258,6 +274,102 @@ export default function Page() {
     )
   }
 
+  // Show Clerk SignUp if user is not authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4">
+              <GraduationCap className="h-10 w-10 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Join EduTrack
+            </h1>
+            <p className="text-gray-600">
+              Create your account to get started
+            </p>
+          </div>
+
+          <SignUp 
+            appearance={{
+              elements: {
+                // Root card styling
+                rootBox: 'w-full',
+                card: 'shadow-2xl border border-gray-200 rounded-2xl bg-white',
+                
+                // Header styling
+                headerTitle: 'text-2xl font-bold text-gray-900',
+                headerSubtitle: 'text-gray-600 text-sm mt-2',
+                
+                // Form container
+                formContainer: 'space-y-4',
+                
+                // Form fields
+                formFieldLabel: 'text-sm font-medium text-gray-700 mb-1.5',
+                formFieldInput: 'border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg px-4 py-2.5 transition-all duration-200',
+                formFieldInputShowPasswordButton: 'text-gray-500 hover:text-gray-700',
+                
+                // Primary button (Sign Up)
+                formButtonPrimary: 'bg-primary hover:bg-primary/90 text-white font-semibold normal-case rounded-lg py-2.5 transition-all duration-200 shadow-sm hover:shadow-md',
+                
+                // Social buttons
+                socialButtonsBlockButton: 'border-gray-300 hover:bg-gray-50 hover:border-gray-400 rounded-lg transition-all duration-200 normal-case font-medium',
+                socialButtonsBlockButtonText: 'text-gray-700 font-medium',
+                socialButtonsProviderIcon: 'w-5 h-5',
+                
+                // Divider
+                dividerLine: 'bg-gray-300',
+                dividerText: 'text-gray-500 text-sm',
+                
+                // Footer links
+                footer: 'mt-6',
+                footerAction: 'text-sm',
+                footerActionText: 'text-gray-600',
+                footerActionLink: 'text-primary hover:text-primary/80 font-semibold transition-colors duration-200',
+                
+                // Form field row
+                formFieldRow: 'space-y-2',
+                
+                // Error messages
+                formFieldErrorText: 'text-red-600 text-sm mt-1',
+                
+                // OTP input (for verification)
+                otpCodeFieldInput: 'border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg',
+                
+                // Verification
+                identityPreviewText: 'text-gray-700',
+                identityPreviewEditButton: 'text-primary hover:text-primary/80',
+                
+                // Form buttons
+                formResendCodeLink: 'text-primary hover:text-primary/80 font-medium',
+                
+                // Internal card
+                main: 'px-8 py-6',
+              },
+              layout: {
+                socialButtonsPlacement: 'top',
+                socialButtonsVariant: 'blockButton',
+                termsPageUrl: '/terms',
+                privacyPageUrl: '/privacy',
+              },
+            }}
+            routing="path"
+            path="/sign-up"
+            signInUrl="/sign-in"
+            afterSignUpUrl="/sign-up" // Redirect back to continue profile setup
+          />
+
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-sm text-blue-800 text-center">
+              <strong>Next Steps:</strong> After creating your account, you&apos;ll select your role and complete your profile.
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (step === 'role') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -354,6 +466,24 @@ export default function Page() {
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
+            )}
+
+            {/* Display Clerk User Info */}
+            {user && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-900 mb-2">Account Information (from Clerk)</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-blue-800">
+                  <div>
+                    <span className="font-medium">Name:</span> {user.firstName} {user.lastName}
+                  </div>
+                  <div>
+                    <span className="font-medium">Email:</span> {user.primaryEmailAddress?.emailAddress}
+                  </div>
+                </div>
+                <p className="text-xs text-blue-600 mt-2">
+                  ℹ️ This information is managed by your Clerk account and cannot be changed here.
+                </p>
+              </div>
             )}
 
             {/* Student Fields */}

@@ -22,15 +22,29 @@ export default function Page() {
           
           if (response.ok) {
             const data = await response.json()
-            const dashboardRoute = data.user?.dashboardRoute || '/dashboard'
+            const user = data.user
+            
+            // Check if user has completed profile setup
+            if (!user.school) {
+              // User hasn't selected a school yet, redirect to sign-up to complete profile
+              router.push('/sign-up')
+              return
+            }
+            
+            // User has completed profile, redirect to role-based dashboard
+            const dashboardRoute = user.dashboardRoute || '/dashboard'
             router.push(dashboardRoute)
+          } else if (response.status === 404) {
+            // User not found in database, needs to complete registration
+            router.push('/sign-up')
           } else {
-            // Fallback to default dashboard
-            router.push('/dashboard')
+            // Other error, redirect to sign-up to be safe
+            router.push('/sign-up')
           }
         } catch (error) {
           console.error('Error fetching user data:', error)
-          router.push('/dashboard')
+          // On error, redirect to sign-up to complete profile
+          router.push('/sign-up')
         }
       }
     }

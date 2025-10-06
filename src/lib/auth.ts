@@ -245,7 +245,7 @@ export async function hasPermission(permission: string): Promise<boolean> {
     return false
   }
 
-  return (rolePermissions as any)[permission] === true
+  return permission in rolePermissions && rolePermissions[permission as keyof typeof rolePermissions] === true
 }
 
 /**
