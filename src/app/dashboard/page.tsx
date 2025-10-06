@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { AppSidebar } from "@/components/app-sidebar"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
@@ -29,9 +30,11 @@ import {
   LogOut,
   User,
 } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
+import { ProtectedRoute } from "@/components/ProtectedRoute"
+import { RoleSwitcher } from "@/components/RoleSwitcher"
 
 // Define user roles and page types
-type UserRole = "learner" | "teacher" | "principal" | "parent"
 type PageType = "dashboard" | "assignments" | "reports" | "messages"
 
 // Role-based page components mapping
@@ -62,34 +65,32 @@ const rolePageMap = {
   },
 }
 
-export default function Page() {
+function DashboardContent() {
   const [activePage, setActivePage] = useState<PageType>("dashboard")
-  const [userRole, setUserRole] = useState<UserRole>("learner")
   const [PageComponents, setPageComponents] = useState<Record<PageType, React.ComponentType>>({} as Record<PageType, React.ComponentType>)
+  const { user, logout } = useAuth()
+  const router = useRouter()
 
-  // Detect user role (replace with proper authentication logic)
+  // Redirect if not authenticated
   useEffect(() => {
-    const savedRole = localStorage.getItem("userRole") as UserRole
-    if (savedRole && ["learner", "teacher", "principal", "parent"].includes(savedRole)) {
-      setUserRole(savedRole)
-    } else {
-      // Default to learner for demo purposes
-      setUserRole("learner")
-      localStorage.setItem("userRole", "learner")
+    if (!user) {
+      router.push('/login')
     }
-  }, [])
+  }, [user, router])
 
   // Load page components based on user role
   useEffect(() => {
+    if (!user) return
+
     const loadComponents = async () => {
       const components = {} as Record<PageType, React.ComponentType>
 
-      for (const [pageType, importFn] of Object.entries(rolePageMap[userRole])) {
+      for (const [pageType, importFn] of Object.entries(rolePageMap[user.role])) {
         try {
           const mod = await importFn()
           components[pageType as PageType] = mod.default
         } catch (error) {
-          console.error(`Failed to load ${pageType} page for ${userRole}:`, error)
+          console.error(`Failed to load ${pageType} page for ${user.role}:`, error)
           // Fallback to a simple error component
           components[pageType as PageType] = () => (
             <div className="flex items-center justify-center h-full">
@@ -102,10 +103,8 @@ export default function Page() {
       setPageComponents(components)
     }
 
-    if (userRole) {
-      loadComponents()
-    }
-  }, [userRole])
+    loadComponents()
+  }, [user])
 
   const renderPageContent = () => {
     const Component = PageComponents[activePage]
@@ -116,40 +115,34 @@ export default function Page() {
     )
   }
 
-  const handleRoleChange = (newRole: UserRole) => {
-    setUserRole(newRole)
-    localStorage.setItem("userRole", newRole)
-    // Reset to dashboard when changing roles
-    setActivePage("dashboard")
+  const handleLogout = () => {
+    logout()
+    router.push('/login')
+  }
+
+  if (!user) {
+    return null // Will redirect via useEffect
   }
 
   return (
     <SidebarProvider>
-      <AppSidebar onNavigate={setActivePage} activePage={activePage} userRole={userRole} />
+      <AppSidebar onNavigate={setActivePage} activePage={activePage} userRole={user.role} />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 bg-zinc-100 rounded-xl shadow-lg mx-4 mt-6 mb-4 items-center justify-between px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 font-sans border border-gray-200/50">
+        <header className="flex h-16 shrink-0 bg-zinc-100 rounded-4xl shadow-none mx-4 mt-6 mb-4 items-center px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 font-sans">
           {/* Left section - Sidebar trigger */}
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Separator orientation="vertical" className="mr-2 h-4 bg-gray-200" />
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium capitalize">{userRole} Dashboard</span>
-              <select
-                value={userRole}
-                onChange={(e) => handleRoleChange(e.target.value as UserRole)}
-                className="text-xs bg-transparent border rounded px-2 py-1"
-                aria-label="Select user role"
-              >
-                <option value="learner">Learner</option>
-                <option value="teacher">Teacher</option>
-                <option value="principal">Principal</option>
-                <option value="parent">Parent</option>
-              </select>
+              <span className="text-sm font-medium capitalize">{user.role} Dashboard</span>
+              <span className="text-xs text-muted-foreground">
+                Welcome back, {user.name}
+              </span>
             </div>
           </div>
 
-          {/* Right section - Search and user menu */}
-          <div className="flex items-center gap-2">
+          {/* Center section - Search input */}
+          <div className="flex-1 flex justify-center">
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -158,6 +151,11 @@ export default function Page() {
                 className="w-[200px] pl-8 md:w-[300px]"
               />
             </div>
+          </div>
+
+          {/* Right section - User menu */}
+          <div className="flex items-center gap-2">
+            <RoleSwitcher />
             <button className="rounded-full p-2 hover:bg-accent" aria-label="Notifications">
               <Bell className="h-4 w-4" />
             </button>
@@ -165,7 +163,7 @@ export default function Page() {
               <DropdownMenuTrigger asChild>
                 <button className="rounded-full p-2 hover:bg-accent" aria-label="User menu">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="/placeholder-avatar.jpg" alt="User" />
+                    <AvatarImage src={user.avatar} alt={user.name} />
                     <AvatarFallback>
                       <User className="h-4 w-4" />
                     </AvatarFallback>
@@ -173,7 +171,12 @@ export default function Page() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuLabel>
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium">{user.name}</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                  </div>
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <User className="mr-2 h-4 w-4" />
@@ -184,7 +187,7 @@ export default function Page() {
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Log out
                 </DropdownMenuItem>
@@ -199,5 +202,13 @@ export default function Page() {
         </div>
       </SidebarInset>
     </SidebarProvider>
+  )
+}
+
+export default function DashboardPage() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
   )
 }

@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { MenuItem } from "../components/ui/navbar-menu";
 import logo from "@/assets/Standalone_Logo.png";
 import Image from "next/image";
@@ -8,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 
 export default function Navbar({ className }: { className?: string }) {
+  const router = useRouter();
   
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
     e.preventDefault();
@@ -132,10 +134,18 @@ export default function Navbar({ className }: { className?: string }) {
 
           {/* Desktop Buttons */}
           <div className="hidden lg:flex items-center space-x-3">
-            <Button variant="outline" className="text-sm md:text-base font-semibold text-primary border-2 border-primary px-4 py-2">
+            <Button
+              variant="outline"
+              className="text-sm md:text-base font-semibold text-primary border-2 border-primary px-4 py-2"
+              onClick={() => router.push('/login')}
+            >
               Login
             </Button>
-            <Button variant="default" className="text-sm md:text-base font-semibold bg-primary px-4 py-2">
+            <Button
+              variant="default"
+              className="text-sm md:text-base font-semibold bg-primary px-4 py-2"
+              onClick={() => router.push('/login')}
+            >
               Register
             </Button>
           </div>
@@ -248,23 +258,29 @@ export default function Navbar({ className }: { className?: string }) {
             </a>
           </div>
           <div className="flex flex-col space-y-3 px-4 py-4 border-t border-gray-200 bg-gray-50/50">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="w-full text-base font-semibold text-primary border-2 border-primary py-3 transition-all duration-200 hover:bg-primary hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
-              onClick={() => setIsMenuOpen(false)}
+              onClick={() => {
+                router.push('/login');
+                setIsMenuOpen(false);
+              }}
             >
               Login
             </Button>
-            <Button 
-              variant="default" 
+            <Button
+              variant="default"
               className="w-full text-base font-semibold bg-primary py-3 transition-all duration-200 hover:bg-primary hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
-              onClick={() => setIsMenuOpen(false)}
+              onClick={() => {
+                router.push('/login');
+                setIsMenuOpen(false);
+              }}
             >
               Register
             </Button>
           </div>
         </div>
-      </div>
+    </div>
     </div>
   );
 }
