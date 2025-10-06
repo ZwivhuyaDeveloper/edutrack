@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useUser, useClerk } from "@clerk/nextjs"
 import { AppSidebar } from "@/components/app-sidebar"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
@@ -40,9 +41,6 @@ import {
   Award,
   TrendingUp,
 } from "lucide-react"
-import { useAuth } from "@/contexts/AuthContext"
-import { ProtectedRoute } from "@/components/ProtectedRoute"
-import { RoleSwitcher } from "@/components/RoleSwitcher"
 
 // Define user roles and page types
 type PageType = "dashboard" | "assignments" | "reports" | "messages"
@@ -75,32 +73,87 @@ const rolePageMap = {
   },
 }
 
+interface DatabaseUser {
+  id: string
+  clerkId: string
+  email: string
+  firstName: string
+  lastName: string
+  role: 'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL'
+  school: {
+    id: string
+    name: string
+  }
+  studentProfile?: unknown
+  teacherProfile?: unknown
+  parentProfile?: unknown
+  principalProfile?: unknown
+}
+
 function DashboardContent() {
   const [activePage, setActivePage] = useState<PageType>("dashboard")
   const [PageComponents, setPageComponents] = useState<Record<PageType, React.ComponentType>>({} as Record<PageType, React.ComponentType>)
-  const { user, logout, getChildrenForParent } = useAuth()
+  const [dbUser, setDbUser] = useState<DatabaseUser | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const { user: clerkUser, isLoaded } = useUser()
+  const { signOut } = useClerk()
   const router = useRouter()
 
   // Redirect if not authenticated
   useEffect(() => {
-    if (!user) {
-      router.push('/login')
+    if (isLoaded && !clerkUser) {
+      router.push('/sign-in')
     }
-  }, [user, router])
+  }, [clerkUser, isLoaded, router])
+
+  // Fetch user data from database
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!clerkUser) return
+      
+      try {
+        const response = await fetch('/api/users/me')
+        if (response.ok) {
+          const data = await response.json()
+          setDbUser(data.user)
+        } else if (response.status === 404) {
+          // User not found in database, redirect to registration
+          router.push('/register')
+          return
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (clerkUser) {
+      fetchUserData()
+    }
+  }, [clerkUser, router])
 
   // Load page components based on user role
   useEffect(() => {
-    if (!user) return
+    if (!dbUser) return
 
     const loadComponents = async () => {
       const components = {} as Record<PageType, React.ComponentType>
 
-      for (const [pageType, importFn] of Object.entries(rolePageMap[user.role])) {
+      // Map database role to component mapping
+      const roleMap = {
+        STUDENT: rolePageMap.learner,
+        TEACHER: rolePageMap.teacher,
+        PRINCIPAL: rolePageMap.principal,
+        PARENT: rolePageMap.parent
+      }
+
+      for (const [pageType, importFn] of Object.entries(roleMap[dbUser.role])) {
         try {
           const mod = await importFn()
           components[pageType as PageType] = mod.default
         } catch (error) {
-          console.error(`Failed to load ${pageType} page for ${user.role}:`, error)
+          console.error(`Failed to load ${pageType} page for ${dbUser.role}:`, error)
           // Fallback to a simple error component
           components[pageType as PageType] = () => (
             <div className="flex items-center justify-center h-full">
@@ -114,7 +167,7 @@ function DashboardContent() {
     }
 
     loadComponents()
-  }, [user])
+  }, [dbUser])
 
   const renderPageContent = () => {
     const Component = PageComponents[activePage]
@@ -126,38 +179,37 @@ function DashboardContent() {
   }
 
   const handleLogout = () => {
-    logout()
-    router.push('/login')
+    signOut()
+    router.push('/')
   }
 
   // Get role-specific information
   const getRoleSpecificInfo = () => {
-    if (!user) return { title: '', subtitle: '', badge: '' }
+    if (!dbUser) return { title: '', subtitle: '', badge: '' }
 
-    switch (user.role) {
-      case 'learner':
+    switch (dbUser.role) {
+      case 'STUDENT':
         return {
           title: 'Student',
           subtitle: 'Active Learner',
           badge: 'bg-blue-100 text-blue-800'
         }
-      case 'teacher':
+      case 'TEACHER':
         return {
           title: 'Teacher',
           subtitle: 'Educator',
           badge: 'bg-green-100 text-green-800'
         }
-      case 'principal':
+      case 'PRINCIPAL':
         return {
           title: 'Principal',
           subtitle: 'Administrator',
           badge: 'bg-red-100 text-red-800'
         }
-      case 'parent':
-        const children = getChildrenForParent(user.id)
+      case 'PARENT':
         return {
           title: 'Parent/Guardian',
-          subtitle: `${children.length} child${children.length !== 1 ? 'ren' : ''} connected`,
+          subtitle: 'Connected',
           badge: 'bg-purple-100 text-purple-800'
         }
       default:
@@ -169,7 +221,7 @@ function DashboardContent() {
 
   // Role-specific menu items
   const getRoleSpecificMenuItems = () => {
-    if (!user) return []
+    if (!dbUser) return []
 
     const baseItems = [
       {
@@ -188,8 +240,8 @@ function DashboardContent() {
 
     const roleSpecificItems = []
 
-    switch (user.role) {
-      case 'learner':
+    switch (dbUser.role) {
+      case 'STUDENT':
         roleSpecificItems.push(
           {
             icon: GraduationCap,
@@ -218,7 +270,7 @@ function DashboardContent() {
         )
         break
 
-      case 'teacher':
+      case 'TEACHER':
         roleSpecificItems.push(
           {
             icon: Users,
@@ -247,7 +299,7 @@ function DashboardContent() {
         )
         break
 
-      case 'principal':
+      case 'PRINCIPAL':
         roleSpecificItems.push(
           {
             icon: Shield,
@@ -276,13 +328,12 @@ function DashboardContent() {
         )
         break
 
-      case 'parent':
-        const children = getChildrenForParent(user.id)
+      case 'PARENT':
         roleSpecificItems.push(
           {
             icon: Heart,
             label: 'My Children',
-            description: `${children.length} child${children.length !== 1 ? 'ren' : ''} registered`,
+            description: 'View your children\'s progress',
             action: () => console.log('My Children')
           },
           {
@@ -310,13 +361,28 @@ function DashboardContent() {
     return [...baseItems, ...roleSpecificItems]
   }
 
-  if (!user) {
+  if (!isLoaded || isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  if (!clerkUser || !dbUser) {
     return null // Will redirect via useEffect
   }
 
   return (
     <SidebarProvider>
-      <AppSidebar onNavigate={setActivePage} activePage={activePage} userRole={user.role} />
+      <AppSidebar 
+        onNavigate={setActivePage} 
+        activePage={activePage} 
+        userRole={
+          dbUser.role === 'PRINCIPAL' ? 'admin' : 
+          dbUser.role.toLowerCase() as 'student' | 'teacher' | 'parent'
+        } 
+      />
       <SidebarInset className="bg-zinc-100">
         <header className="flex h-16 shrink-0 bg-white rounded-4xl shadow-none mx-4 mt-5 mb-1 items-center px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 font-sans">
           {/* Left section - Sidebar trigger */}
@@ -324,9 +390,9 @@ function DashboardContent() {
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4 bg-gray-200" />
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-primary capitalize">{user.role} Dashboard</span>
+              <span className="text-sm font-medium text-primary capitalize">{dbUser.role.toLowerCase()} Dashboard</span>
               <span className="text-xs text-muted-foreground">
-                Welcome back, {user.name}
+                Welcome back, {dbUser.firstName} {dbUser.lastName}
               </span>
             </div>
           </div>
@@ -345,7 +411,6 @@ function DashboardContent() {
 
           {/* Right section - User menu */}
           <div className="flex items-center gap-2">
-            <RoleSwitcher />
             <button className="rounded-full p-2 hover:bg-accent" aria-label="Notifications">
               <Bell className="h-4 w-4" />
             </button>
@@ -353,7 +418,7 @@ function DashboardContent() {
               <DropdownMenuTrigger asChild>
                 <button className="rounded-full p-2 hover:bg-accent" aria-label="User menu">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarImage src={clerkUser.imageUrl} alt={`${dbUser.firstName} ${dbUser.lastName}`} />
                     <AvatarFallback>
                       <User className="h-4 w-4" />
                     </AvatarFallback>
@@ -364,20 +429,20 @@ function DashboardContent() {
                 <DropdownMenuLabel className="p-4">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={user.avatar} alt={user.name} />
+                      <AvatarImage src={clerkUser.imageUrl} alt={`${dbUser.firstName} ${dbUser.lastName}`} />
                       <AvatarFallback className="bg-primary/10">
                         <User className="h-6 w-6" />
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col space-y-1 flex-1">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold leading-none">{user.name}</p>
+                        <p className="text-sm font-semibold leading-none">{dbUser.firstName} {dbUser.lastName}</p>
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleInfo.badge}`}>
                           {roleInfo.title}
                         </span>
                       </div>
-                      <p className="text-xs text-muted-foreground leading-tight">{user.email}</p>
-                      <p className="text-xs text-muted-foreground leading-tight">{roleInfo.subtitle}</p>
+                      <p className="text-xs text-muted-foreground leading-tight">{dbUser.email}</p>
+                      <p className="text-xs text-muted-foreground leading-tight">{dbUser.school.name}</p>
                     </div>
                   </div>
                 </DropdownMenuLabel>
@@ -420,9 +485,5 @@ function DashboardContent() {
 }
 
 export default function DashboardPage() {
-  return (
-    <ProtectedRoute>
-      <DashboardContent />
-    </ProtectedRoute>
-  )
+  return <DashboardContent />
 }

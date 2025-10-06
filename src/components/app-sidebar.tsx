@@ -56,17 +56,17 @@ const getRoleBasedNavigation = (userRole: string) => {
         ...item,
         title: item.title === "Dashboard" ? "Teacher Dashboard" : item.title,
       }))
-    case "principal":
+    case "admin":
       return baseNav.map(item => ({
         ...item,
-        title: item.title === "Dashboard" ? "Principal Dashboard" : item.title,
+        title: item.title === "Dashboard" ? "Admin Dashboard" : item.title,
       }))
     case "parent":
       return baseNav.map(item => ({
         ...item,
         title: item.title === "Dashboard" ? "Parent Dashboard" : item.title,
       }))
-    default: // learner
+    default: // student
       return baseNav
   }
 }
@@ -111,7 +111,7 @@ const data = {
 }
 
 type PageType = "dashboard" | "assignments" | "reports" | "messages"
-type UserRole = "learner" | "teacher" | "principal" | "parent"
+type UserRole = "student" | "teacher" | "admin" | "parent"
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   onNavigate?: (page: PageType) => void
@@ -119,7 +119,7 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   userRole?: UserRole
 }
 
-export function AppSidebar({ onNavigate, activePage, userRole = "learner", ...props }: AppSidebarProps) {
+export function AppSidebar({ onNavigate, activePage, userRole = "student", ...props }: AppSidebarProps) {
   // Get role-based navigation items
   const navItems = React.useMemo(() => getRoleBasedNavigation(userRole), [userRole])
 

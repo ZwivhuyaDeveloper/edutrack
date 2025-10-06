@@ -1,13 +1,14 @@
 "use client"
 
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/contexts/AuthContext'
+import { useUser, useClerk } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AlertTriangle, Home, LogOut } from 'lucide-react'
 
 export default function UnauthorizedPage() {
-  const { user, logout } = useAuth()
+  const { user } = useUser()
+  const { signOut } = useClerk()
   const router = useRouter()
 
   const handleGoHome = () => {
@@ -15,8 +16,8 @@ export default function UnauthorizedPage() {
   }
 
   const handleLogout = () => {
-    logout()
-    router.push('/login')
+    signOut()
+    router.push('/')
   }
 
   return (
@@ -34,7 +35,7 @@ export default function UnauthorizedPage() {
         <CardContent className="space-y-4">
           {user && (
             <div className="text-sm text-muted-foreground text-center">
-              Logged in as: <span className="font-medium">{user.name}</span> ({user.role})
+              Logged in as: <span className="font-medium">{user.fullName}</span>
             </div>
           )}
 

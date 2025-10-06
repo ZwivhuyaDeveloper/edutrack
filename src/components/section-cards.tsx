@@ -1,103 +1,46 @@
-import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react"
+"use client"
 
-import { Badge } from "@/components/ui/badge"
-import { useAuth } from "@/contexts/AuthContext"
+import { useUser } from "@clerk/nextjs"
+import { useState, useEffect } from "react"
+import { TermStatusCard } from "./term-status-card";
+import { StudentProgressCard } from "./student-progress-card";
+import { MessagesCard } from "./messages-card";
 
-import {
-  Card,
-  CardAction,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card"
-import { ChartAreaInteractive } from "./chart-area-interactive";
-import { Dot, MessageCircle, SquareCheckBig, Star } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import { List } from "@radix-ui/react-tabs";
-import { ChartBarDefault } from "./chart-bar";
-import { Button } from "./ui/button";
-
-interface Message {
+interface DatabaseUser {
   id: string
-  sender: string
-  senderRole: string
-  avatar: string
-  subject: string
-  message: string
-  time: string
-  unread: boolean
-  priority: string
-}
-
-interface MessageItemProps {
-  message: Message
-}
-
-function MessageItem({ message }: MessageItemProps) {
-  return (
-    <div
-      className={`p-4 rounded-lg border transition-all duration-200 cursor-pointer hover:shadow-md hover:scale-[1.02] ${
-        message.unread ? 'bg-blue-50/70 border-blue-200 shadow-sm' : 'bg-white border-gray-200 hover:bg-gray-50'
-      }`}
-    >
-      <div className="flex items-start gap-3">
-        <div className="text-2xl flex-shrink-0">{message.avatar}</div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-semibold text-gray-900 truncate">
-                {message.sender}
-              </p>
-              {message.unread && (
-                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-              )}
-              {message.priority === 'high' && (
-                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              )}
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground mb-2">
-            {message.senderRole === 'teacher' && '👩‍🏫 Teacher'}
-            {message.senderRole === 'principal' && '👨‍💼 Principal'}
-            {message.senderRole === 'parent' && '👩‍👧‍👦 Parent'}
-            {message.senderRole === 'learner' && '👨‍🎓 Student'}
-            {message.senderRole === 'admin' && '🏫 Admin'}
-          </p>
-          <p className="text-sm font-medium text-gray-800 mb-2 truncate">
-            {message.subject}
-          </p>
-          <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
-            {message.message}
-          </p>
-          <div className="flex items-center justify-between mt-3">
-            <div className="flex items-center gap-1">
-              {message.priority === 'high' && (
-                <span className="text-xs text-red-600 font-medium bg-red-50 px-2 py-1 rounded-full">
-                  High Priority
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {message.time}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+  role: 'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL'
 }
 
 export function SectionCards() {
-  const { user } = useAuth()
+  const { user: clerkUser, isLoaded } = useUser()
+  const [dbUser, setDbUser] = useState<DatabaseUser | null>(null)
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!clerkUser) return
+      
+      try {
+        const response = await fetch('/api/users/me')
+        if (response.ok) {
+          const data = await response.json()
+          setDbUser(data.user)
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error)
+      }
+    }
+
+    if (clerkUser) {
+      fetchUserData()
+    }
+  }, [clerkUser])
 
   // Mock message data for each role
   const getMessagesForRole = () => {
-    if (!user) return []
+    if (!dbUser) return []
 
-    switch (user.role) {
-      case 'learner':
+    switch (dbUser.role) {
+      case 'STUDENT':
         return [
           {
             id: '1',
@@ -167,7 +110,7 @@ export function SectionCards() {
           }
         ]
 
-      case 'teacher':
+      case 'TEACHER':
         return [
           {
             id: '1',
@@ -237,7 +180,7 @@ export function SectionCards() {
           }
         ]
 
-      case 'principal':
+      case 'PRINCIPAL':
         return [
           {
             id: '1',
@@ -307,7 +250,7 @@ export function SectionCards() {
           }
         ]
 
-      case 'parent':
+      case 'PARENT':
         return [
           {
             id: '1',
@@ -386,196 +329,9 @@ export function SectionCards() {
 
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-3">
-      <Card className="font-sans @container/card border-1 shadow-none bg-zinc-100">
-        <CardHeader>
-          <ChartAreaInteractive />
-        </CardHeader>
-        <CardContent className="flex-col flex items-start gap-4 text-sm">
-          <div className="flex-row flex w-full justify-between items-center gap-1.5 text-sm">
-            <div className="line-clamp-1 text-lg text-primary flex items-center gap-2 font-semibold">
-              <SquareCheckBig className="mr- size-7" /> Term Status
-            </div>
-            <div className="line-clamp-1 text-lg text-primary flex items-center gap-2 font-semibold">
-              <Star fill="orange" className="mr- size-5 text-orange-300" /> 8/10
-            </div>
-          </div>
-          <Separator orientation="horizontal" className="mr-2 h-px w-full bg-foreground/20" />
-        </CardContent>
-        <CardFooter className="flex-col items-start gap-3 font-semibold text-md">
-          <div className="flex-row flex w-full justify-between items-center gap-1.5 ">
-            <div className="flex-row flex w-full items-center gap-1.5">
-              <Dot strokeWidth={5} className="mr- size-6 text-primary" /> First Term
-            </div>
-            <span className="flex-row flex justify-between items-center gap-1.5">
-              <p className="font-medium">status:</p>
-              <p className="text-red-500 font-semibold">Fail</p>
-            </span>
-          </div>
-
-          <div className="flex-row flex w-full justify-between items-center gap-1.5 ">
-            <div className="flex-row flex w-full items-center gap-1.5">
-              <Dot strokeWidth={5} className="mr- size-6 text-primary" /> Second Term
-            </div>
-            <span className="flex-row flex justify-between items-center gap-1.5">
-              <p className="font-medium">status:</p>
-              <p className="text-green-500 font-semibold">Pass</p>
-            </span>
-          </div>
-          <div className="flex-row flex w-full justify-between items-center gap-1.5 ">
-            <div className="flex-row flex w-full items-center gap-1.5">
-              <Dot strokeWidth={5} className="mr- size-6 text-primary" /> Third Term
-            </div>
-            <span className="flex-row flex justify-between items-center gap-1.5">
-              <p className="font-medium">status:</p>
-              <p className="text-green-500 font-semibold">Pass</p>
-            </span>
-          </div>
-          <div className="flex-row flex w-full justify-between items-center gap-1.5 ">
-            <div className="flex-row flex w-full items-center gap-1.5">
-              <Dot strokeWidth={5} className="mr- size-6 text-primary" /> Fourth Term
-            </div>
-            <span className="flex-row flex justify-between items-center gap-1.5">
-              <p className="font-medium">status:</p>
-              <p className="text-green-500 font-semibold">Pass</p>
-            </span>
-          </div>
-        </CardFooter>
-      </Card>
-      <Card className="font-sans bg-zinc-100 @container/card">
-        <CardHeader>
-          <ChartBarDefault />
-        </CardHeader>
-        <CardContent className="flex-col flex items-start gap-4 text-sm">
-          <div className="flex-row flex w-full justify-between items-center gap-1.5 text-sm">
-            <div className="line-clamp-1 text-lg text-primary flex items-center gap-2 font-semibold">
-              <SquareCheckBig className="mr- size-7" /> Term Status
-            </div>
-            <div className="line-clamp-1 text-lg text-primary flex items-center gap-2 font-semibold">
-              <Star fill="orange" className="mr- size-5 text-orange-300" /> 8/10
-            </div>
-          </div>
-          <Separator orientation="horizontal" className="mr-2 h-px w-full bg-foreground/20" />
-        </CardContent>
-        <CardFooter className="flex-col items-start gap-2 font-semibold text-md">
-          <div className="flex-row flex w-full justify-between items-center gap-1.5 ">
-            <div className="flex-row flex w-full items-center gap-1.5">
-              <Dot strokeWidth={5} className="mr- size-6 text-primary" /> Mathematics
-            </div>
-            <span className="flex-row flex justify-between items-center gap-1.5">
-              <p className="font-medium">score:</p>
-              <p className="text-primary font-semibold">75%</p>
-            </span>
-          </div>
-
-          <div className="flex-row flex w-full justify-between items-center gap-1.5 ">
-            <div className="flex-row flex w-full items-center gap-1.5">
-              <Dot strokeWidth={5} className="mr- size-6 text-primary" /> English
-            </div>
-            <span className="flex-row flex justify-between items-center gap-1.5">
-              <p className="font-medium">score:</p>
-              <p className="text-primary font-semibold">75%</p>
-            </span>
-          </div>
-          <div className="flex-row flex w-full justify-between items-center gap-1.5 ">
-            <div className="flex-row flex w-full items-center gap-1.5">
-              <Dot strokeWidth={5} className="mr- size-6 text-primary" /> Social Studies
-            </div>
-            <span className="flex-row flex justify-between items-center gap-1.5">
-              <p className="font-medium">score:</p>
-              <p className="text-primary font-semibold">75%</p>
-            </span>
-          </div>
-          <div className="flex-row flex w-full justify-between items-center gap-1.5 ">
-            <div className="flex-row flex w-full items-center gap-1.5">
-              <Dot strokeWidth={5} className="mr- size-6 text-primary" /> Science
-            </div>
-            <span className="flex-row flex justify-between items-center gap-1.5">
-              <p className="font-medium">score:</p>
-              <p className="text-primary font-semibold">75%</p>
-            </span>
-          </div>
-          <div className="flex-row flex w-full justify-between items-center gap-1.5 ">
-            <div className="flex-row flex w-full items-center gap-1.5">
-              <Dot strokeWidth={5} className="mr- size-6 text-primary" /> Art
-            </div>
-            <span className="flex-row flex justify-between items-center gap-1.5">
-              <p className="font-medium">score:</p>
-              <p className="text-primary font-semibold">75%</p>
-            </span>
-          </div>
-          <div className="flex-row flex w-full justify-between items-center gap-1.5 ">
-            <div className="flex-row flex w-full items-center gap-1.5">
-              <Dot strokeWidth={5} className="mr- size-6 text-primary" /> Music
-            </div>
-            <span className="flex-row flex justify-between items-center gap-1.5">
-              <p className="font-medium">score:</p>
-              <p className="text-primary font-semibold">75%</p>
-            </span>
-          </div>
-        </CardFooter>
-      </Card>
-      <Card className="@container/card">
-      <CardHeader className="flex-col flex items-start gap-4 text-sm">
-          <div className="flex-row flex w-full justify-between items-center gap-1.5 text-sm">
-            <CardTitle className="line-clamp-1 text-lg text-primary flex items-center gap-2 font-semibold">
-              <MessageCircle  strokeWidth={3} className="mr- size-7" /> Messages
-            </CardTitle>
-            <Button className="line-clamp-1 text-md text-white flex items-center gap-2 font-semibold">
-              view all
-            </Button>
-          </div>
-          <Separator orientation="horizontal" className="mr-2 h-px w-full bg-foreground/20" />
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="relative max-h-96 overflow-hidden">
-            <div className="max-h-96 overflow-y-auto space-y-3 p-4 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent hover:scrollbar-thumb-gray-500">
-              {messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <MessageCircle className="h-16 w-16 text-muted-foreground mb-3" />
-                  <p className="text-base text-muted-foreground font-medium">No messages yet</p>
-                  <p className="text-sm text-muted-foreground">Messages will appear here when you receive them</p>
-                </div>
-              ) : (
-                <>
-                  {/* Unread messages section */}
-                  {messages.filter(msg => msg.unread).length > 0 && (
-                    <div className="mb-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                        <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide">
-                          Unread ({messages.filter(msg => msg.unread).length})
-                        </p>
-                      </div>
-                      <div className="space-y-3">
-                        {messages.filter(msg => msg.unread).map((message) => (
-                          <MessageItem key={message.id} message={message} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Read messages section */}
-                  {messages.filter(msg => !msg.unread).length > 0 && (
-                    <div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                          Earlier Messages
-                        </p>
-                      </div>
-                      <div className="space-y-3">
-                        {messages.filter(msg => !msg.unread).map((message) => (
-                          <MessageItem key={message.id} message={message} />
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <TermStatusCard />
+      <StudentProgressCard />
+      <MessagesCard messages={messages} />
     </div>
   )
 }

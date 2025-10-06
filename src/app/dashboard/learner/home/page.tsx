@@ -10,8 +10,6 @@ export default function HomePage() {
           <div className="@container/main bg-white rounded-3xl mt-3 flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-1 py-2 md:gap-6 md:py-6">
               <SectionCards />
-              <SectionCards />
-              {/*<DataTable data={data} />*/}
             </div>
           </div>
         </div>

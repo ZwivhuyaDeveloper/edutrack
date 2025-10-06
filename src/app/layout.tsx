@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Instrument_Sans,  } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { ClerkProvider } from '@clerk/nextjs';
 
 const instrumentSans = Instrument_Sans({
   variable: "--font-instrument-sans",
@@ -21,14 +21,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={` ${instrumentSans.variable} antialiased`}
-      >
-        <AuthProvider>
+    <ClerkProvider>
+      <html lang="en">
+        <body
+          className={` ${instrumentSans.variable} antialiased`}
+        >
           {children}
-        </AuthProvider>
-      </body>
-    </html>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

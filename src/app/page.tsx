@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/contexts/AuthContext'
+import { useUser } from '@clerk/nextjs'
 import AboutUs from "@/components/About-us";
 import DashboardShowcase from "@/components/DashboardShowcase";
 import EducationComparison from "@/components/Education-Comparison";
@@ -17,11 +17,11 @@ import { Loader2, LogIn, UserPlus } from 'lucide-react'
 
 export default function Home() {
   const [showAuthOptions, setShowAuthOptions] = useState(false)
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isSignedIn, isLoaded } = useUser()
   const router = useRouter()
 
   const handleGetStarted = () => {
-    if (isAuthenticated) {
+    if (isSignedIn) {
       router.push('/dashboard')
     } else {
       setShowAuthOptions(true)
@@ -29,14 +29,14 @@ export default function Home() {
   }
 
   const handleLogin = () => {
-    router.push('/login')
+    router.push('/sign-in')
   }
 
   const handleContinueAsGuest = () => {
     setShowAuthOptions(false)
   }
 
-  if (isLoading) {
+  if (!isLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -89,9 +89,9 @@ export default function Home() {
             <Button
               onClick={handleGetStarted}
               size="lg"
-              className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-3"
+              className="bg-white text-primary hover:bg-gray-100 text-lg px-8 py-3"
             >
-              {isAuthenticated ? 'Go to Dashboard' : 'Get Started Now'}
+              {isSignedIn ? 'Go to Dashboard' : 'Get Started Now'}
             </Button>
           </div>
         </div>
