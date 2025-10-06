@@ -317,14 +317,14 @@ function DashboardContent() {
   return (
     <SidebarProvider>
       <AppSidebar onNavigate={setActivePage} activePage={activePage} userRole={user.role} />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 bg-zinc-100 rounded-4xl shadow-none mx-4 mt-6 mb-4 items-center px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 font-sans">
+      <SidebarInset className="bg-zinc-100">
+        <header className="flex h-16 shrink-0 bg-white rounded-4xl shadow-none mx-4 mt-5 mb-1 items-center px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 font-sans">
           {/* Left section - Sidebar trigger */}
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4 bg-gray-200" />
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium capitalize">{user.role} Dashboard</span>
+              <span className="text-sm font-medium text-primary capitalize">{user.role} Dashboard</span>
               <span className="text-xs text-muted-foreground">
                 Welcome back, {user.name}
               </span>
@@ -337,8 +337,8 @@ function DashboardContent() {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search..."
-                className="w-[200px] pl-8 md:w-[300px]"
+                placeholder="Search reports, assignments, etc."
+                className="w-[200px] bg-zinc-100 rounded-full shadow-none border-0 pl-8 md:w-[350px]"
               />
             </div>
           </div>

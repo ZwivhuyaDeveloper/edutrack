@@ -124,7 +124,7 @@ export function AppSidebar({ onNavigate, activePage, userRole = "learner", ...pr
   const navItems = React.useMemo(() => getRoleBasedNavigation(userRole), [userRole])
 
   return (
-    <Sidebar collapsible="icon" {...props} className="items-center font-sans">
+    <Sidebar collapsible="icon" {...props} className="items-center  font-sans">
       <SidebarHeader className="mb-12 ml-1 mt-5">
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>

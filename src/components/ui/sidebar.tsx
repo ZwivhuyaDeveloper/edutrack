@@ -170,7 +170,7 @@ function Sidebar({
       <div
         data-slot="sidebar"
         className={cn(
-          "bg-sidebar font-sans text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col",
+          "bg-white font-sans text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col",
           className
         )}
         {...props}
@@ -187,7 +187,7 @@ function Sidebar({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-          className="bg-sidebar font-sans text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
+          className="bg-white font-sans text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
           style={
             {
               "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
@@ -218,7 +218,7 @@ function Sidebar({
       <div
         data-slot="sidebar-gap"
         className={cn(
-          "relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear",
+          "relative w-(--sidebar-width) bg-white transition-[width] duration-200 ease-linear",
           "group-data-[collapsible=offcanvas]:w-0",
           "group-data-[side=right]:rotate-180",
           variant === "floating" || variant === "inset"
@@ -273,7 +273,7 @@ function SidebarTrigger({
       }}
       {...props}
     >
-      <ArrowLeftToLineIcon />
+      <ArrowLeftToLineIcon className="text-primary" />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   )
