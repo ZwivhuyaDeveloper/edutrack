@@ -47,7 +47,7 @@ export async function GET() {
     const permissions = PERMISSIONS[user.role] || {}
 
     // Get default dashboard route
-    const dashboardRoute = getDashboardRoute(user.role)
+    const dashboardRoute = getDashboardRoute()
 
     // Return comprehensive user data
     return NextResponse.json({

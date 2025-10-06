@@ -128,24 +128,25 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = createUserSchema.parse(body)
 
-    // Get current user to check permissions
+    // Check if this is a self-registration (user doesn't exist yet)
     const currentUser = await prisma.user.findUnique({
       where: { clerkId: userId },
       include: { school: true }
     })
 
-    if (!currentUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
-    }
+    // If user doesn't exist, this is self-registration - allow it
+    const isSelfRegistration = !currentUser
 
-    // Only principals can create new users
-    if (currentUser.role !== 'PRINCIPAL') {
-      return NextResponse.json({ error: 'Only principals can create users' }, { status: 403 })
-    }
+    if (!isSelfRegistration) {
+      // Existing user creating another user - only principals can do this
+      if (currentUser.role !== 'PRINCIPAL') {
+        return NextResponse.json({ error: 'Only principals can create users' }, { status: 403 })
+      }
 
-    // Verify school exists and user has access to it
-    if (validatedData.schoolId !== currentUser.schoolId) {
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 })
+      // Verify school exists and user has access to it
+      if (validatedData.schoolId !== currentUser.schoolId) {
+        return NextResponse.json({ error: 'Access denied' }, { status: 403 })
+      }
     }
 
     const school = await prisma.school.findUnique({
@@ -159,24 +160,35 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if email already exists
-    const existingUser = await prisma.user.findUnique({
+    const existingUserByEmail = await prisma.user.findUnique({
       where: { email: validatedData.email }
     })
 
-    if (existingUser) {
+    if (existingUserByEmail && existingUserByEmail.clerkId !== userId) {
       return NextResponse.json({ error: 'User with this email already exists' }, { status: 400 })
     }
 
-    // Create user (without Clerk ID - will be updated via webhook when they sign up)
+    // For self-registration, check if user with this clerkId already exists
+    if (isSelfRegistration) {
+      const existingUserByClerkId = await prisma.user.findUnique({
+        where: { clerkId: userId }
+      })
+
+      if (existingUserByClerkId) {
+        return NextResponse.json({ error: 'User already registered' }, { status: 400 })
+      }
+    }
+
+    // Create user
     const user = await prisma.user.create({
       data: {
-        clerkId: '', // Will be updated when user signs up
+        clerkId: isSelfRegistration ? userId : '', // Use Clerk ID for self-registration
         email: validatedData.email,
         firstName: validatedData.firstName,
         lastName: validatedData.lastName,
         role: validatedData.role,
         schoolId: validatedData.schoolId,
-        isActive: false // Will be activated when they complete signup
+        isActive: isSelfRegistration // Activate immediately for self-registration
       }
     })
 
