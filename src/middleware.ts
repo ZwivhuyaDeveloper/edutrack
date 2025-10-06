@@ -1,5 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
+import { clerkClient } from '@clerk/nextjs/server'
 
 // Public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
@@ -44,6 +45,7 @@ const isTeacherRoute = createRouteMatcher([
 ])
 
 const isStudentRoute = createRouteMatcher([
+  '/dashboard/learner(.*)',
   '/dashboard/student(.*)'
 ])
 
@@ -76,8 +78,65 @@ export default clerkMiddleware(async (auth, req) => {
       return NextResponse.redirect(signInUrl)
     }
 
-    // For role-specific routes, we'll let the page/API handle authorization
-    // This middleware only handles authentication
+    // Allow /api/schools and /api/users for registration flow
+    const isRegistrationAPI = req.nextUrl.pathname === '/api/schools' || 
+                              req.nextUrl.pathname === '/api/users' ||
+                              req.nextUrl.pathname === '/api/users/me' ||
+                              req.nextUrl.pathname === '/api/dashboard/student'
+    
+    if (isRegistrationAPI) {
+      return NextResponse.next()
+    }
+
+    // Check role-based access for dashboard routes
+    try {
+      const user = await (await clerkClient()).users.getUser(userId)
+      const userRole = user.publicMetadata?.role as string | undefined
+
+      console.log('[middleware] Checking user role for:', req.nextUrl.pathname)
+      console.log('[middleware] User role from metadata:', userRole)
+
+      // If user has no role, check database before redirecting
+      if (!userRole && !req.nextUrl.pathname.startsWith('/sign-up') && req.nextUrl.pathname !== '/dashboard') {
+        console.log('[middleware] No role in metadata, redirecting to /sign-up')
+        return NextResponse.redirect(new URL('/sign-up', req.url))
+      }
+      
+      // Allow /dashboard route even without role metadata (it will check DB)
+      if (req.nextUrl.pathname === '/dashboard') {
+        console.log('[middleware] Allowing /dashboard access')
+        return NextResponse.next()
+      }
+
+      // Check role-specific routes
+      if (isPrincipalRoute(req) && userRole !== 'PRINCIPAL') {
+        return NextResponse.redirect(new URL('/unauthorized', req.url))
+      }
+
+      if (isTeacherRoute(req) && userRole !== 'TEACHER') {
+        return NextResponse.redirect(new URL('/unauthorized', req.url))
+      }
+
+      if (isStudentRoute(req) && userRole !== 'STUDENT') {
+        return NextResponse.redirect(new URL('/unauthorized', req.url))
+      }
+
+      if (isParentRoute(req) && userRole !== 'PARENT') {
+        return NextResponse.redirect(new URL('/unauthorized', req.url))
+      }
+
+      if (isClerkRoute(req) && userRole !== 'CLERK') {
+        return NextResponse.redirect(new URL('/unauthorized', req.url))
+      }
+
+      if (isAdminRoute(req) && userRole !== 'ADMIN') {
+        return NextResponse.redirect(new URL('/unauthorized', req.url))
+      }
+    } catch (error) {
+      console.error('Error checking user role:', error)
+      // Continue on error to avoid blocking access
+    }
+
     return NextResponse.next()
   }
 

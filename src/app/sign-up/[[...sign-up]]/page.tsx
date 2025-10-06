@@ -29,6 +29,8 @@ export default function Page() {
   const [searchTerm, setSearchTerm] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [recheckProfile, setRecheckProfile] = useState(0)
+  const [isRedirecting, setIsRedirecting] = useState(false)
   const { user, isLoaded } = useUser()
   const router = useRouter()
 
@@ -75,25 +77,48 @@ export default function Page() {
   // Check if user is authenticated and has completed profile
   useEffect(() => {
     async function checkUserProfile() {
+      console.log('[sign-up] useEffect triggered - isLoaded:', isLoaded, 'user:', !!user)
+      
       if (isLoaded && user) {
         try {
+          console.log('[sign-up] Checking user profile for:', user.primaryEmailAddress?.emailAddress)
           const response = await fetch('/api/users/me')
+          console.log('[sign-up] Response status:', response.status)
+          
           if (response.ok) {
+            const data = await response.json()
+            console.log('[sign-up] User has profile:', data.user)
+            console.log('[sign-up] User role:', data.user?.role)
+            console.log('[sign-up] Dashboard route:', data.user?.dashboardRoute)
+            
             // User has completed profile, redirect to dashboard
-            router.push('/dashboard')
+            console.log('[sign-up] Redirecting to /dashboard')
+            setIsRedirecting(true)
+            
+            // Use replace instead of href to avoid back button issues
+            window.location.replace('/dashboard')
+            return
           } else if (response.status === 404) {
             // User authenticated but no profile - show role selection
+            console.log('[sign-up] User not found in DB (404), showing role selection')
+            setStep('role')
+          } else {
+            console.log('[sign-up] Unexpected response status:', response.status)
+            const errorText = await response.text()
+            console.log('[sign-up] Error response:', errorText)
             setStep('role')
           }
         } catch (error) {
-          console.error('Error checking user profile:', error)
+          console.error('[sign-up] Error checking user profile:', error)
           setStep('role')
         }
+      } else if (isLoaded && !user) {
+        console.log('[sign-up] User not authenticated, staying on sign-up page')
       }
     }
 
     checkUserProfile()
-  }, [isLoaded, user, router])
+  }, [isLoaded, user, recheckProfile])
 
   // Fetch schools when school selection step is reached
   useEffect(() => {
@@ -105,13 +130,31 @@ export default function Page() {
   const fetchSchools = async () => {
     try {
       const response = await fetch('/api/schools')
-      if (response.ok) {
-        const data = await response.json()
+      
+      if (!response.ok) {
+        console.error('Failed to fetch schools:', response.status, response.statusText)
+        toast.error('Failed to load schools')
+        return
+      }
+
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Response is not JSON:', contentType)
+        toast.error('Invalid response from server')
+        return
+      }
+
+      const data = await response.json()
+      
+      if (data.schools && Array.isArray(data.schools)) {
         setSchools(data.schools)
+      } else {
+        console.error('Invalid schools data:', data)
+        toast.error('Invalid data received')
       }
     } catch (error) {
       console.error('Error fetching schools:', error)
-      toast.error('Failed to load schools')
+      toast.error('Failed to load schools. Please try again.')
     }
   }
 
@@ -246,10 +289,11 @@ export default function Page() {
       toast.success('Registration completed successfully!')
       setStep('complete')
       
-      // Redirect to dashboard after successful registration
+      // Trigger profile recheck and redirect to dashboard
+      setRecheckProfile(prev => prev + 1)
       setTimeout(() => {
         router.push('/dashboard')
-      }, 2000)
+      }, 1500)
     } catch (error) {
       console.error('Registration error:', error)
       setError(error instanceof Error ? error.message : 'Registration failed')
@@ -265,10 +309,13 @@ export default function Page() {
     school.state.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  if (!isLoaded) {
+  if (!isLoaded || isRedirecting) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          {isRedirecting && <p className="text-gray-600">Redirecting to dashboard...</p>}
+        </div>
       </div>
     )
   }

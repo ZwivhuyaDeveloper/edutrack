@@ -179,7 +179,41 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create user
+    // Step 1: Add user to Clerk organization and set metadata
+    if (isSelfRegistration && school.clerkOrganizationId) {
+      try {
+        const { clerkClient } = await import('@clerk/nextjs/server')
+        const { getClerkOrgRole, getPermissionStrings } = await import('@/lib/permissions')
+        
+        // Add to organization with role-based permissions
+        await (await clerkClient()).organizations.createOrganizationMembership({
+          organizationId: school.clerkOrganizationId,
+          userId,
+          role: getClerkOrgRole(validatedData.role),
+        })
+        
+        // Update user's public metadata with permissions
+        await (await clerkClient()).users.updateUserMetadata(userId, {
+          publicMetadata: {
+            role: validatedData.role,
+            schoolId: validatedData.schoolId,
+            schoolName: school.name,
+            organizationId: school.clerkOrganizationId,
+            permissions: getPermissionStrings(validatedData.role),
+            isActive: true,
+            ...(validatedData.grade && { grade: validatedData.grade }),
+            ...(validatedData.department && { department: validatedData.department }),
+          }
+        })
+        
+        console.log(`Added user ${userId} to Clerk organization ${school.clerkOrganizationId} with role ${validatedData.role}`)
+      } catch (clerkError) {
+        console.error('Error adding user to Clerk organization:', clerkError)
+        // Continue with user creation even if Clerk organization membership fails
+      }
+    }
+
+    // Step 2: Create user in database
     const user = await prisma.user.create({
       data: {
         clerkId: isSelfRegistration ? userId : '', // Use Clerk ID for self-registration

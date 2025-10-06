@@ -10,6 +10,7 @@ const useCountUp = (target: number, duration: number = 2000) => {
     const ref = useRef<HTMLDivElement>(null);
     const animationRef = useRef<number | undefined>(undefined);
     const startTimeRef = useRef<number | undefined>(undefined);
+    const hasAnimatedRef = useRef(false);
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -34,7 +35,13 @@ const useCountUp = (target: number, duration: number = 2000) => {
     }, [isVisible]);
 
     useEffect(() => {
-        if (!isVisible || target === 0) return;
+        if (!isVisible || target === 0 || hasAnimatedRef.current) return;
+
+        // Mark as animating to prevent re-runs
+        hasAnimatedRef.current = true;
+
+        // Reset start time for new animation
+        startTimeRef.current = undefined;
 
         const animate = (timestamp: number) => {
             if (!startTimeRef.current) {
@@ -53,6 +60,9 @@ const useCountUp = (target: number, duration: number = 2000) => {
 
             if (progress < 1) {
                 animationRef.current = requestAnimationFrame(animate);
+            } else {
+                // Animation complete
+                startTimeRef.current = undefined;
             }
         };
 
@@ -62,6 +72,7 @@ const useCountUp = (target: number, duration: number = 2000) => {
             if (animationRef.current) {
                 cancelAnimationFrame(animationRef.current);
             }
+            startTimeRef.current = undefined;
         };
     }, [isVisible, target, duration]);
 

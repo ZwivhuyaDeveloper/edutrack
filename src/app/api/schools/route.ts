@@ -88,9 +88,50 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create school
+    // Step 1: Create Clerk organization for the school
+    let clerkOrganizationId: string | null = null
+    try {
+      const { clerkClient } = await import('@clerk/nextjs/server')
+      const { CLERK_ORG_ROLES, getPermissionStrings } = await import('@/lib/permissions')
+      
+      const organization = await (await clerkClient()).organizations.createOrganization({
+        name: validatedData.name,
+        slug: validatedData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        createdBy: userId,
+      })
+      clerkOrganizationId = organization.id
+
+      // Add the creator (principal) as an admin member
+      await (await clerkClient()).organizations.createOrganizationMembership({
+        organizationId: organization.id,
+        userId,
+        role: CLERK_ORG_ROLES.PRINCIPAL,
+      })
+      
+      // Update principal's metadata
+      await (await clerkClient()).users.updateUserMetadata(userId, {
+        publicMetadata: {
+          role: 'PRINCIPAL',
+          schoolId: '', // Will be updated after school creation
+          schoolName: validatedData.name,
+          organizationId: organization.id,
+          permissions: getPermissionStrings('PRINCIPAL'),
+          isActive: true,
+        }
+      })
+      
+      console.log(`Created Clerk organization ${organization.id} for school ${validatedData.name}`)
+    } catch (clerkError) {
+      console.error('Error creating Clerk organization:', clerkError)
+      // Continue without Clerk organization if it fails
+    }
+
+    // Step 2: Create school in database with Clerk organization ID
     const school = await prisma.school.create({
-      data: validatedData
+      data: {
+        ...validatedData,
+        clerkOrganizationId
+      }
     })
 
     // Create or update user with principal role
