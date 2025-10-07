@@ -181,25 +181,45 @@ const getRoleBasedNavigation = (userRole: string) => {
     case "admin":
       return [
         {
-          title: "Admin Dashboard",
+          title: "Dashboard",
           url: "#",
           icon: BlocksIcon,
           isActive: true,
         },
         {
-          title: "Assignments",
+          title: "People",
           url: "#",
-          icon: PaperclipIcon,
+          icon: Users,
         },
         {
-          title: "Reports",
+          title: "Academic",
           url: "#",
-          icon: Newspaper,
+          icon: GraduationCap,
         },
         {
-          title: "Messages",
+          title: "Operations",
+          url: "#",
+          icon: CalendarDays,
+        },
+        {
+          title: "Communication",
           url: "#",
           icon: MessageCirclePlus,
+        },
+        {
+          title: "Events",
+          url: "#",
+          icon: Calendar,
+        },
+        {
+          title: "Finance",
+          url: "#",
+          icon: TrendingUp,
+        },
+        {
+          title: "Settings",
+          url: "#",
+          icon: Settings,
         },
       ]
     

@@ -17,6 +17,10 @@ export type PageType =
   | "lessons"
   | "analytics"
   | "settings"
+  | "people"
+  | "academic"
+  | "operations"
+  | "communication"
 
 export type UserRole = 'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL' | 'CLERK' | 'ADMIN'
 

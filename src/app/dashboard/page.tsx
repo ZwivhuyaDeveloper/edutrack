@@ -83,9 +83,13 @@ const rolePageMap: Record<string, Partial<Record<PageType, () => Promise<{ defau
   },
   PRINCIPAL: {
     dashboard: () => import("./principal/home/page").then(mod => ({ default: mod.default })),
-    assignments: () => import("./principal/assignments/page").then(mod => ({ default: mod.default })),
-    reports: () => import("./principal/reports/page").then(mod => ({ default: mod.default })),
-    messages: () => import("./principal/messages/page").then(mod => ({ default: mod.default })),
+    people: () => import("./principal/people/page").then(mod => ({ default: mod.default })),
+    academic: () => import("./principal/academic/page").then(mod => ({ default: mod.default })),
+    operations: () => import("./principal/operations/page").then(mod => ({ default: mod.default })),
+    communication: () => import("./principal/communication/page").then(mod => ({ default: mod.default })),
+    events: () => import("./principal/events/page").then(mod => ({ default: mod.default })),
+    finance: () => import("./principal/finance/page").then(mod => ({ default: mod.default })),
+    settings: () => import("./principal/settings/page").then(mod => ({ default: mod.default })),
   },
   PARENT: {
     dashboard: () => import("./parent/home/page").then(mod => ({ default: mod.default })),
