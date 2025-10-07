@@ -310,17 +310,30 @@ export function AppSidebar({ onNavigate, activePage, userRole = "student", ...pr
   const navItems = React.useMemo(() => getRoleBasedNavigation(userRole), [userRole])
 
   return (
-    <Sidebar collapsible="icon" {...props} className="items-center  font-sans">
-      <SidebarHeader className="mb-12 ml-1 mt-5">
-        <TeamSwitcher teams={data.teams} />
+    <Sidebar 
+      collapsible="icon" 
+      {...props} 
+      className="border-r border-border/40 bg-gradient-to-b from-background to-background/95 backdrop-blur-sm"
+    >
+      {/* Header with Logo */}
+      <SidebarHeader className="border-b border-border/40 px-4 py-6">
+        <div className="flex items-center justify-center">
+          <TeamSwitcher teams={data.teams} />
+        </div>
       </SidebarHeader>
-      <SidebarContent>
+
+      {/* Main Navigation */}
+      <SidebarContent className="flex-1 px-2 py-4">
         <NavMain items={navItems} onNavigate={onNavigate} activePage={activePage} />
       </SidebarContent>
-      <SidebarFooter>
+
+      {/* Footer with User */}
+      <SidebarFooter className="border-t border-border/40 px-4 py-4">
         <NavUser user={data.user} />
       </SidebarFooter>
-      <SidebarRail />
+      
+      {/* Resize Handle */}
+      <SidebarRail className="hover:bg-primary/20 transition-colors duration-200" />
     </Sidebar>
   )
 }
