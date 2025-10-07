@@ -1,6 +1,7 @@
 "use client"
 
 import { type LucideIcon } from "lucide-react"
+import type { PageType } from "@/types/dashboard"
 
 import {
   Collapsible,
@@ -17,8 +18,6 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
-
-type PageType = "dashboard" | "assignments" | "reports" | "messages"
 
 interface NavMainProps {
   items: {
@@ -39,26 +38,33 @@ export function NavMain({ items, onNavigate, activePage }: NavMainProps) {
   const handleItemClick = (title: string) => {
     if (onNavigate) {
       // Extract base title for navigation (remove role prefix)
-      const baseTitle = title.toLowerCase().replace(/^(teacher|principal|parent)\s+/, '')
-      switch (baseTitle) {
-        case "dashboard":
-          onNavigate("dashboard")
-          break
-        case "assignments":
-          onNavigate("assignments")
-          break
-        case "reports":
-          onNavigate("reports")
-          break
-        case "messages":
-          onNavigate("messages")
-          break
+      const baseTitle = title.toLowerCase().replace(/^(teacher|admin|principal|parent)\s+/, '')
+      
+      // Map title to PageType
+      const pageTypeMap: Record<string, PageType> = {
+        "dashboard": "dashboard",
+        "assignments": "assignments",
+        "reports": "reports",
+        "messages": "messages",
+        "classes": "classes",
+        "gradebook": "gradebook",
+        "schedule": "schedule",
+        "attendance": "attendance",
+        "finance": "finance",
+        "resources": "resources",
+        "events": "events",
+        "announcements": "announcements",
+      }
+      
+      const pageType = pageTypeMap[baseTitle]
+      if (pageType) {
+        onNavigate(pageType)
       }
     }
   }
 
   const isItemActive = (title: string) => {
-    const baseTitle = title.toLowerCase().replace(/^(teacher|principal|parent)\s+/, '')
+    const baseTitle = title.toLowerCase().replace(/^(teacher|admin|principal|parent)\s+/, '')
     return activePage === baseTitle
   }
 

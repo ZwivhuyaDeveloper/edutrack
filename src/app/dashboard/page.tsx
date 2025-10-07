@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useUser, useClerk } from "@clerk/nextjs"
+import type { PageType } from "@/types/dashboard"
 import { AppSidebar } from "@/components/app-sidebar"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
@@ -48,17 +49,21 @@ import {
   Building2,
 } from "lucide-react"
 
-// Define user roles and page types
-type PageType = "dashboard" | "assignments" | "reports" | "messages"
-type UserRole = 'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL' | 'CLERK' | 'ADMIN'
-
 // Role-based page components mapping
-const rolePageMap: Record<string, Record<PageType, () => Promise<{ default: React.ComponentType }>>> = {
+const rolePageMap: Record<string, Partial<Record<PageType, () => Promise<{ default: React.ComponentType }>>>> = {
   STUDENT: {
     dashboard: () => import("./learner/home/page").then(mod => ({ default: mod.default })),
     assignments: () => import("./learner/assignments/page").then(mod => ({ default: mod.default })),
     reports: () => import("./learner/reports/page").then(mod => ({ default: mod.default })),
     messages: () => import("./learner/messages/page").then(mod => ({ default: mod.default })),
+    classes: () => import("./learner/classes/page").then(mod => ({ default: mod.default })),
+    schedule: () => import("./learner/schedule/page").then(mod => ({ default: mod.default })),
+    attendance: () => import("./learner/attendance/page").then(mod => ({ default: mod.default })),
+    finance: () => import("./learner/finance/page").then(mod => ({ default: mod.default })),
+    resources: () => import("./learner/resources/page").then(mod => ({ default: mod.default })),
+    events: () => import("./learner/events/page").then(mod => ({ default: mod.default })),
+    announcements: () => import("./learner/announcements/page").then(mod => ({ default: mod.default })),
+    gradebook: () => import("./learner/gradebook/page").then(mod => ({ default: mod.default })),
   },
   TEACHER: {
     dashboard: () => import("./teacher/home/page").then(mod => ({ default: mod.default })),
@@ -154,7 +159,7 @@ interface DatabaseUser {
 
 function DashboardContent() {
   const [activePage, setActivePage] = useState<PageType>("dashboard")
-  const [PageComponents, setPageComponents] = useState<Record<PageType, React.ComponentType>>({} as Record<PageType, React.ComponentType>)
+  const [PageComponents, setPageComponents] = useState<Partial<Record<PageType, React.ComponentType>>>({} as Partial<Record<PageType, React.ComponentType>>)
   const [dbUser, setDbUser] = useState<DatabaseUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const { user: clerkUser, isLoaded } = useUser()
@@ -200,7 +205,7 @@ function DashboardContent() {
     if (!dbUser) return
 
     const loadComponents = async () => {
-      const components = {} as Record<PageType, React.ComponentType>
+      const components = {} as Partial<Record<PageType, React.ComponentType>>
 
       // Get role-specific page map
       const rolePages = rolePageMap[dbUser.role]
@@ -302,13 +307,19 @@ function DashboardContent() {
         icon: User,
         label: 'View Profile',
         description: 'Manage your personal information',
-        action: () => console.log('View profile')
+        action: () => router.push('/dashboard/profile')
       },
       {
         icon: Settings,
         label: 'Account Settings',
         description: 'Update preferences and security',
-        action: () => console.log('Settings')
+        action: () => {
+          if (dbUser.role === 'STUDENT') {
+            router.push('/dashboard/learner/settings')
+          } else {
+            console.log('Settings')
+          }
+        }
       }
     ]
 
@@ -319,27 +330,63 @@ function DashboardContent() {
         roleSpecificItems.push(
           {
             icon: GraduationCap,
-            label: 'My Grades',
-            description: 'View academic performance',
-            action: () => console.log('Grades')
+            label: 'My Classes',
+            description: 'View enrolled classes',
+            action: () => router.push('/dashboard/learner/classes')
           },
           {
             icon: BookOpen,
             label: 'Assignments',
             description: 'Check pending work',
-            action: () => console.log('Assignments')
-          },
-          {
-            icon: Calendar,
-            label: 'Class Schedule',
-            description: 'View daily timetable',
-            action: () => console.log('Schedule')
+            action: () => router.push('/dashboard/learner/assignments')
           },
           {
             icon: Award,
-            label: 'Achievements',
-            description: 'View certificates and awards',
-            action: () => console.log('Achievements')
+            label: 'Gradebook',
+            description: 'View academic performance',
+            action: () => router.push('/dashboard/learner/gradebook')
+          },
+          {
+            icon: Calendar,
+            label: 'Schedule',
+            description: 'View weekly timetable',
+            action: () => router.push('/dashboard/learner/schedule')
+          },
+          {
+            icon: Users,
+            label: 'Attendance',
+            description: 'Track attendance records',
+            action: () => router.push('/dashboard/learner/attendance')
+          },
+          {
+            icon: MessageSquare,
+            label: 'Messages',
+            description: 'View conversations',
+            action: () => router.push('/dashboard/learner/messages')
+          },
+          {
+            icon: Bell,
+            label: 'Announcements',
+            description: 'School updates',
+            action: () => router.push('/dashboard/learner/announcements')
+          },
+          {
+            icon: FileText,
+            label: 'Resources',
+            description: 'Learning materials',
+            action: () => router.push('/dashboard/learner/resources')
+          },
+          {
+            icon: Calendar,
+            label: 'Events',
+            description: 'School events & calendar',
+            action: () => router.push('/dashboard/learner/events')
+          },
+          {
+            icon: TrendingUp,
+            label: 'Finance',
+            description: 'Fees & payments',
+            action: () => router.push('/dashboard/learner/finance')
           }
         )
         break

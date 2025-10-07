@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import type { PageType, SidebarUserRole } from "@/types/dashboard"
 import {
   BlocksIcon,
   Grid,
@@ -8,6 +9,14 @@ import {
   MessageCirclePlus,
   PaperclipIcon,
   Newspaper,
+  GraduationCap,
+  Calendar,
+  Users,
+  Award,
+  FileText,
+  Bell,
+  TrendingUp,
+  CalendarDays,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -25,49 +34,156 @@ import logo from "@/assets/Standalone_Logo.png"
 
 // Role-based navigation data
 const getRoleBasedNavigation = (userRole: string) => {
-  const baseNav = [
-    {
-      title: "Dashboard",
-      url: "#",
-      icon: BlocksIcon,
-      isActive: true,
-    },
-    {
-      title: "Assignments",
-      url: "#",
-      icon: PaperclipIcon,
-    },
-    {
-      title: "Reports",
-      url: "#",
-      icon: Newspaper,
-    },
-    {
-      title: "Messages",
-      url: "#",
-      icon: MessageCirclePlus,
-    },
-  ]
-
-  // Customize navigation based on role
   switch (userRole) {
+    case "student":
+      return [
+        {
+          title: "Dashboard",
+          url: "#",
+          icon: BlocksIcon,
+          isActive: true,
+        },
+        {
+          title: "Classes",
+          url: "#",
+          icon: GraduationCap,
+        },
+        {
+          title: "Assignments",
+          url: "#",
+          icon: PaperclipIcon,
+        },
+        {
+          title: "Gradebook",
+          url: "#",
+          icon: Award,
+        },
+        {
+          title: "Schedule",
+          url: "#",
+          icon: Calendar,
+        },
+        {
+          title: "Attendance",
+          url: "#",
+          icon: Users,
+        },
+        {
+          title: "Messages",
+          url: "#",
+          icon: MessageCirclePlus,
+        },
+        {
+          title: "Announcements",
+          url: "#",
+          icon: Bell,
+        },
+        {
+          title: "Resources",
+          url: "#",
+          icon: FileText,
+        },
+        {
+          title: "Events",
+          url: "#",
+          icon: CalendarDays,
+        },
+        {
+          title: "Finance",
+          url: "#",
+          icon: TrendingUp,
+        },
+        {
+          title: "Reports",
+          url: "#",
+          icon: Newspaper,
+        },
+      ]
+    
     case "teacher":
-      return baseNav.map(item => ({
-        ...item,
-        title: item.title === "Dashboard" ? "Teacher Dashboard" : item.title,
-      }))
+      return [
+        {
+          title: "Teacher Dashboard",
+          url: "#",
+          icon: BlocksIcon,
+          isActive: true,
+        },
+        {
+          title: "Assignments",
+          url: "#",
+          icon: PaperclipIcon,
+        },
+        {
+          title: "Reports",
+          url: "#",
+          icon: Newspaper,
+        },
+        {
+          title: "Messages",
+          url: "#",
+          icon: MessageCirclePlus,
+        },
+      ]
+    
     case "admin":
-      return baseNav.map(item => ({
-        ...item,
-        title: item.title === "Dashboard" ? "Admin Dashboard" : item.title,
-      }))
+      return [
+        {
+          title: "Admin Dashboard",
+          url: "#",
+          icon: BlocksIcon,
+          isActive: true,
+        },
+        {
+          title: "Assignments",
+          url: "#",
+          icon: PaperclipIcon,
+        },
+        {
+          title: "Reports",
+          url: "#",
+          icon: Newspaper,
+        },
+        {
+          title: "Messages",
+          url: "#",
+          icon: MessageCirclePlus,
+        },
+      ]
+    
     case "parent":
-      return baseNav.map(item => ({
-        ...item,
-        title: item.title === "Dashboard" ? "Parent Dashboard" : item.title,
-      }))
-    default: // student
-      return baseNav
+      return [
+        {
+          title: "Parent Dashboard",
+          url: "#",
+          icon: BlocksIcon,
+          isActive: true,
+        },
+        {
+          title: "Assignments",
+          url: "#",
+          icon: PaperclipIcon,
+        },
+        {
+          title: "Reports",
+          url: "#",
+          icon: Newspaper,
+        },
+        {
+          title: "Messages",
+          url: "#",
+          icon: MessageCirclePlus,
+        },
+      ]
+    
+    default:
+      return [
+        {
+          title: "Dashboard",
+          url: "#",
+          icon: BlocksIcon,
+          isActive: true,
+        },
+      ]
   }
 }
 
@@ -110,13 +226,10 @@ const data = {
   ],
 }
 
-type PageType = "dashboard" | "assignments" | "reports" | "messages"
-type UserRole = "student" | "teacher" | "admin" | "parent"
-
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   onNavigate?: (page: PageType) => void
   activePage?: PageType
-  userRole?: UserRole
+  userRole?: SidebarUserRole
 }
 
 export function AppSidebar({ onNavigate, activePage, userRole = "student", ...props }: AppSidebarProps) {
