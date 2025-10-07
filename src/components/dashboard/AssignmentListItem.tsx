@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { CheckCircle2, Clock, AlertCircle, FileText, Calendar } from 'lucide-react'
+import { CheckCircle2, Clock, AlertCircle, FileText, Calendar, Paperclip, Users } from 'lucide-react'
 import { format, isPast, isToday, isTomorrow } from 'date-fns'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
@@ -17,6 +17,8 @@ interface AssignmentListItemProps {
   onSubmit?: () => void
   href?: string
   className?: string
+  attachments?: string[]
+  submissionsCount?: number
 }
 
 export function AssignmentListItem({
@@ -30,7 +32,9 @@ export function AssignmentListItem({
   description,
   onSubmit,
   href,
-  className
+  className,
+  attachments,
+  submissionsCount
 }: AssignmentListItemProps) {
   const dueDateObj = typeof dueDate === 'string' ? new Date(dueDate) : dueDate
 
@@ -106,6 +110,20 @@ export function AssignmentListItem({
         {maxPoints && !isSubmitted && (
           <p className="text-xs text-gray-500">{maxPoints} points</p>
         )}
+        <div className="flex items-center gap-3 text-xs text-gray-500">
+          {attachments && attachments.length > 0 && (
+            <div className="flex items-center gap-1">
+              <Paperclip className="h-3 w-3" />
+              <span>{attachments.length}</span>
+            </div>
+          )}
+          {submissionsCount !== undefined && submissionsCount > 0 && (
+            <div className="flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              <span>{submissionsCount}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {!isSubmitted && onSubmit && (

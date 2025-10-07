@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { AssignmentListItem, DashboardStatCard } from '@/components/dashboard'
+import { CreateAssignmentModal } from '@/components/CreateAssignmentModal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -14,62 +16,134 @@ export default function TeacherAssignmentsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedClass, setSelectedClass] = useState('')
   const [assignments, setAssignments] = useState<any[]>([])
+  const [classes, setClasses] = useState<any[]>([])
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
     graded: 0
   })
 
-  useEffect(() => {
-    async function fetchAssignments() {
-      try {
-        // TODO: Replace with actual API call
-        setAssignments([
-          {
-            id: '1',
-            title: 'Algebra Assignment 3',
-            subject: 'Mathematics',
-            dueDate: new Date('2025-10-15'),
-            maxPoints: 100,
-            isSubmitted: false,
-            description: 'Solve quadratic equations',
-            href: '/dashboard/teacher/assignments/1'
-          },
-          {
-            id: '2',
-            title: 'Physics Lab Report',
-            subject: 'Physics',
-            dueDate: new Date('2025-10-20'),
-            maxPoints: 50,
-            isSubmitted: true,
-            grade: 45,
-            description: 'Newton\'s laws experiment',
-            href: '/dashboard/teacher/assignments/2'
-          }
-        ])
-
-        setStats({
-          total: 15,
-          pending: 8,
-          graded: 7
-        })
-      } catch (error) {
-        console.error('Error fetching assignments:', error)
-      } finally {
-        setIsLoading(false)
+  const fetchAssignments = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const params = new URLSearchParams()
+      if (selectedClass) {
+        params.append('classId', selectedClass)
       }
-    }
 
-    fetchAssignments()
+      const url = `/api/assignments${params.toString() ? `?${params.toString()}` : ''}`
+      console.log('[fetchAssignments] Fetching:', url)
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      console.log('[fetchAssignments] Response status:', response.status, 'Content-Type:', response.headers.get('content-type'))
+      const contentType = response.headers.get('content-type') || ''
+      const text = await response.text()
+      
+      if (!response.ok) {
+        console.error('Failed to fetch assignments:', response.status, response.statusText)
+        console.error('Response body:', text.substring(0, 500))
+        setAssignments([])
+        return
+      }
+      
+      if (!text) {
+        setAssignments([])
+        return
+      }
+      
+      try {
+        if (!contentType.includes('application/json')) {
+          console.error('[fetchAssignments] Non-JSON response. Status:', response.status, 'Content-Type:', contentType)
+          setAssignments([])
+          return
+        }
+        const data = JSON.parse(text)
+        setAssignments(data.assignments || [])
+        
+        // Calculate stats
+        const total = data.assignments?.length || 0
+        const graded = data.assignments?.filter((a: any) => 
+          a.submissions && a.submissions.length > 0 && a.submissions.some((s: any) => s.grade !== null)
+        ).length || 0
+        const pending = total - graded
+        
+        setStats({ total, pending, graded })
+      } catch (parseError) {
+        console.error('Failed to parse assignments response. Status:', response.status)
+        console.error('Response body:', text.substring(0, 500))
+        setAssignments([])
+      }
+    } catch (error) {
+      console.error('Error fetching assignments:', error)
+    } finally {
+      setIsLoading(false)
+    }
   }, [selectedClass])
+
+  const fetchClasses = useCallback(async () => {
+    try {
+      console.log('[fetchClasses] Fetching: /api/classes')
+      const response = await fetch('/api/classes', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      console.log('[fetchClasses] Response status:', response.status, 'Content-Type:', response.headers.get('content-type'))
+      const text = await response.text()
+      
+      if (!response.ok) {
+        console.error('Failed to fetch classes:', response.status, response.statusText)
+        console.error('Response body:', text.substring(0, 500))
+        setClasses([])
+        return
+      }
+      
+      if (!text) {
+        setClasses([])
+        return
+      }
+      
+      try {
+        const contentType = response.headers.get('content-type') || ''
+        if (!contentType.includes('application/json')) {
+          console.error('[fetchClasses] Non-JSON response. Status:', response.status, 'Content-Type:', contentType)
+          setClasses([])
+          return
+        }
+        const data = JSON.parse(text)
+        setClasses(data.classes || [])
+      } catch (parseError) {
+        console.error('Failed to parse classes response. Status:', response.status)
+        console.error('Response body:', text.substring(0, 500))
+        setClasses([])
+      }
+    } catch (error) {
+      console.error('Error fetching classes:', error)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchClasses()
+    fetchAssignments()
+  }, [fetchClasses, fetchAssignments])
 
   const filteredAssignments = assignments.filter(a =>
     a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    a.subject.toLowerCase().includes(searchQuery.toLowerCase())
+    a.subject?.name?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const pendingAssignments = filteredAssignments.filter(a => !a.isSubmitted)
-  const gradedAssignments = filteredAssignments.filter(a => a.isSubmitted)
+  const pendingAssignments = filteredAssignments.filter(a => 
+    !a.submissions || a.submissions.length === 0 || !a.submissions.some((s: any) => s.grade !== null)
+  )
+  const gradedAssignments = filteredAssignments.filter(a => 
+    a.submissions && a.submissions.length > 0 && a.submissions.some((s: any) => s.grade !== null)
+  )
 
   if (isLoading) {
     return (
@@ -88,7 +162,7 @@ export default function TeacherAssignmentsPage() {
           <h1 className="text-3xl font-bold text-gray-900">Assignments</h1>
           <p className="text-gray-600 mt-1">Create and manage assignments</p>
         </div>
-        <Button>
+        <Button onClick={() => setIsModalOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Create Assignment
         </Button>
@@ -121,15 +195,29 @@ export default function TeacherAssignmentsPage() {
 
       {/* Filters */}
       <div className="flex gap-4">
-        <Select value={selectedClass} onValueChange={setSelectedClass}>
-          <SelectTrigger className="w-64">
-            <SelectValue placeholder="Select class" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="class1">Mathematics 101 - Grade 10A</SelectItem>
-            <SelectItem value="class2">Physics Advanced - Grade 11B</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex gap-2 items-center">
+          <Select value={selectedClass} onValueChange={setSelectedClass}>
+            <SelectTrigger className="w-64">
+              <SelectValue placeholder="All classes" />
+            </SelectTrigger>
+            <SelectContent>
+              {classes.map((cls) => (
+                <SelectItem key={cls.id} value={cls.id}>
+                  {cls.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {selectedClass && (
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setSelectedClass('')}
+            >
+              Clear
+            </Button>
+          )}
+        </div>
 
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -152,7 +240,18 @@ export default function TeacherAssignmentsPage() {
 
         <TabsContent value="all" className="space-y-3 mt-6">
           {filteredAssignments.map(assignment => (
-            <AssignmentListItem key={assignment.id} {...assignment} />
+            <AssignmentListItem 
+              key={assignment.id} 
+              id={assignment.id}
+              title={assignment.title}
+              subject={assignment.subject?.name || 'Unknown Subject'}
+              dueDate={assignment.dueDate}
+              maxPoints={assignment.maxPoints}
+              description={assignment.description}
+              className={assignment.class?.name}
+              attachments={assignment.attachments}
+              submissionsCount={assignment.submissions?.length || 0}
+            />
           ))}
           {filteredAssignments.length === 0 && (
             <div className="text-center py-12 text-gray-500">
@@ -164,7 +263,18 @@ export default function TeacherAssignmentsPage() {
 
         <TabsContent value="pending" className="space-y-3 mt-6">
           {pendingAssignments.map(assignment => (
-            <AssignmentListItem key={assignment.id} {...assignment} />
+            <AssignmentListItem 
+              key={assignment.id} 
+              id={assignment.id}
+              title={assignment.title}
+              subject={assignment.subject?.name || 'Unknown Subject'}
+              dueDate={assignment.dueDate}
+              maxPoints={assignment.maxPoints}
+              description={assignment.description}
+              className={assignment.class?.name}
+              attachments={assignment.attachments}
+              submissionsCount={assignment.submissions?.length || 0}
+            />
           ))}
           {pendingAssignments.length === 0 && (
             <div className="text-center py-12 text-gray-500">
@@ -175,7 +285,18 @@ export default function TeacherAssignmentsPage() {
 
         <TabsContent value="graded" className="space-y-3 mt-6">
           {gradedAssignments.map(assignment => (
-            <AssignmentListItem key={assignment.id} {...assignment} />
+            <AssignmentListItem 
+              key={assignment.id} 
+              id={assignment.id}
+              title={assignment.title}
+              subject={assignment.subject?.name || 'Unknown Subject'}
+              dueDate={assignment.dueDate}
+              maxPoints={assignment.maxPoints}
+              description={assignment.description}
+              className={assignment.class?.name}
+              attachments={assignment.attachments}
+              submissionsCount={assignment.submissions?.length || 0}
+            />
           ))}
           {gradedAssignments.length === 0 && (
             <div className="text-center py-12 text-gray-500">
@@ -184,6 +305,13 @@ export default function TeacherAssignmentsPage() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Create Assignment Modal */}
+      <CreateAssignmentModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        onSuccess={fetchAssignments}
+      />
     </div>
   )
 }

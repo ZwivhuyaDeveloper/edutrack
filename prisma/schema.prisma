@@ -359,6 +359,7 @@ model Assignment {
   description String?
   dueDate     DateTime
   maxPoints   Float?
+  attachments String[] // Array of file URLs (PDFs, DOCX, images, etc.)
   classId     String
   subjectId   String
   termId      String

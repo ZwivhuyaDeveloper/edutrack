@@ -54,6 +54,11 @@ export function NavMain({ items, onNavigate, activePage }: NavMainProps) {
         "resources": "resources",
         "events": "events",
         "announcements": "announcements",
+        "students": "students",
+        "timetable": "timetable",
+        "lessons": "lessons",
+        "analytics": "analytics",
+        "settings": "settings",
       }
       
       const pageType = pageTypeMap[baseTitle]
