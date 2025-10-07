@@ -193,6 +193,10 @@ function DashboardContent() {
         if (response.ok) {
           const data = await response.json()
           setDbUser(data.user)
+        } else if (response.status === 401) {
+          // Not authenticated; redirect to sign-in
+          router.push('/sign-in')
+          return
         } else if (response.status === 404) {
           // User not found in database, redirect to registration
           router.push('/register')

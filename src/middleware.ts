@@ -1,6 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
-import { clerkClient } from '@clerk/nextjs/server'
 
 // Public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
@@ -34,32 +33,8 @@ const isProtectedRoute = createRouteMatcher([
   '/api/reports(.*)'
 ])
 
-// Role-specific route matchers
-const isPrincipalRoute = createRouteMatcher([
-  '/dashboard/principal(.*)',
-  '/setup-school(.*)'
-])
-
-const isTeacherRoute = createRouteMatcher([
-  '/dashboard/teacher(.*)'
-])
-
-const isStudentRoute = createRouteMatcher([
-  '/dashboard/learner(.*)',
-  '/dashboard/student(.*)'
-])
-
-const isParentRoute = createRouteMatcher([
-  '/dashboard/parent(.*)'
-])
-
-const isClerkRoute = createRouteMatcher([
-  '/dashboard/clerk(.*)'
-])
-
-const isAdminRoute = createRouteMatcher([
-  '/dashboard/admin(.*)'
-])
+// Role-specific route matchers are intentionally removed.
+// Role enforcement is handled in route handlers using Prisma.
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId } = await auth()
@@ -72,7 +47,11 @@ export default clerkMiddleware(async (auth, req) => {
   // Protect all other routes
   if (isProtectedRoute(req)) {
     if (!userId) {
-      // Redirect to sign-in if not authenticated
+      // For API routes, return JSON 401 to keep responses machine-readable
+      if (req.nextUrl.pathname.startsWith('/api')) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+      // Redirect to sign-in if not authenticated for non-API routes
       const signInUrl = new URL('/sign-in', req.url)
       signInUrl.searchParams.set('redirect_url', req.url)
       return NextResponse.redirect(signInUrl)
@@ -88,55 +67,13 @@ export default clerkMiddleware(async (auth, req) => {
       return NextResponse.next()
     }
 
-    // Check role-based access for dashboard routes
-    try {
-      const user = await (await clerkClient()).users.getUser(userId)
-      const userRole = user.publicMetadata?.role as string | undefined
-
-      console.log('[middleware] Checking user role for:', req.nextUrl.pathname)
-      console.log('[middleware] User role from metadata:', userRole)
-
-      // If user has no role, check database before redirecting
-      if (!userRole && !req.nextUrl.pathname.startsWith('/sign-up') && req.nextUrl.pathname !== '/dashboard') {
-        console.log('[middleware] No role in metadata, redirecting to /sign-up')
-        return NextResponse.redirect(new URL('/sign-up', req.url))
-      }
-      
-      // Allow /dashboard route even without role metadata (it will check DB)
-      if (req.nextUrl.pathname === '/dashboard') {
-        console.log('[middleware] Allowing /dashboard access')
-        return NextResponse.next()
-      }
-
-      // Check role-specific routes
-      if (isPrincipalRoute(req) && userRole !== 'PRINCIPAL') {
-        return NextResponse.redirect(new URL('/unauthorized', req.url))
-      }
-
-      if (isTeacherRoute(req) && userRole !== 'TEACHER') {
-        return NextResponse.redirect(new URL('/unauthorized', req.url))
-      }
-
-      if (isStudentRoute(req) && userRole !== 'STUDENT') {
-        return NextResponse.redirect(new URL('/unauthorized', req.url))
-      }
-
-      if (isParentRoute(req) && userRole !== 'PARENT') {
-        return NextResponse.redirect(new URL('/unauthorized', req.url))
-      }
-
-      if (isClerkRoute(req) && userRole !== 'CLERK') {
-        return NextResponse.redirect(new URL('/unauthorized', req.url))
-      }
-
-      if (isAdminRoute(req) && userRole !== 'ADMIN') {
-        return NextResponse.redirect(new URL('/unauthorized', req.url))
-      }
-    } catch (error) {
-      console.error('Error checking user role:', error)
-      // Continue on error to avoid blocking access
+    // Defer role-based enforcement to API route handlers and pages using Prisma
+    // For API routes, always pass through (handlers will check DB roles)
+    if (req.nextUrl.pathname.startsWith('/api')) {
+      return NextResponse.next()
     }
 
+    // For non-API routes, allow access; UI/server routes should fetch DB user and handle role gating
     return NextResponse.next()
   }
 
