@@ -46,10 +46,19 @@ export default function AttendancePage() {
         const response = await fetch('/api/dashboard/student/attendance')
         if (!response.ok) throw new Error('Failed to fetch attendance')
         const data = await response.json()
-        setRecords(data.records)
-        setStats(data.stats)
+        
+        // Handle both array response and object response
+        if (Array.isArray(data)) {
+          setRecords(data)
+          // Calculate stats from records
+          calculateStats(data)
+        } else {
+          setRecords(data.records || [])
+          setStats(data.stats || null)
+        }
       } catch (error) {
         console.error('Error fetching attendance:', error)
+        setRecords([]) // Set empty array on error
       } finally {
         setIsLoading(false)
       }
@@ -57,6 +66,24 @@ export default function AttendancePage() {
 
     fetchAttendance()
   }, [])
+
+  const calculateStats = (attendanceRecords: AttendanceRecord[]) => {
+    const totalDays = attendanceRecords.length
+    const present = attendanceRecords.filter(r => r.status === 'PRESENT').length
+    const absent = attendanceRecords.filter(r => r.status === 'ABSENT').length
+    const late = attendanceRecords.filter(r => r.status === 'LATE').length
+    const excused = attendanceRecords.filter(r => r.status === 'EXCUSED').length
+    const attendanceRate = totalDays > 0 ? ((present + late) / totalDays) * 100 : 0
+
+    setStats({
+      totalDays,
+      present,
+      absent,
+      late,
+      excused,
+      attendanceRate: Math.round(attendanceRate * 10) / 10
+    })
+  }
 
   const getStatusConfig = (status: AttendanceRecord['status']) => {
     switch (status) {
@@ -89,6 +116,12 @@ export default function AttendancePage() {
 
   const getAttendanceDates = () => {
     const dates: { [key: string]: AttendanceRecord['status'] } = {}
+    
+    // Check if records is defined and is an array
+    if (!records || !Array.isArray(records)) {
+      return dates
+    }
+    
     records.forEach(record => {
       const dateStr = format(new Date(record.date), 'yyyy-MM-dd')
       // Prioritize worse statuses

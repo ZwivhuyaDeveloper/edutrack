@@ -1,17 +1,14 @@
 "use client"
 
-import { useState, useEffect, useCallback } from 'react'
+import { Suspense, useCallback, useEffect, useState } from 'react'
+import { PageSkeletonWithTabs } from '@/components/dashboard-skeleton'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { 
   Users, 
-  GraduationCap, 
   UserPlus, 
   Search, 
   Filter,
@@ -26,9 +23,13 @@ import {
   DollarSign,
   Eye,
   Download,
-  Upload
+  Upload,
+  GraduationCap
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface User {
   id: string
