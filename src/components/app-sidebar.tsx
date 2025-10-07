@@ -17,6 +17,9 @@ import {
   Bell,
   TrendingUp,
   CalendarDays,
+  Settings,
+  BookOpen,
+  BarChart3,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -103,15 +106,60 @@ const getRoleBasedNavigation = (userRole: string) => {
     case "teacher":
       return [
         {
-          title: "Teacher Dashboard",
+          title: "Dashboard",
           url: "#",
           icon: BlocksIcon,
           isActive: true,
         },
         {
+          title: "Students",
+          url: "#",
+          icon: Users,
+        },
+        {
           title: "Assignments",
           url: "#",
           icon: PaperclipIcon,
+        },
+        {
+          title: "Classes",
+          url: "#",
+          icon: GraduationCap,
+        },
+        {
+          title: "Gradebook",
+          url: "#",
+          icon: Award,
+        },
+        {
+          title: "Timetable",
+          url: "#",
+          icon: Calendar,
+        },
+        {
+          title: "Attendance",
+          url: "#",
+          icon: CalendarDays,
+        },
+        {
+          title: "Lessons",
+          url: "#",
+          icon: BookOpen,
+        },
+        {
+          title: "Announcements",
+          url: "#",
+          icon: Bell,
+        },
+        {
+          title: "Resources",
+          url: "#",
+          icon: FileText,
+        },
+        {
+          title: "Analytics",
+          url: "#",
+          icon: BarChart3,
         },
         {
           title: "Reports",
@@ -122,6 +170,11 @@ const getRoleBasedNavigation = (userRole: string) => {
           title: "Messages",
           url: "#",
           icon: MessageCirclePlus,
+        },
+        {
+          title: "Settings",
+          url: "#",
+          icon: Settings,
         },
       ]
     

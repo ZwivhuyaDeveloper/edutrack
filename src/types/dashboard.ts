@@ -12,6 +12,11 @@ export type PageType =
   | "resources" 
   | "events" 
   | "announcements"
+  | "students"
+  | "timetable"
+  | "lessons"
+  | "analytics"
+  | "settings"
 
 export type UserRole = 'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL' | 'CLERK' | 'ADMIN'
 
