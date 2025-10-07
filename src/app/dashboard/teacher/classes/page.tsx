@@ -7,10 +7,25 @@ import { Input } from '@/components/ui/input'
 import { Search, Plus, BookOpen, Users, GraduationCap } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 
+interface ClassWithDetails {
+  id: string
+  name: string
+  grade?: string
+  section?: string
+  teacher: {
+    name: string
+    avatar?: string
+  }
+  subjectCount: number
+  studentCount: number
+  status: 'ACTIVE' | 'INACTIVE' | 'COMPLETED'
+  href: string
+}
+
 export default function TeacherClassesPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
-  const [classes, setClasses] = useState<any[]>([])
+  const [classes, setClasses] = useState<ClassWithDetails[]>([])
   const [stats, setStats] = useState({
     totalClasses: 0,
     totalStudents: 0,
@@ -20,41 +35,91 @@ export default function TeacherClassesPage() {
   useEffect(() => {
     async function fetchClasses() {
       try {
-        // TODO: Replace with actual API call
-        // const response = await fetch('/api/dashboard/teacher/classes')
-        // const data = await response.json()
-
-        // Mock data
-        setClasses([
-          {
-            id: '1',
-            name: 'Mathematics 101',
-            grade: 'Grade 10',
-            section: 'A',
-            teacher: { name: 'You', avatar: '' },
-            subjectCount: 1,
-            status: 'ACTIVE' as const,
-            href: '/dashboard/teacher/classes/1'
-          },
-          {
-            id: '2',
-            name: 'Physics Advanced',
-            grade: 'Grade 11',
-            section: 'B',
-            teacher: { name: 'You', avatar: '' },
-            subjectCount: 1,
-            status: 'ACTIVE' as const,
-            href: '/dashboard/teacher/classes/2'
-          }
-        ])
-
+        setIsLoading(true)
+        
+        // Fetch classes assigned to this teacher
+        const response = await fetch('/api/classes')
+        
+        if (!response.ok) {
+          console.error('Failed to fetch classes:', response.status)
+          setClasses([])
+          return
+        }
+        
+        const contentType = response.headers.get('content-type') || ''
+        const text = await response.text()
+        
+        if (!text) {
+          setClasses([])
+          return
+        }
+        
+        if (!contentType.includes('application/json')) {
+          console.error('[TeacherClasses] Non-JSON response. Status:', response.status, 'Content-Type:', contentType)
+          setClasses([])
+          return
+        }
+        
+        const data = JSON.parse(text)
+        const classesData = data.classes || []
+        
+        // Fetch enrollments count for each class
+        const classesWithDetails = await Promise.all(
+          classesData.map(async (cls: any) => {
+            try {
+              const enrollmentRes = await fetch(`/api/enrollments?classId=${cls.id}`)
+              let studentCount = 0
+              
+              if (enrollmentRes.ok) {
+                const enrollmentText = await enrollmentRes.text()
+                if (enrollmentText) {
+                  const enrollmentData = JSON.parse(enrollmentText)
+                  studentCount = enrollmentData.enrollments?.length || 0
+                }
+              }
+              
+              return {
+                id: cls.id,
+                name: cls.name,
+                grade: cls.grade,
+                section: cls.section,
+                teacher: { name: 'You', avatar: '' },
+                subjectCount: 1, // Will be enhanced when we have class-subject mapping
+                studentCount,
+                status: 'ACTIVE' as const,
+                href: `/dashboard/teacher/classes/${cls.id}`
+              }
+            } catch (err) {
+              console.error('Error fetching enrollment for class:', cls.id, err)
+              return {
+                id: cls.id,
+                name: cls.name,
+                grade: cls.grade,
+                section: cls.section,
+                teacher: { name: 'You', avatar: '' },
+                subjectCount: 1,
+                studentCount: 0,
+                status: 'ACTIVE' as const,
+                href: `/dashboard/teacher/classes/${cls.id}`
+              }
+            }
+          })
+        )
+        
+        setClasses(classesWithDetails)
+        
+        // Calculate stats
+        const totalStudents = classesWithDetails.reduce((sum, cls) => sum + (cls.studentCount || 0), 0)
+        const activeSubjects = classesWithDetails.reduce((sum, cls) => sum + (cls.subjectCount || 0), 0)
+        
         setStats({
-          totalClasses: 5,
-          totalStudents: 120,
-          activeSubjects: 8
+          totalClasses: classesWithDetails.length,
+          totalStudents,
+          activeSubjects
         })
       } catch (error) {
         console.error('Error fetching classes:', error)
+        setClasses([])
       } finally {
         setIsLoading(false)
       }

@@ -20,6 +20,7 @@ const isProtectedRoute = createRouteMatcher([
   '/api/classes(.*)',
   '/api/subjects(.*)',
   '/api/assignments(.*)',
+  '/api/enrollments(.*)',
   '/api/grades(.*)',
   '/api/attendance(.*)',
   '/api/messages(.*)',

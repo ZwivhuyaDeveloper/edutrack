@@ -64,17 +64,24 @@ export function CreateAssignmentModal({ open, onOpenChange, onSuccess }: CreateA
   const fetchClasses = async () => {
     try {
       const response = await fetch('/api/classes')
-      if (response.ok) {
-        const text = await response.text()
-        if (!text) {
-          setClasses([])
-          return
-        }
-        const data = JSON.parse(text)
-        setClasses(data.classes || [])
-      } else {
+      if (!response.ok) {
         console.error('Failed to fetch classes:', response.status)
+        setClasses([])
+        return
       }
+      const contentType = response.headers.get('content-type') || ''
+      const text = await response.text()
+      if (!text) {
+        setClasses([])
+        return
+      }
+      if (!contentType.includes('application/json')) {
+        console.error('[CreateAssignmentModal] Non-JSON classes response. Status:', response.status, 'Content-Type:', contentType)
+        setClasses([])
+        return
+      }
+      const data = JSON.parse(text)
+      setClasses(data.classes || [])
     } catch (error) {
       console.error('Error fetching classes:', error)
     }
@@ -84,17 +91,24 @@ export function CreateAssignmentModal({ open, onOpenChange, onSuccess }: CreateA
     try {
       const url = classId ? `/api/subjects?classId=${classId}` : '/api/subjects'
       const response = await fetch(url)
-      if (response.ok) {
-        const text = await response.text()
-        if (!text) {
-          setSubjects([])
-          return
-        }
-        const data = JSON.parse(text)
-        setSubjects(data.subjects || [])
-      } else {
+      if (!response.ok) {
         console.error('Failed to fetch subjects:', response.status)
+        setSubjects([])
+        return
       }
+      const contentType = response.headers.get('content-type') || ''
+      const text = await response.text()
+      if (!text) {
+        setSubjects([])
+        return
+      }
+      if (!contentType.includes('application/json')) {
+        console.error('[CreateAssignmentModal] Non-JSON subjects response. Status:', response.status, 'Content-Type:', contentType)
+        setSubjects([])
+        return
+      }
+      const data = JSON.parse(text)
+      setSubjects(data.subjects || [])
     } catch (error) {
       console.error('Error fetching subjects:', error)
     }

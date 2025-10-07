@@ -202,7 +202,7 @@ export default function TeacherAssignmentsPage() {
             </SelectTrigger>
             <SelectContent>
               {classes.map((cls) => (
-                <SelectItem key={cls.id} value={cls.id}>
+                <SelectItem key={String(cls.id)} value={String(cls.id)}>
                   {cls.name}
                 </SelectItem>
               ))}
