@@ -1,7 +1,5 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { MenuItem } from "../components/ui/navbar-menu";
 import logo from "@/assets/Standalone_Logo.png";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -10,7 +8,6 @@ import { useUser } from "@clerk/nextjs"
 
 
 export default function Navbar({ className }: { className?: string }) {
-  const router = useRouter();
   const { user, isLoaded } = useUser();
   
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
@@ -143,14 +140,14 @@ export default function Navbar({ className }: { className?: string }) {
                 <Button
                   variant="outline"
                   className="text-sm md:text-base font-semibold text-primary border-2 border-primary px-4 py-2"
-                  onClick={() => router.push('/dashboard')}
+                  onClick={() => window.location.replace('/dashboard')}
                 >
                   Dashboard
                 </Button>
                 <Button
                   variant="default"
                   className="text-sm md:text-base font-semibold bg-primary px-4 py-2"
-                  onClick={() => router.push('/profile')}
+                  onClick={() => window.location.replace('/profile')}
                 >
                   Profile
                 </Button>
@@ -160,14 +157,14 @@ export default function Navbar({ className }: { className?: string }) {
                 <Button
                   variant="outline"
                   className="text-sm md:text-base font-semibold text-primary border-2 border-primary px-4 py-2"
-                  onClick={() => router.push('/sign-in')}
+                  onClick={() => window.location.replace('/sign-in')}
                 >
                   Sign In
                 </Button>
                 <Button
                   variant="default"
                   className="text-sm md:text-base font-semibold bg-primary px-4 py-2"
-                  onClick={() => router.push('/sign-up')}
+                  onClick={() => window.location.replace('/sign-up')}
                 >
                   Sign Up
                 </Button>
@@ -294,8 +291,8 @@ export default function Navbar({ className }: { className?: string }) {
                   variant="outline"
                   className="w-full text-base font-semibold text-primary border-2 border-primary py-3 transition-all duration-200 hover:bg-primary hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
                   onClick={() => {
-                    router.push('/dashboard');
                     setIsMenuOpen(false);
+                    window.location.replace('/dashboard');
                   }}
                 >
                   Dashboard
@@ -304,8 +301,8 @@ export default function Navbar({ className }: { className?: string }) {
                   variant="default"
                   className="w-full text-base font-semibold bg-primary py-3 transition-all duration-200 hover:bg-primary hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
                   onClick={() => {
-                    router.push('/profile');
                     setIsMenuOpen(false);
+                    window.location.replace('/profile');
                   }}
                 >
                   Profile
@@ -317,8 +314,8 @@ export default function Navbar({ className }: { className?: string }) {
                   variant="outline"
                   className="w-full text-base font-semibold text-primary border-2 border-primary py-3 transition-all duration-200 hover:bg-primary hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
                   onClick={() => {
-                    router.push('/sign-in');
                     setIsMenuOpen(false);
+                    window.location.replace('/sign-in');
                   }}
                 >
                   Sign In
@@ -327,8 +324,8 @@ export default function Navbar({ className }: { className?: string }) {
                   variant="default"
                   className="w-full text-base font-semibold bg-primary py-3 transition-all duration-200 hover:bg-primary hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
                   onClick={() => {
-                    router.push('/sign-up');
                     setIsMenuOpen(false);
+                    window.location.replace('/sign-up');
                   }}
                 >
                   Sign Up

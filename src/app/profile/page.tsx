@@ -1,14 +1,12 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { useUser, useClerk } from '@clerk/nextjs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Loader2, User, Mail, Building2, Calendar, Phone, MapPin, GraduationCap, Briefcase, Users, Shield, ArrowLeft, LogOut } from 'lucide-react'
+import { Loader2, User, Mail, Building2, Calendar, GraduationCap, Briefcase, Users, Shield, ArrowLeft, LogOut } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface UserProfile {
@@ -37,16 +35,14 @@ interface UserProfile {
 export default function ProfilePage() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [isEditing, setIsEditing] = useState(false)
   const [error, setError] = useState('')
   const { user: clerkUser, isLoaded } = useUser()
   const { signOut } = useClerk()
-  const router = useRouter()
 
   const handleLogout = async () => {
     try {
       await signOut()
-      router.push('/')
+      window.location.replace('/')
     } catch (error) {
       console.error('Error signing out:', error)
       toast.error('Failed to sign out')
@@ -58,7 +54,7 @@ export default function ProfilePage() {
       if (!isLoaded) return
 
       if (!clerkUser) {
-        router.push('/sign-in')
+        window.location.replace('/sign-in')
         return
       }
 
@@ -70,7 +66,12 @@ export default function ProfilePage() {
           setUserProfile(data.user)
         } else if (response.status === 404) {
           toast.error('Profile not found. Please complete registration.')
-          router.push('/sign-up')
+          window.location.replace('/sign-up')
+          return
+        } else if (response.status === 401) {
+          toast.error('Please sign in to view your profile.')
+          window.location.replace('/sign-in')
+          return
         } else {
           throw new Error('Failed to load profile')
         }
@@ -84,7 +85,7 @@ export default function ProfilePage() {
     }
 
     fetchProfile()
-  }, [isLoaded, clerkUser, router])
+  }, [isLoaded, clerkUser])
 
   const getRoleIcon = (role: string) => {
     switch (role) {
@@ -146,7 +147,7 @@ export default function ProfilePage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => router.push('/dashboard')} className="w-full">
+            <Button onClick={() => window.location.replace('/dashboard')} className="w-full">
               Return to Dashboard
             </Button>
           </CardContent>
@@ -163,7 +164,7 @@ export default function ProfilePage() {
           <div className="flex items-center justify-between mb-4">
             <Button
               variant="ghost"
-              onClick={() => router.push('/dashboard')}
+              onClick={() => window.location.replace('/dashboard')}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Dashboard
@@ -429,7 +430,8 @@ export default function ProfilePage() {
 
         {/* Actions */}
         <div className="mt-6 flex gap-4">
-          <Button onClick={() => router.push('/dashboard')} variant="outline">
+          <Button onClick={() => window.location.replace('/dashboard')} variant="outline" className="w-full sm:w-auto">
+            <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>
         </div>

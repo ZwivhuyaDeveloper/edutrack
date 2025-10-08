@@ -180,7 +180,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 1: Add user to Clerk organization and set metadata
-    if (isSelfRegistration && school.clerkOrganizationId) {
+    if (isSelfRegistration) {
+      if (!school.clerkOrganizationId) {
+        console.warn(`School ${school.name} (${school.id}) does not have a Clerk organization ID. User will be created without organization membership.`)
+        return NextResponse.json(
+          { error: `School "${school.name}" is not properly configured for new registrations. Please contact your administrator or choose a different school.` },
+          { status: 400 }
+        )
+      }
+
       try {
         const { clerkClient } = await import('@clerk/nextjs/server')
         const { getClerkOrgRole, getPermissionStrings } = await import('@/lib/permissions')
@@ -209,7 +217,10 @@ export async function POST(request: NextRequest) {
         console.log(`Added user ${userId} to Clerk organization ${school.clerkOrganizationId} with role ${validatedData.role}`)
       } catch (clerkError) {
         console.error('Error adding user to Clerk organization:', clerkError)
-        // Continue with user creation even if Clerk organization membership fails
+        return NextResponse.json(
+          { error: 'Failed to add user to school organization. Please try again or contact support.' },
+          { status: 500 }
+        )
       }
     }
 

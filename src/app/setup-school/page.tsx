@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, ArrowLeft, Building2, Phone, Globe, UserCheck } from 'lucide-react'
+import { Loader2, ArrowLeft, CheckCircle, School, User, Building2, Phone, Globe, UserCheck } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface SchoolFormData {
@@ -64,6 +64,9 @@ export default function SchoolSetupPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [createdSchool, setCreatedSchool] = useState<{name: string} | null>(null)
+  const [redirectCountdown, setRedirectCountdown] = useState(10)
   const { user, isLoaded } = useUser()
   const router = useRouter()
 
@@ -73,7 +76,7 @@ export default function SchoolSetupPage() {
       if (!isLoaded) return
       
       if (!user) {
-        router.push('/sign-in')
+        window.location.replace('/sign-in')
         return
       }
 
@@ -82,7 +85,8 @@ export default function SchoolSetupPage() {
         const response = await fetch('/api/users/me')
         if (response.ok) {
           // User already has profile, redirect to dashboard
-          router.push('/dashboard')
+          window.location.replace('/dashboard')
+          return
         } else if (response.status === 404) {
           // User doesn't have profile yet, this is correct - they should be here
           setIsCheckingAuth(false)
@@ -95,6 +99,18 @@ export default function SchoolSetupPage() {
 
     checkAuth()
   }, [isLoaded, user, router])
+
+  // Countdown timer for automatic redirect
+  useEffect(() => {
+    if (showSuccess && redirectCountdown > 0) {
+      const timer = setTimeout(() => {
+        setRedirectCountdown(prev => prev - 1)
+      }, 1000)
+      return () => clearTimeout(timer)
+    } else if (showSuccess && redirectCountdown === 0) {
+      window.location.replace('/dashboard')
+    }
+  }, [showSuccess, redirectCountdown])
 
   const handleInputChange = (field: keyof SchoolFormData, value: string) => {
     setFormData(prev => ({
@@ -148,7 +164,19 @@ export default function SchoolSetupPage() {
       const schoolData = await schoolResponse.json()
 
       if (!schoolResponse.ok) {
-        throw new Error(schoolData.error || 'Failed to create school')
+        // Handle specific error cases
+        if (schoolResponse.status === 409) {
+          const errorMsg = schoolData.error || 'A record with this information already exists.'
+          if (errorMsg.includes('email')) {
+            throw new Error('Your email address is already associated with another account. Please sign in with a different account or contact support.')
+          }
+          throw new Error(errorMsg)
+        } else if (schoolResponse.status === 403) {
+          throw new Error(schoolData.error || 'You do not have permission to create a school.')
+        } else if (schoolResponse.status === 400) {
+          throw new Error(schoolData.error || 'Invalid school information provided.')
+        }
+        throw new Error(schoolData.error || 'Failed to create school. Please try again.')
       }
 
       const schoolId = schoolData.school.id
@@ -187,12 +215,12 @@ export default function SchoolSetupPage() {
         throw new Error(userData.error || 'Failed to create principal profile')
       }
 
+      // Show success step instead of immediate redirect
+      setCreatedSchool({ name: schoolData.school.name })
+      setShowSuccess(true)
+      setRedirectCountdown(10) // Reset countdown
+      
       toast.success('School and principal profile created successfully! Welcome to EduTrack.')
-
-      // Redirect to main dashboard (will show principal home page)
-      setTimeout(() => {
-        router.push('/dashboard')
-      }, 1500)
 
     } catch (error) {
       console.error('School creation error:', error)
@@ -219,6 +247,93 @@ export default function SchoolSetupPage() {
     return null
   }
 
+  // Success step - show after school creation
+  if (showSuccess && createdSchool) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <Card className="w-full max-w-2xl">
+          <CardHeader className="space-y-1 text-center">
+            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+            <CardTitle className="text-3xl font-bold text-green-800">School Created Successfully!</CardTitle>
+            <CardDescription className="text-lg">
+              Welcome to EduTrack! Your school and principal profile have been set up.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <School className="h-5 w-5 text-green-600" />
+                <h3 className="font-semibold text-green-800">School Details</h3>
+              </div>
+              <p className="text-green-700">
+                <strong>{createdSchool.name}</strong> has been created and configured with Clerk organization integration.
+              </p>
+            </div>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <User className="h-5 w-5 text-blue-600" />
+                <h3 className="font-semibold text-blue-800">Your Role</h3>
+              </div>
+              <p className="text-blue-700">
+                You have been registered as the <strong>Principal</strong> of {createdSchool.name}. You can now manage teachers, students, and school operations.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="font-semibold text-gray-800">What&apos;s Next?</h4>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li className="flex items-center gap-2">
+                  <UserCheck className="h-4 w-4 text-green-500" />
+                  <span>Add teachers and staff to your school</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <UserCheck className="h-4 w-4 text-green-500" />
+                  <span>Set up classes and subjects</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <UserCheck className="h-4 w-4 text-green-500" />
+                  <span>Invite students and parents to join</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
+              <p className="text-sm text-gray-600 mb-2">
+                Automatically redirecting to dashboard in <strong>{redirectCountdown}</strong> seconds...
+              </p>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-primary h-2 rounded-full transition-all duration-1000 ease-linear"
+                  style={{ width: `${((10 - redirectCountdown) / 10) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button 
+                onClick={() => window.location.replace('/dashboard')}
+                className="flex-1"
+                size="lg"
+              >
+                Go to Dashboard Now
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => window.location.replace('/profile')}
+                size="lg"
+              >
+                View Profile
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-2xl">
@@ -227,7 +342,7 @@ export default function SchoolSetupPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => router.push('/sign-up')}
+              onClick={() => window.location.replace('/sign-up')}
               className="p-1"
             >
               <ArrowLeft className="h-4 w-4" />

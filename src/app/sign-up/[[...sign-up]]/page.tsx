@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { useUser, SignUp } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,7 +31,6 @@ export default function Page() {
   const [recheckProfile, setRecheckProfile] = useState(0)
   const [isRedirecting, setIsRedirecting] = useState(false)
   const { user, isLoaded } = useUser()
-  const router = useRouter()
 
   // Role-specific profile data (name and email come from Clerk, not here)
   const [profileData, setProfileData] = useState({
@@ -186,7 +184,10 @@ export default function Page() {
     // Principals go directly to setup-school page
     if (selectedRole === 'PRINCIPAL') {
       toast.success('Redirecting to school setup...')
-      router.push('/setup-school')
+      // Use replace to avoid back button issues
+      setTimeout(() => {
+        window.location.replace('/setup-school')
+      }, 1000)
     } else {
       setStep('school')
     }
@@ -203,7 +204,8 @@ export default function Page() {
       setStep('complete')
 
       setTimeout(() => {
-        router.push('/setup-school')
+        // Use replace to avoid back button issues
+        window.location.replace('/setup-school')
       }, 1500)
     } catch (error) {
       console.error('School setup error:', error)
@@ -292,7 +294,8 @@ export default function Page() {
       // Trigger profile recheck and redirect to dashboard
       setRecheckProfile(prev => prev + 1)
       setTimeout(() => {
-        router.push('/dashboard')
+        // Use replace to avoid back button issues and ensure clean redirect
+        window.location.replace('/dashboard')
       }, 1500)
     } catch (error) {
       console.error('Registration error:', error)
@@ -403,7 +406,7 @@ export default function Page() {
             routing="path"
             path="/sign-up"
             signInUrl="/sign-in"
-            afterSignUpUrl="/sign-up" // Redirect back to continue profile setup
+            forceRedirectUrl="/sign-up" // Force redirect to continue profile setup after Clerk auth
           />
 
           <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">

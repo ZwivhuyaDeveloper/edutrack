@@ -29,6 +29,9 @@ export async function GET(request: NextRequest) {
     const schools = await prisma.school.findMany({
       where: {
         isActive: true,
+        clerkOrganizationId: {
+          not: null // Only show schools that are properly configured for registration
+        },
         ...(search && {
           OR: [
             { name: { contains: search, mode: 'insensitive' } },
@@ -78,12 +81,31 @@ export async function POST(request: NextRequest) {
     // Check if user is already a principal of another school
     const existingUser = await prisma.user.findUnique({
       where: { clerkId: userId },
-      include: { principalProfile: true }
+      include: { 
+        principalProfile: true,
+        school: true 
+      }
     })
 
-    if (existingUser && existingUser.role === 'PRINCIPAL') {
+    if (existingUser && existingUser.role === 'PRINCIPAL' && existingUser.schoolId) {
       return NextResponse.json(
-        { error: 'User is already a principal of a school' },
+        { error: `You are already the principal of ${existingUser.school?.name || 'another school'}. Each principal can only manage one school.` },
+        { status: 400 }
+      )
+    }
+
+    // Only allow school creation if user doesn't exist (new principal) or is not already assigned a role
+    if (existingUser && existingUser.role && existingUser.role !== 'PRINCIPAL') {
+      return NextResponse.json(
+        { error: 'Only principals can create schools. Please contact your administrator.' },
+        { status: 403 }
+      )
+    }
+
+    // If user already exists and is a principal, they might already have a school
+    if (existingUser && existingUser.role === 'PRINCIPAL' && existingUser.schoolId) {
+      return NextResponse.json(
+        { error: 'You are already a principal of a school. Each principal can only manage one school.' },
         { status: 400 }
       )
     }
@@ -108,7 +130,7 @@ export async function POST(request: NextRequest) {
         role: CLERK_ORG_ROLES.PRINCIPAL,
       })
       
-      // Update principal's metadata
+      // Update principal's metadata (will be updated again after school creation with schoolId)
       await (await clerkClient()).users.updateUserMetadata(userId, {
         publicMetadata: {
           role: 'PRINCIPAL',
@@ -134,6 +156,46 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Get user's email from Clerk
+    let userEmail = existingUser?.email || ''
+    if (!userEmail) {
+      try {
+        const { clerkClient } = await import('@clerk/nextjs/server')
+        const clerkUser = await (await clerkClient()).users.getUser(userId)
+        userEmail = clerkUser.emailAddresses[0]?.emailAddress || ''
+      } catch (clerkError) {
+        console.error('Error fetching user email from Clerk:', clerkError)
+      }
+    }
+
+    // Check if email is already taken by another user
+    if (userEmail) {
+      const existingUserByEmail = await prisma.user.findUnique({
+        where: { email: userEmail },
+        select: {
+          id: true,
+          clerkId: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          school: {
+            select: {
+              name: true
+            }
+          }
+        }
+      })
+      
+      if (existingUserByEmail && existingUserByEmail.clerkId !== userId) {
+        console.error(`Email conflict: ${userEmail} is already used by user ${existingUserByEmail.clerkId} (${existingUserByEmail.firstName} ${existingUserByEmail.lastName}, ${existingUserByEmail.role} at ${existingUserByEmail.school?.name})`)
+        return NextResponse.json(
+          { error: `The email ${userEmail} is already registered to another user. Please sign in with a different Clerk account or contact support.` },
+          { status: 409 }
+        )
+      }
+    }
+
     // Create or update user with principal role
     const user = await prisma.user.upsert({
       where: { clerkId: userId },
@@ -141,12 +203,12 @@ export async function POST(request: NextRequest) {
         role: 'PRINCIPAL',
         schoolId: school.id,
         firstName: existingUser?.firstName || '',
-        lastName: existingUser?.lastName || '',
-        email: existingUser?.email || ''
+        lastName: existingUser?.lastName || ''
+        // Don't update email to avoid unique constraint conflicts
       },
       create: {
         clerkId: userId,
-        email: '', // Will be updated from Clerk webhook
+        email: userEmail,
         firstName: '',
         lastName: '',
         role: 'PRINCIPAL',
@@ -167,6 +229,29 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // Update Clerk metadata with the actual school ID
+    if (clerkOrganizationId) {
+      try {
+        const { clerkClient } = await import('@clerk/nextjs/server')
+        const { getPermissionStrings } = await import('@/lib/permissions')
+        
+        await (await clerkClient()).users.updateUserMetadata(userId, {
+          publicMetadata: {
+            role: 'PRINCIPAL',
+            schoolId: school.id,
+            schoolName: school.name,
+            organizationId: clerkOrganizationId,
+            permissions: getPermissionStrings('PRINCIPAL'),
+            isActive: true,
+          }
+        })
+        
+        console.log(`Updated principal metadata with school ID: ${school.id}`)
+      } catch (clerkError) {
+        console.error('Error updating principal metadata:', clerkError)
+      }
+    }
+
     return NextResponse.json({ school, user }, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -176,9 +261,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Handle Prisma unique constraint violations
+    if (error && typeof error === 'object' && 'code' in error) {
+      if (error.code === 'P2002') {
+        // Check if it's an email constraint violation
+        const errorMessage = error.toString()
+        if (errorMessage.includes('email')) {
+          return NextResponse.json(
+            { error: 'A user with this email already exists. Please use a different email or contact support.' },
+            { status: 409 }
+          )
+        }
+        return NextResponse.json(
+          { error: 'A record with this information already exists.' },
+          { status: 409 }
+        )
+      }
+    }
+
     console.error('Error creating school:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to create school. Please try again or contact support.' },
       { status: 500 }
     )
   }
