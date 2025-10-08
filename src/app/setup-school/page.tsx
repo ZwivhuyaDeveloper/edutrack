@@ -261,18 +261,40 @@ export default function SchoolSetupPage() {
       
       console.log('Sending principal profile data:', JSON.stringify(principalProfileData, null, 2))
       
-      const userResponse = await fetch('/api/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(principalProfileData),
-      })
+      // Check if user already exists (created during school setup)
+      const existingUserResponse = await fetch('/api/users/me')
+      
+      if (existingUserResponse.ok) {
+        // User already exists, update with profile data
+        console.log('User already exists, updating with profile data')
+        const userResponse = await fetch('/api/users', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(principalProfileData),
+        })
 
-      const userData = await userResponse.json()
+        const userData = await userResponse.json()
 
-      if (!userResponse.ok) {
-        throw new Error(userData.error || 'Failed to create principal profile')
+        if (!userResponse.ok) {
+          throw new Error(userData.error || 'Failed to update principal profile')
+        }
+      } else {
+        // User doesn't exist, create it
+        const userResponse = await fetch('/api/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(principalProfileData),
+        })
+
+        const userData = await userResponse.json()
+
+        if (!userResponse.ok) {
+          throw new Error(userData.error || 'Failed to create principal profile')
+        }
       }
 
       // Show success step instead of immediate redirect

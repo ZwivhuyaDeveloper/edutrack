@@ -270,6 +270,72 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export async function PUT(request: NextRequest) {
+  try {
+    const { userId } = await auth()
+    
+    console.log(`PUT /api/users - Auth userId: ${userId} (type: ${typeof userId}, length: ${userId?.length})`)
+    
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    console.log('Received PUT request body:', JSON.stringify(body, null, 2))
+    
+    const validatedData = createUserSchema.parse(body)
+    console.log('Validated PUT data:', JSON.stringify(validatedData, null, 2))
+
+    // Find the existing user
+    const existingUser = await prisma.user.findUnique({
+      where: { clerkId: userId },
+      include: {
+        principalProfile: true,
+        teacherProfile: true,
+        studentProfile: true,
+        parentProfile: true
+      }
+    })
+
+    if (!existingUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    // Update the user with new data
+    const updatedUser = await prisma.user.update({
+      where: { id: existingUser.id },
+      data: {
+        firstName: validatedData.firstName,
+        lastName: validatedData.lastName,
+        role: validatedData.role,
+        schoolId: validatedData.schoolId
+      }
+    })
+
+    // Update role-specific profile
+    await createOrUpdateUserProfile(updatedUser, validatedData)
+    
+    // Update ClerkProfile if needed
+    await createOrUpdateClerkProfile(updatedUser, validatedData, userId)
+
+    return NextResponse.json({ 
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        schoolId: updatedUser.schoolId
+      }
+    })
+
+  } catch (error) {
+    console.error('Error updating user:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth()
@@ -347,6 +413,14 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingUserByEmail) {
+      console.log(`Found existing user with email ${validatedData.email}:`, {
+        id: existingUserByEmail.id,
+        clerkId: existingUserByEmail.clerkId,
+        role: existingUserByEmail.role,
+        isSelfRegistration,
+        currentUserId: userId
+      })
+
       // If this is self-registration and the existing user has the same clerkId, update/create profiles
       if (isSelfRegistration && existingUserByEmail.clerkId === userId) {
         console.log(`User with email ${validatedData.email} and clerkId ${userId} already exists, updating profiles`)
@@ -369,9 +443,41 @@ export async function POST(request: NextRequest) {
           }
         })
       }
+
+      // If this is self-registration but existing user has empty clerkId, update it
+      if (isSelfRegistration && (!existingUserByEmail.clerkId || existingUserByEmail.clerkId === '')) {
+        console.log(`Updating existing user ${existingUserByEmail.id} with clerkId ${userId}`)
+        
+        // Update the existing user with the clerkId and other data
+        const updatedUser = await prisma.user.update({
+          where: { id: existingUserByEmail.id },
+          data: {
+            clerkId: userId,
+            firstName: validatedData.firstName,
+            lastName: validatedData.lastName,
+            role: validatedData.role,
+            schoolId: validatedData.schoolId
+          }
+        })
+        
+        // Create/Update role-specific profile
+        await createOrUpdateUserProfile(updatedUser, validatedData)
+        
+        // Create/Update ClerkProfile if needed
+        await createOrUpdateClerkProfile(updatedUser, validatedData, userId)
+        
+        return NextResponse.json({ 
+          user: {
+            id: updatedUser.id,
+            email: updatedUser.email,
+            role: updatedUser.role,
+            schoolId: updatedUser.schoolId
+          }
+        })
+      }
       
-      // If the existing user has a different clerkId or no clerkId, it's a conflict
-      if (existingUserByEmail.clerkId !== userId) {
+      // If the existing user has a different clerkId, it's a conflict
+      if (existingUserByEmail.clerkId && existingUserByEmail.clerkId !== userId) {
         return NextResponse.json({ 
           error: 'A user with this email address already exists. Please use a different email or sign in with your existing account.' 
         }, { status: 409 })
