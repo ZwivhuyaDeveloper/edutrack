@@ -196,10 +196,25 @@ export async function GET(request: NextRequest) {
     }
 
     // Get current user to check permissions
-    const currentUser = await prisma.user.findUnique({
-      where: { clerkId: userId },
-      include: { school: true }
-    })
+    let currentUser
+    try {
+      currentUser = await prisma.user.findUnique({
+        where: { clerkId: userId },
+        include: { school: true }
+      })
+    } catch (error) {
+      console.error('Database connection error in GET:', error)
+      if (error instanceof Error && error.message.includes('Server has closed the connection')) {
+        // Retry once
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        currentUser = await prisma.user.findUnique({
+          where: { clerkId: userId },
+          include: { school: true }
+        })
+      } else {
+        throw error
+      }
+    }
 
     if (!currentUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
@@ -270,15 +285,30 @@ export async function POST(request: NextRequest) {
     console.log('Validated data:', JSON.stringify(validatedData, null, 2))
 
     // Check if this is a self-registration (user doesn't exist yet)
-    const currentUser = await prisma.user.findUnique({
-      where: { clerkId: userId },
-      include: { school: true }
-    })
+    let currentUser
+    try {
+      currentUser = await prisma.user.findUnique({
+        where: { clerkId: userId },
+        include: { school: true }
+      })
+    } catch (error) {
+      console.error('Database connection error:', error)
+      if (error instanceof Error && error.message.includes('Server has closed the connection')) {
+        // Retry once
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        currentUser = await prisma.user.findUnique({
+          where: { clerkId: userId },
+          include: { school: true }
+        })
+      } else {
+        throw error
+      }
+    }
 
     // If user doesn't exist, this is self-registration - allow it
     const isSelfRegistration = !currentUser
 
-    if (!isSelfRegistration) {
+    if (!isSelfRegistration && currentUser) {
       // Existing user creating another user - only principals can do this
       if (currentUser.role !== 'PRINCIPAL') {
         return NextResponse.json({ error: 'Only principals can create users' }, { status: 403 })
