@@ -10,6 +10,8 @@ import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { validateTeacherProfileComplete, validateTeacherSchoolAccess } from "@/lib/auth"
+import { toast } from "sonner"
 import {
   Avatar,
   AvatarFallback,
@@ -176,6 +178,8 @@ function DashboardContent() {
   const [PageComponents, setPageComponents] = useState<Partial<Record<PageType, React.ComponentType>>>({} as Partial<Record<PageType, React.ComponentType>>)
   const [dbUser, setDbUser] = useState<DatabaseUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [profileIncomplete, setProfileIncomplete] = useState(false)
   const { user: clerkUser, isLoaded } = useUser()
   const { signOut } = useClerk()
   const router = useRouter()
@@ -187,27 +191,73 @@ function DashboardContent() {
     }
   }, [clerkUser, isLoaded, router])
 
-  // Fetch user data from database
+  // Enhanced user data fetching with teacher validation
   useEffect(() => {
     const fetchUserData = async () => {
       if (!clerkUser) return
       
       try {
+        setError(null)
         const response = await fetch('/api/users/me')
+        
         if (response.ok) {
           const data = await response.json()
           setDbUser(data.user)
+          
+          // Enhanced teacher validation
+          if (data.user.role === 'TEACHER') {
+            try {
+              const profileCheck = await validateTeacherProfileComplete()
+              const schoolAccess = await validateTeacherSchoolAccess()
+              
+              if (!profileCheck.isComplete) {
+                setProfileIncomplete(true)
+                toast.error('Profile Incomplete', {
+                  description: `Missing: ${profileCheck.missingFields.join(', ')}. Please complete your profile.`,
+                  duration: 5000,
+                })
+              }
+              
+              if (!schoolAccess.hasAccess) {
+                setError(schoolAccess.reason || 'School access validation failed')
+                toast.error('School Access Issue', {
+                  description: schoolAccess.reason || 'Please contact your administrator.',
+                  duration: 5000,
+                })
+              }
+            } catch (validationError) {
+              console.error('Teacher validation error:', validationError)
+              setError('Failed to validate teacher profile')
+            }
+          }
+          
         } else if (response.status === 401) {
           // Not authenticated; redirect to sign-in
-          router.push('/sign-in')
+          window.location.replace('/sign-in')
           return
         } else if (response.status === 404) {
           // User not found in database, redirect to registration
-          router.push('/register')
+          window.location.replace('/sign-up')
           return
+        } else {
+          const errorData = await response.json().catch(() => ({}))
+          setError(errorData.error || `Failed to load user data (${response.status})`)
+          toast.error('Failed to load dashboard', {
+            description: errorData.error || 'Please try refreshing the page.',
+            duration: 5000,
+          })
         }
       } catch (error) {
         console.error('Error fetching user data:', error)
+        setError('Network error while loading dashboard')
+        toast.error('Connection Error', {
+          description: 'Please check your internet connection and try again.',
+          action: {
+            label: 'Retry',
+            onClick: () => window.location.reload()
+          },
+          duration: 10000,
+        })
       } finally {
         setIsLoading(false)
       }
@@ -415,25 +465,49 @@ function DashboardContent() {
             icon: Users,
             label: 'My Students',
             description: 'Manage student roster',
-            action: () => console.log('Students')
+            action: () => router.push('/dashboard/teacher/students')
+          },
+          {
+            icon: BookOpen,
+            label: 'My Classes',
+            description: 'View assigned classes',
+            action: () => router.push('/dashboard/teacher/classes')
           },
           {
             icon: FileText,
-            label: 'Lesson Plans',
-            description: 'Create and manage lessons',
-            action: () => console.log('Lesson Plans')
+            label: 'Assignments',
+            description: 'Create and manage assignments',
+            action: () => router.push('/dashboard/teacher/assignments')
           },
           {
             icon: TrendingUp,
             label: 'Gradebook',
             description: 'Record and track grades',
-            action: () => console.log('Gradebook')
+            action: () => router.push('/dashboard/teacher/gradebook')
+          },
+          {
+            icon: Calendar,
+            label: 'Timetable',
+            description: 'View teaching schedule',
+            action: () => router.push('/dashboard/teacher/timetable')
+          },
+          {
+            icon: Users,
+            label: 'Attendance',
+            description: 'Mark student attendance',
+            action: () => router.push('/dashboard/teacher/attendance')
           },
           {
             icon: MessageSquare,
-            label: 'Parent Communication',
-            description: 'Message with parents',
-            action: () => console.log('Parent Communication')
+            label: 'Messages',
+            description: 'Communicate with parents',
+            action: () => router.push('/dashboard/teacher/messages')
+          },
+          {
+            icon: FileText,
+            label: 'Resources',
+            description: 'Teaching materials',
+            action: () => router.push('/dashboard/teacher/resources')
           }
         )
         break
@@ -566,6 +640,29 @@ function DashboardContent() {
     )
   }
 
+  if (error && !dbUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Alert className="w-full max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            <div className="space-y-2">
+              <p className="font-medium">Dashboard Loading Error</p>
+              <p className="text-sm">{error}</p>
+              <Button 
+                onClick={() => window.location.reload()} 
+                size="sm" 
+                className="w-full mt-2"
+              >
+                Retry
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      </div>
+    )
+  }
+
   if (!clerkUser || !dbUser) {
     return null // Will redirect via useEffect
   }
@@ -674,6 +771,27 @@ function DashboardContent() {
 
         {/* Main content area */}
         <div className="flex flex-1 bg-zinc-100 flex-col gap-4 p-4 pt-0 font-sans">
+          {/* Profile incomplete alert for teachers */}
+          {profileIncomplete && dbUser.role === 'TEACHER' && (
+            <Alert className="border-amber-200 bg-amber-50">
+              <AlertCircle className="h-4 w-4 text-amber-600" />
+              <AlertDescription className="text-amber-800">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Profile Incomplete</p>
+                    <p className="text-sm">Please complete your teacher profile to access all features.</p>
+                  </div>
+                  <Button 
+                    onClick={() => router.push('/dashboard/profile')} 
+                    size="sm"
+                    className="ml-4"
+                  >
+                    Complete Profile
+                  </Button>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
           {renderPageContent()}
         </div>
       </SidebarInset>

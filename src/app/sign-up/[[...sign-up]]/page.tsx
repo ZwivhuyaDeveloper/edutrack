@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, ArrowLeft, UserPlus, Users, UserCheck, Building2, Search } from 'lucide-react'
 import { toast } from 'sonner'
+import { createUser, validateUserData, handlePostCreationRedirect } from '@/lib/user-creation'
 
 interface School {
   id: string
@@ -310,89 +311,105 @@ export default function Page() {
     setError('')
 
     try {
-      // Update user with school and role information
-      const response = await fetch('/api/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          role: selectedRole,
-          schoolId: selectedSchool.id,
-          firstName: user?.firstName || '',
-          lastName: user?.lastName || '',
-          email: user?.primaryEmailAddress?.emailAddress || '',
-          // Include role-specific profile data
-          ...(selectedRole === 'STUDENT' && {
-            grade: profileData.student.grade,
-            studentProfile: {
-              dateOfBirth: profileData.student.dateOfBirth,
-              studentIdNumber: profileData.student.studentIdNumber,
-              emergencyContact: profileData.student.emergencyContact,
-              medicalInfo: profileData.student.medicalInfo,
-              address: profileData.student.address,
-            }
-          }),
-          ...(selectedRole === 'TEACHER' && {
-            department: profileData.teacher.department,
-            teacherProfile: {
-              employeeId: profileData.teacher.employeeId,
-              hireDate: profileData.teacher.hireDate,
-              qualifications: profileData.teacher.qualifications,
-            }
-          }),
-          ...(selectedRole === 'PARENT' && {
-            parentProfile: {
-              phone: profileData.parent.phone,
-              address: profileData.parent.address,
-              emergencyContact: profileData.parent.emergencyContact,
-            }
-          }),
-          ...(selectedRole === 'PRINCIPAL' && {
-            principalProfile: {
-              employeeId: profileData.principal.employeeId || null,
-              hireDate: profileData.principal.hireDate || null,
-              phone: profileData.principal.phone || null,
-              address: profileData.principal.address || null,
-              emergencyContact: profileData.principal.emergencyContact || null,
-              qualifications: profileData.principal.qualifications || null,
-              yearsOfExperience: profileData.principal.yearsOfExperience && profileData.principal.yearsOfExperience.trim() ? parseInt(profileData.principal.yearsOfExperience) : null,
-              previousSchool: profileData.principal.previousSchool || null,
-              educationBackground: profileData.principal.educationBackground || null,
-              salary: profileData.principal.salary && profileData.principal.salary.trim() ? parseFloat(profileData.principal.salary) : null,
-              administrativeArea: profileData.principal.administrativeArea || null,
-            }
-          }),
-          // Include relationship data if selected
-          ...(relationshipData.selectedRelationship && {
-            relationshipUserId: relationshipData.selectedRelationship.id,
-            relationshipType: relationshipData.relationshipType
-          })
+      // Prepare user data for creation
+      const userData = {
+        role: selectedRole,
+        schoolId: selectedSchool.id,
+        firstName: user?.firstName || '',
+        lastName: user?.lastName || '',
+        email: user?.primaryEmailAddress?.emailAddress || '',
+        // Include role-specific profile data
+        ...(selectedRole === 'STUDENT' && {
+          grade: profileData.student.grade,
+          studentProfile: {
+            dateOfBirth: profileData.student.dateOfBirth,
+            studentIdNumber: profileData.student.studentIdNumber,
+            emergencyContact: profileData.student.emergencyContact,
+            medicalInfo: profileData.student.medicalInfo,
+            address: profileData.student.address,
+          }
         }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to complete registration')
+        ...(selectedRole === 'TEACHER' && {
+          department: profileData.teacher.department,
+          teacherProfile: {
+            employeeId: profileData.teacher.employeeId,
+            hireDate: profileData.teacher.hireDate,
+            qualifications: profileData.teacher.qualifications,
+          }
+        }),
+        ...(selectedRole === 'PARENT' && {
+          parentProfile: {
+            phone: profileData.parent.phone,
+            address: profileData.parent.address,
+            emergencyContact: profileData.parent.emergencyContact,
+          }
+        }),
+        ...(selectedRole === 'PRINCIPAL' && {
+          principalProfile: {
+            employeeId: profileData.principal.employeeId || null,
+            hireDate: profileData.principal.hireDate || null,
+            phone: profileData.principal.phone || null,
+            address: profileData.principal.address || null,
+            emergencyContact: profileData.principal.emergencyContact || null,
+            qualifications: profileData.principal.qualifications || null,
+            yearsOfExperience: profileData.principal.yearsOfExperience && profileData.principal.yearsOfExperience.trim() ? parseInt(profileData.principal.yearsOfExperience) : null,
+            previousSchool: profileData.principal.previousSchool || null,
+            educationBackground: profileData.principal.educationBackground || null,
+            salary: profileData.principal.salary && profileData.principal.salary.trim() ? parseFloat(profileData.principal.salary) : null,
+            administrativeArea: profileData.principal.administrativeArea || null,
+          }
+        }),
+        // Include relationship data if selected
+        ...(relationshipData.selectedRelationship && {
+          relationshipUserId: relationshipData.selectedRelationship.id,
+          relationshipType: relationshipData.relationshipType
+        })
       }
 
-      toast.success('Registration completed successfully!')
-      setStep('complete')
-      
-      // Trigger profile recheck and redirect to dashboard
-      setRecheckProfile(prev => prev + 1)
-      setTimeout(() => {
-        // Use replace to avoid back button issues and ensure clean redirect
-        window.location.replace('/dashboard')
-      }, 1500)
+      // Validate data before submission (especially important for teachers)
+      const validation = validateUserData(userData)
+      if (!validation.isValid) {
+        // Show validation errors and stop loading
+        validation.errors.forEach(error => toast.error(error))
+        setIsLoading(false)
+        return
+      }
+
+      // Use the enhanced user creation helper
+      const result = await createUser(userData)
+
+      if (result.success) {
+        // Success - show completion step first
+        setStep('complete')
+        setRecheckProfile(prev => prev + 1)
+        
+        // Use the established redirect pattern from memories
+        setTimeout(() => {
+          window.location.replace('/dashboard')
+        }, 1500)
+      } else {
+        // Error handling is done in createUser, but we should handle specific cases
+        switch (result.error) {
+          case 'duplicate_email':
+            setError('A user with this email already exists. Please check if you already have an account.')
+            break
+          case 'configuration_error':
+            setError('School configuration issue. Please contact your school administrator.')
+            break
+          case 'network_error':
+            setError('Connection failed. Please check your internet and try again.')
+            break
+          default:
+            setError('Registration failed. Please try again or contact support.')
+        }
+        setIsLoading(false)
+      }
 
     } catch (error) {
       console.error('Registration error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to complete registration'
       setError(errorMessage)
-      toast.error(errorMessage)
-    } finally {
+      toast.error('Unexpected error occurred. Please try again.')
       setIsLoading(false)
     }
   }

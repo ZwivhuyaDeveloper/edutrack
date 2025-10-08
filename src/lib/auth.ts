@@ -427,3 +427,106 @@ export async function getUserWithFullProfile() {
     profile: await getUserProfile()
   }
 }
+
+/**
+ * Enhanced teacher-specific authentication and validation
+ */
+export async function requireTeacher() {
+  const user = await requireAuth()
+  
+  if (user.role !== 'TEACHER') {
+    throw new Error('Forbidden: Teacher access required')
+  }
+
+  // Validate teacher has complete profile
+  if (!user.teacherProfile) {
+    throw new Error('Teacher profile incomplete. Please complete your profile setup.')
+  }
+
+  return {
+    ...user,
+    profile: user.teacherProfile
+  }
+}
+
+/**
+ * Get teacher with department and qualifications
+ */
+export async function getTeacherProfile() {
+  const user = await getCurrentUser()
+  
+  if (!user || user.role !== 'TEACHER') {
+    return null
+  }
+
+  return {
+    ...user,
+    fullName: `${user.firstName} ${user.lastName}`.trim(),
+    profile: user.teacherProfile,
+    department: user.teacherProfile?.department || 'Unassigned',
+    qualifications: user.teacherProfile?.qualifications || 'Not specified',
+    employeeId: user.teacherProfile?.employeeId || 'Not assigned',
+    hireDate: user.teacherProfile?.hireDate || null
+  }
+}
+
+/**
+ * Validate teacher profile completeness for dashboard access
+ */
+export async function validateTeacherProfileComplete(): Promise<{ isComplete: boolean; missingFields: string[] }> {
+  const user = await getCurrentUser()
+  
+  if (!user || user.role !== 'TEACHER') {
+    return { isComplete: false, missingFields: ['Not a teacher'] }
+  }
+
+  const missingFields: string[] = []
+  
+  if (!user.teacherProfile) {
+    return { isComplete: false, missingFields: ['Teacher profile not created'] }
+  }
+
+  // Check required fields for teachers
+  if (!user.teacherProfile.department) {
+    missingFields.push('Department')
+  }
+  
+  if (!user.teacherProfile.employeeId) {
+    missingFields.push('Employee ID')
+  }
+
+  // Optional but recommended fields
+  if (!user.teacherProfile.qualifications) {
+    missingFields.push('Qualifications (recommended)')
+  }
+
+  return {
+    isComplete: missingFields.length === 0,
+    missingFields
+  }
+}
+
+/**
+ * Check if teacher belongs to school and has proper organization membership
+ */
+export async function validateTeacherSchoolAccess(schoolId?: string): Promise<{ hasAccess: boolean; reason?: string }> {
+  const user = await getCurrentUser()
+  
+  if (!user || user.role !== 'TEACHER') {
+    return { hasAccess: false, reason: 'Not a teacher' }
+  }
+
+  if (!user.school) {
+    return { hasAccess: false, reason: 'No school assigned' }
+  }
+
+  if (schoolId && user.schoolId !== schoolId) {
+    return { hasAccess: false, reason: 'Access denied to this school' }
+  }
+
+  if (!('clerkOrganizationId' in user.school) || !user.school.clerkOrganizationId) {
+    return { hasAccess: false, reason: 'School not properly configured with Clerk organization' }
+  }
+
+  return { hasAccess: true }
+}
