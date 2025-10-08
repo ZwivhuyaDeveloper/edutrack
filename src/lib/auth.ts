@@ -345,3 +345,50 @@ export async function validateSchoolAccess(schoolId: string) {
 
   return user
 }
+
+/**
+ * Check if user has complete profile setup
+ */
+export async function hasCompleteProfile(): Promise<boolean> {
+  const user = await getCurrentUser()
+  
+  if (!user) {
+    return false
+  }
+
+  // Check if user has role-specific profile
+  switch (user.role) {
+    case 'STUDENT':
+      return !!user.studentProfile
+    case 'TEACHER':
+      return !!user.teacherProfile
+    case 'PARENT':
+      return !!user.parentProfile
+    case 'PRINCIPAL':
+      return !!user.principalProfile
+    case 'CLERK':
+      return !!user.clerkProfile
+    case 'ADMIN':
+      return true // Admins don't need specific profiles
+    default:
+      return false
+  }
+}
+
+/**
+ * Get user with full profile data for display
+ */
+export async function getUserWithFullProfile() {
+  const user = await getCurrentUser()
+  
+  if (!user) {
+    return null
+  }
+
+  // Return user with computed full name and profile
+  return {
+    ...user,
+    fullName: `${user.firstName} ${user.lastName}`.trim(),
+    profile: await getUserProfile()
+  }
+}

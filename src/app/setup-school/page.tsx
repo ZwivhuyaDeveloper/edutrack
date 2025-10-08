@@ -63,6 +63,7 @@ export default function SchoolSetupPage() {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [loadingStep, setLoadingStep] = useState('')
   const [isCheckingAuth, setIsCheckingAuth] = useState(true)
   const [showSuccess, setShowSuccess] = useState(false)
   const [createdSchool, setCreatedSchool] = useState<{name: string} | null>(null)
@@ -77,6 +78,12 @@ export default function SchoolSetupPage() {
       
       if (!user) {
         window.location.replace('/sign-in')
+        return
+      }
+
+      // Skip auth check if we're showing success or currently loading (user just completed setup)
+      if (showSuccess || isLoading) {
+        setIsCheckingAuth(false)
         return
       }
 
@@ -98,7 +105,7 @@ export default function SchoolSetupPage() {
     }
 
     checkAuth()
-  }, [isLoaded, user, router])
+  }, [isLoaded, user, router, showSuccess, isLoading])
 
   // Countdown timer for automatic redirect
   useEffect(() => {
@@ -140,6 +147,7 @@ export default function SchoolSetupPage() {
 
     setIsLoading(true)
     setError('')
+    setLoadingStep('Creating school and organization...')
 
     try {
       // Step 1: Create school directly in database
@@ -164,6 +172,13 @@ export default function SchoolSetupPage() {
       const schoolData = await schoolResponse.json()
 
       if (!schoolResponse.ok) {
+        console.error('School creation failed:', {
+          status: schoolResponse.status,
+          statusText: schoolResponse.statusText,
+          error: schoolData.error,
+          data: schoolData
+        })
+
         // Handle specific error cases
         if (schoolResponse.status === 409) {
           const errorMsg = schoolData.error || 'A record with this information already exists.'
@@ -175,6 +190,21 @@ export default function SchoolSetupPage() {
           throw new Error(schoolData.error || 'You do not have permission to create a school.')
         } else if (schoolResponse.status === 400) {
           throw new Error(schoolData.error || 'Invalid school information provided.')
+        } else if (schoolResponse.status === 500) {
+          // Server error - might be database or Clerk organization issue
+          const errorMsg = schoolData.error || 'Server error occurred while creating school.'
+          
+          // Check for specific database errors
+          if (errorMsg.includes('clerkOrganizationId') || errorMsg.includes('column') || errorMsg.includes('database')) {
+            throw new Error('Database configuration issue detected. Please ensure the database is properly migrated and try again.')
+          }
+          
+          // Check for Clerk organization errors
+          if (errorMsg.includes('organization') || errorMsg.includes('Clerk') || errorMsg.includes('Unprocessable Entity')) {
+            throw new Error('There was an issue setting up your school organization. This might be due to the school name format. Please try a simpler school name or contact support.')
+          }
+          
+          throw new Error(`Server error: ${errorMsg}`)
         }
         throw new Error(schoolData.error || 'Failed to create school. Please try again.')
       }
@@ -182,31 +212,37 @@ export default function SchoolSetupPage() {
       const schoolId = schoolData.school.id
 
       // Step 2: Create/Update principal user profile with the new school
+      setLoadingStep('Setting up your principal profile...')
+      
+      const principalProfileData = {
+        role: 'PRINCIPAL',
+        schoolId: schoolId,
+        firstName: user?.firstName || '',
+        lastName: user?.lastName || '',
+        email: user?.primaryEmailAddress?.emailAddress || '',
+        principalProfile: {
+          employeeId: principalData.employeeId,
+          hireDate: principalData.hireDate || undefined,
+          phone: principalData.phone,
+          address: principalData.address,
+          emergencyContact: principalData.emergencyContact,
+          qualifications: principalData.qualifications,
+          yearsOfExperience: principalData.yearsOfExperience ? parseInt(principalData.yearsOfExperience) : undefined,
+          previousSchool: principalData.previousSchool,
+          educationBackground: principalData.educationBackground,
+          salary: principalData.salary ? parseFloat(principalData.salary) : undefined,
+          administrativeArea: principalData.administrativeArea,
+        }
+      }
+      
+      console.log('Sending principal profile data:', JSON.stringify(principalProfileData, null, 2))
+      
       const userResponse = await fetch('/api/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          role: 'PRINCIPAL',
-          schoolId: schoolId,
-          firstName: user?.firstName || '',
-          lastName: user?.lastName || '',
-          email: user?.primaryEmailAddress?.emailAddress || '',
-          principalProfile: {
-            employeeId: principalData.employeeId,
-            hireDate: principalData.hireDate || undefined,
-            phone: principalData.phone,
-            address: principalData.address,
-            emergencyContact: principalData.emergencyContact,
-            qualifications: principalData.qualifications,
-            yearsOfExperience: principalData.yearsOfExperience ? parseInt(principalData.yearsOfExperience) : undefined,
-            previousSchool: principalData.previousSchool,
-            educationBackground: principalData.educationBackground,
-            salary: principalData.salary ? parseFloat(principalData.salary) : undefined,
-            administrativeArea: principalData.administrativeArea,
-          }
-        }),
+        body: JSON.stringify(principalProfileData),
       })
 
       const userData = await userResponse.json()
@@ -216,19 +252,26 @@ export default function SchoolSetupPage() {
       }
 
       // Show success step instead of immediate redirect
-      setCreatedSchool({ name: schoolData.school.name })
-      setShowSuccess(true)
-      setRedirectCountdown(10) // Reset countdown
+      setLoadingStep('Finalizing setup...')
       
-      toast.success('School and principal profile created successfully! Welcome to EduTrack.')
+      // Small delay to show the "Finalizing setup..." message
+      setTimeout(() => {
+        setCreatedSchool({ name: schoolData.school.name })
+        setShowSuccess(true)
+        setRedirectCountdown(10) // Reset countdown
+        setIsLoading(false) // Stop loading when success is shown
+        setLoadingStep('')
+        
+        toast.success('School and principal profile created successfully! Welcome to EduTrack.')
+      }, 1000)
 
     } catch (error) {
       console.error('School creation error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to create school'
       setError(errorMessage)
       toast.error(errorMessage)
-    } finally {
       setIsLoading(false)
+      setLoadingStep('')
     }
   }
 
@@ -306,7 +349,7 @@ export default function SchoolSetupPage() {
               </p>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
-                  className="bg-primary h-2 rounded-full transition-all duration-1000 ease-linear"
+                  className={`bg-primary h-2 rounded-full transition-all duration-1000 ease-linear`}
                   style={{ width: `${((10 - redirectCountdown) / 10) * 100}%` }}
                 ></div>
               </div>
@@ -609,7 +652,7 @@ export default function SchoolSetupPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating School...
+                  {loadingStep || 'Creating School...'}
                 </>
               ) : (
                 <>

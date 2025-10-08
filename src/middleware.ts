@@ -14,6 +14,7 @@ const isPublicRoute = createRouteMatcher([
 const isProtectedRoute = createRouteMatcher([
   '/dashboard(.*)',
   '/setup-school(.*)',
+  '/profile(.*)',
   '/api/schools(.*)',
   '/api/users(.*)',
   '/api/profile(.*)',

@@ -21,7 +21,7 @@ interface School {
 }
 
 export default function Page() {
-  const [step, setStep] = useState<'role' | 'profile' | 'school' | 'school-setup' | 'complete'>('role')
+  const [step, setStep] = useState<'role' | 'profile' | 'relationship' | 'school' | 'school-setup' | 'complete'>('role')
   const [selectedRole, setSelectedRole] = useState<'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL' | 'SCHOOL'>('STUDENT')
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null)
   const [schools, setSchools] = useState<School[]>([])
@@ -30,6 +30,12 @@ export default function Page() {
   const [error, setError] = useState('')
   const [recheckProfile, setRecheckProfile] = useState(0)
   const [isRedirecting, setIsRedirecting] = useState(false)
+  const [relationshipData, setRelationshipData] = useState({
+    searchTerm: '',
+    selectedRelationship: null as { id: string; name: string; email: string; role: string } | null,
+    relationshipType: 'PARENT' as 'PARENT' | 'GUARDIAN' | 'GRANDPARENT' | 'SIBLING',
+    searchResults: [] as { id: string; name: string; email: string; role: string }[]
+  })
   const { user, isLoaded } = useUser()
 
   // Role-specific profile data (name and email come from Clerk, not here)
@@ -189,7 +195,44 @@ export default function Page() {
         window.location.replace('/setup-school')
       }, 1000)
     } else {
+      // All other roles go to school selection
       setStep('school')
+    }
+  }
+
+  // Search for existing users to create relationships
+  const searchUsers = async (searchTerm: string, targetRole: 'STUDENT' | 'PARENT', schoolId?: string) => {
+    if (!searchTerm.trim()) return
+
+    // Use provided schoolId or selectedSchool
+    const searchSchoolId = schoolId || selectedSchool?.id
+    if (!searchSchoolId) {
+      console.warn('No school selected for user search')
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/users/search?school=${searchSchoolId}&role=${targetRole}&search=${encodeURIComponent(searchTerm)}`)
+      
+      if (response.ok) {
+        const data = await response.json()
+        setRelationshipData(prev => ({
+          ...prev,
+          searchResults: data.users || []
+        }))
+      } else {
+        console.error('Failed to search users')
+        setRelationshipData(prev => ({
+          ...prev,
+          searchResults: []
+        }))
+      }
+    } catch (error) {
+      console.error('Error searching users:', error)
+      setRelationshipData(prev => ({
+        ...prev,
+        searchResults: []
+      }))
     }
   }
 
@@ -216,7 +259,7 @@ export default function Page() {
     }
   }
 
-  const handleSchoolSubmit = async () => {
+  const completeUserRegistration = async () => {
     if (!selectedSchool) {
       toast.error('Please select a school')
       return
@@ -279,6 +322,11 @@ export default function Page() {
               administrativeArea: profileData.principal.administrativeArea,
             }
           }),
+          // Include relationship data if selected
+          ...(relationshipData.selectedRelationship && {
+            relationshipUserId: relationshipData.selectedRelationship.id,
+            relationshipType: relationshipData.relationshipType
+          })
         }),
       })
 
@@ -297,13 +345,31 @@ export default function Page() {
         // Use replace to avoid back button issues and ensure clean redirect
         window.location.replace('/dashboard')
       }, 1500)
+
     } catch (error) {
       console.error('Registration error:', error)
-      setError(error instanceof Error ? error.message : 'Registration failed')
-      toast.error('Registration failed')
+      const errorMessage = error instanceof Error ? error.message : 'Failed to complete registration'
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleSchoolSubmit = async () => {
+    if (!selectedSchool) {
+      toast.error('Please select a school')
+      return
+    }
+
+    // For PARENT and STUDENT roles, go to relationship step first
+    if (selectedRole === 'PARENT' || selectedRole === 'STUDENT') {
+      setStep('relationship')
+      return
+    }
+
+    // For other roles, complete registration directly
+    await completeUserRegistration()
   }
 
   const filteredSchools = schools.filter(school =>
@@ -1023,6 +1089,185 @@ export default function Page() {
             {/* Debug info - remove this later */}
             <div className="text-xs text-gray-500 text-center mt-4">
               Debug: Step: {step}, Role: {selectedRole}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (step === 'relationship') {
+    const targetRole = selectedRole === 'PARENT' ? 'STUDENT' : 'PARENT'
+    
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <Card className="w-full max-w-2xl">
+          <CardHeader className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setStep('profile')}
+                className="p-1"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <CardTitle className="text-2xl font-bold">
+                {selectedRole === 'PARENT' ? 'Connect with Your Child' : 'Connect with Your Parent/Guardian'}
+              </CardTitle>
+            </div>
+            <CardDescription>
+              {selectedRole === 'PARENT' 
+                ? 'Search for your child who is already registered as a student, or skip this step to add them later.'
+                : 'Search for your parent or guardian who is already registered, or skip this step to add them later.'
+              }
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="relationshipType" className="block text-sm font-medium text-gray-700 mb-2">
+                  Relationship Type
+                </label>
+                <select
+                  id="relationshipType"
+                  value={relationshipData.relationshipType}
+                  onChange={(e) => setRelationshipData(prev => ({
+                    ...prev,
+                    relationshipType: e.target.value as 'PARENT' | 'GUARDIAN' | 'GRANDPARENT' | 'SIBLING'
+                  }))}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
+                >
+                  <option value="PARENT">Parent</option>
+                  <option value="GUARDIAN">Guardian</option>
+                  <option value="GRANDPARENT">Grandparent</option>
+                  <option value="SIBLING">Sibling</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="userSearch" className="block text-sm font-medium text-gray-700 mb-2">
+                  Search for {targetRole === 'STUDENT' ? 'Student' : 'Parent/Guardian'}
+                </label>
+                <div className="relative">
+                  <Input
+                    id="userSearch"
+                    type="text"
+                    value={relationshipData.searchTerm}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      setRelationshipData(prev => ({
+                        ...prev,
+                        searchTerm: value
+                      }))
+                      // Debounce search
+                      if (value.length >= 2) {
+                        setTimeout(() => searchUsers(value, targetRole), 300)
+                      } else {
+                        setRelationshipData(prev => ({
+                          ...prev,
+                          searchResults: []
+                        }))
+                      }
+                    }}
+                    placeholder={`Search by name or email...`}
+                    className="w-full"
+                  />
+                  <Search className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
+                </div>
+              </div>
+
+              {relationshipData.searchResults.length > 0 && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Select {targetRole === 'STUDENT' ? 'Student' : 'Parent/Guardian'}
+                  </label>
+                  <div className="max-h-48 overflow-y-auto space-y-2">
+                    {relationshipData.searchResults.map((user) => (
+                      <div
+                        key={user.id}
+                        onClick={() => setRelationshipData(prev => ({
+                          ...prev,
+                          selectedRelationship: user
+                        }))}
+                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                          relationshipData.selectedRelationship?.id === user.id
+                            ? 'border-primary bg-primary/5'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium text-gray-900">{user.name}</p>
+                            <p className="text-sm text-gray-500">{user.email}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-gray-400" />
+                            <span className="text-xs text-gray-500 capitalize">{user.role.toLowerCase()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {relationshipData.selectedRelationship && (
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <div className="flex items-center gap-3">
+                    <UserCheck className="h-5 w-5 text-green-600" />
+                    <div>
+                      <p className="font-medium text-green-800">
+                        Selected: {relationshipData.selectedRelationship.name}
+                      </p>
+                      <p className="text-sm text-green-600">
+                        {relationshipData.relationshipType} relationship will be created
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  // Skip relationship and complete registration
+                  setRelationshipData({
+                    searchTerm: '',
+                    selectedRelationship: null,
+                    relationshipType: 'PARENT',
+                    searchResults: []
+                  })
+                  completeUserRegistration()
+                }}
+                className="flex-1"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Registering...
+                  </>
+                ) : (
+                  'Skip & Complete Registration'
+                )}
+              </Button>
+              <Button
+                onClick={() => completeUserRegistration()}
+                className="flex-1"
+                disabled={!relationshipData.selectedRelationship || isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Registering...
+                  </>
+                ) : (
+                  'Complete Registration'
+                )}
+              </Button>
             </div>
           </CardContent>
         </Card>

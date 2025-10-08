@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
+import { validateSchoolAccess } from '@/lib/auth'
 
 export async function PATCH(
   request: NextRequest,
@@ -15,6 +16,9 @@ export async function PATCH(
 
     const body = await request.json()
     const { address, city, state, zipCode, country, phone, email, website, logo } = body
+
+    // Validate user has access to this school
+    await validateSchoolAccess(params.id)
 
     // Update school
     const school = await prisma.school.update({

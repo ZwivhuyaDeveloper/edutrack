@@ -83,8 +83,18 @@ export async function POST(request: NextRequest) {
       where: { clerkId: userId },
       include: { 
         principalProfile: true,
+        clerkProfile: true,
         school: true 
       }
+    })
+
+    console.log(`[POST /api/schools] Existing user check for ${userId}:`, {
+      exists: !!existingUser,
+      role: existingUser?.role,
+      schoolId: existingUser?.schoolId,
+      schoolName: existingUser?.school?.name,
+      hasPrincipalProfile: !!existingUser?.principalProfile,
+      hasClerkProfile: !!existingUser?.clerkProfile
     })
 
     if (existingUser && existingUser.role === 'PRINCIPAL' && existingUser.schoolId) {
@@ -102,23 +112,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // If user already exists and is a principal, they might already have a school
-    if (existingUser && existingUser.role === 'PRINCIPAL' && existingUser.schoolId) {
-      return NextResponse.json(
-        { error: 'You are already a principal of a school. Each principal can only manage one school.' },
-        { status: 400 }
-      )
-    }
-
     // Step 1: Create Clerk organization for the school
     let clerkOrganizationId: string | null = null
     try {
       const { clerkClient } = await import('@clerk/nextjs/server')
       const { CLERK_ORG_ROLES, getPermissionStrings } = await import('@/lib/permissions')
       
+      // Create a valid slug for Clerk organization
+      const baseSlug = validatedData.name
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
+        .replace(/\s+/g, '-') // Replace spaces with hyphens
+        .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+        .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+        .substring(0, 50) // Limit length
+      
+      // Ensure slug is not empty and has minimum length
+      const slug = baseSlug || `school-${Date.now()}`
+      
       const organization = await (await clerkClient()).organizations.createOrganization({
         name: validatedData.name,
-        slug: validatedData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        slug: slug,
         createdBy: userId,
       })
       clerkOrganizationId = organization.id
@@ -145,7 +159,19 @@ export async function POST(request: NextRequest) {
       console.log(`Created Clerk organization ${organization.id} for school ${validatedData.name}`)
     } catch (clerkError) {
       console.error('Error creating Clerk organization:', clerkError)
+      
+      // Log specific error details for debugging
+      if (clerkError && typeof clerkError === 'object') {
+        if ('status' in clerkError) {
+          console.error('Clerk error status:', clerkError.status)
+        }
+        if ('errors' in clerkError) {
+          console.error('Clerk error details:', clerkError.errors)
+        }
+      }
+      
       // Continue without Clerk organization if it fails
+      console.warn(`Continuing school creation without Clerk organization for ${validatedData.name}`)
     }
 
     // Step 2: Create school in database with Clerk organization ID

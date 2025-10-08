@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth, clerkClient } from '@clerk/nextjs/server'
+import { getClerkOrgRole } from '@/lib/permissions'
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,25 +11,42 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, slug } = body
+    const { name, slug, userRole = 'PRINCIPAL' } = body
 
     if (!name) {
       return NextResponse.json({ error: 'Organization name is required' }, { status: 400 })
     }
 
+    // Create a valid slug for Clerk organization (same logic as schools route)
+    const baseSlug = name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters except spaces and hyphens
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+      .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+      .substring(0, 50) // Limit length
+    
+    // Ensure slug is not empty and has minimum length
+    const finalSlug = slug || baseSlug || `org-${Date.now()}`
+
+    console.log(`[POST /api/organizations] Creating organization: ${name} with slug: ${finalSlug}`)
+
     // Create organization in Clerk
     const organization = await (await clerkClient()).organizations.createOrganization({
       name,
-      slug: slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      slug: finalSlug,
       createdBy: userId,
     })
 
-    // Add the creator as an admin member
+    // Add the creator as an admin member with appropriate role
+    const clerkRole = getClerkOrgRole(userRole as any)
     await (await clerkClient()).organizations.createOrganizationMembership({
       organizationId: organization.id,
       userId,
-      role: 'org:admin',
+      role: clerkRole,
     })
+
+    console.log(`[POST /api/organizations] Created organization ${organization.id} with role ${clerkRole}`)
 
     return NextResponse.json({
       organization: {

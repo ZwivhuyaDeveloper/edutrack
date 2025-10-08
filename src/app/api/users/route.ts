@@ -3,6 +3,138 @@ import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
+// Helper function to create or update user profile based on role
+async function createOrUpdateUserProfile(user: any, validatedData: any) {
+  switch (validatedData.role) {
+    case 'STUDENT':
+      await prisma.studentProfile.upsert({
+        where: { studentId: user.id },
+        create: {
+          studentId: user.id,
+          grade: validatedData.grade || null,
+          dateOfBirth: validatedData.studentProfile?.dateOfBirth ? new Date(validatedData.studentProfile.dateOfBirth) : null,
+          studentIdNumber: validatedData.studentProfile?.studentIdNumber || null,
+          emergencyContact: validatedData.studentProfile?.emergencyContact || null,
+          medicalInfo: validatedData.studentProfile?.medicalInfo || null,
+          address: validatedData.studentProfile?.address || null,
+        },
+        update: {
+          grade: validatedData.grade || null,
+          dateOfBirth: validatedData.studentProfile?.dateOfBirth ? new Date(validatedData.studentProfile.dateOfBirth) : null,
+          studentIdNumber: validatedData.studentProfile?.studentIdNumber || null,
+          emergencyContact: validatedData.studentProfile?.emergencyContact || null,
+          medicalInfo: validatedData.studentProfile?.medicalInfo || null,
+          address: validatedData.studentProfile?.address || null,
+        }
+      })
+      break
+    case 'TEACHER':
+      await prisma.teacherProfile.upsert({
+        where: { teacherId: user.id },
+        create: {
+          teacherId: user.id,
+          department: validatedData.department || null,
+          employeeId: validatedData.teacherProfile?.employeeId || null,
+          hireDate: validatedData.teacherProfile?.hireDate ? new Date(validatedData.teacherProfile.hireDate) : null,
+          qualifications: validatedData.teacherProfile?.qualifications || null,
+        },
+        update: {
+          department: validatedData.department || null,
+          employeeId: validatedData.teacherProfile?.employeeId || null,
+          hireDate: validatedData.teacherProfile?.hireDate ? new Date(validatedData.teacherProfile.hireDate) : null,
+          qualifications: validatedData.teacherProfile?.qualifications || null,
+        }
+      })
+      break
+    case 'PARENT':
+      await prisma.parentProfile.upsert({
+        where: { parentId: user.id },
+        create: {
+          parentId: user.id,
+          phone: validatedData.parentProfile?.phone || null,
+          address: validatedData.parentProfile?.address || null,
+          emergencyContact: validatedData.parentProfile?.emergencyContact || null,
+        },
+        update: {
+          phone: validatedData.parentProfile?.phone || null,
+          address: validatedData.parentProfile?.address || null,
+          emergencyContact: validatedData.parentProfile?.emergencyContact || null,
+        }
+      })
+      break
+    case 'PRINCIPAL':
+      console.log('Creating/Updating Principal Profile with data:', JSON.stringify(validatedData.principalProfile, null, 2))
+      await prisma.principalProfile.upsert({
+        where: { principalId: user.id },
+        create: {
+          principalId: user.id,
+          employeeId: validatedData.principalProfile?.employeeId || null,
+          hireDate: validatedData.principalProfile?.hireDate ? new Date(validatedData.principalProfile.hireDate) : null,
+          phone: validatedData.principalProfile?.phone || null,
+          address: validatedData.principalProfile?.address || null,
+          emergencyContact: validatedData.principalProfile?.emergencyContact || null,
+          qualifications: validatedData.principalProfile?.qualifications || null,
+          yearsOfExperience: validatedData.principalProfile?.yearsOfExperience || null,
+          previousSchool: validatedData.principalProfile?.previousSchool || null,
+          educationBackground: validatedData.principalProfile?.educationBackground || null,
+          salary: validatedData.principalProfile?.salary || null,
+          administrativeArea: validatedData.principalProfile?.administrativeArea || null,
+        },
+        update: {
+          employeeId: validatedData.principalProfile?.employeeId || null,
+          hireDate: validatedData.principalProfile?.hireDate ? new Date(validatedData.principalProfile.hireDate) : null,
+          phone: validatedData.principalProfile?.phone || null,
+          address: validatedData.principalProfile?.address || null,
+          emergencyContact: validatedData.principalProfile?.emergencyContact || null,
+          qualifications: validatedData.principalProfile?.qualifications || null,
+          yearsOfExperience: validatedData.principalProfile?.yearsOfExperience || null,
+          previousSchool: validatedData.principalProfile?.previousSchool || null,
+          educationBackground: validatedData.principalProfile?.educationBackground || null,
+          salary: validatedData.principalProfile?.salary || null,
+          administrativeArea: validatedData.principalProfile?.administrativeArea || null,
+        }
+      })
+      console.log('Principal Profile created/updated successfully')
+      break
+  }
+}
+
+// Helper function to create or update ClerkProfile
+async function createOrUpdateClerkProfile(user: any, validatedData: any, userId: string) {
+  try {
+    await prisma.clerkProfile.upsert({
+      where: { clerkId: user.id },
+      create: {
+        clerkId: user.id,
+        employeeId: validatedData.principalProfile?.employeeId || validatedData.teacherProfile?.employeeId || null,
+        department: validatedData.department || null,
+        hireDate: validatedData.principalProfile?.hireDate ? new Date(validatedData.principalProfile.hireDate) : 
+                 validatedData.teacherProfile?.hireDate ? new Date(validatedData.teacherProfile.hireDate) : null,
+        phone: validatedData.principalProfile?.phone || validatedData.parentProfile?.phone || null,
+        address: validatedData.principalProfile?.address || validatedData.parentProfile?.address || null,
+      },
+      update: {
+        employeeId: validatedData.principalProfile?.employeeId || validatedData.teacherProfile?.employeeId || null,
+        department: validatedData.department || null,
+        hireDate: validatedData.principalProfile?.hireDate ? new Date(validatedData.principalProfile.hireDate) : 
+                 validatedData.teacherProfile?.hireDate ? new Date(validatedData.teacherProfile.hireDate) : null,
+        phone: validatedData.principalProfile?.phone || validatedData.parentProfile?.phone || null,
+        address: validatedData.principalProfile?.address || validatedData.parentProfile?.address || null,
+      }
+    })
+    console.log(`Created/Updated ClerkProfile for user ${user.id} with Clerk ID ${userId}`)
+  } catch (error) {
+    console.error('Error creating/updating ClerkProfile:', error)
+    console.error('ClerkProfile data:', {
+      clerkId: user.id,
+      employeeId: validatedData.principalProfile?.employeeId,
+      department: validatedData.department,
+      phone: validatedData.principalProfile?.phone,
+      address: validatedData.principalProfile?.address,
+    })
+  }
+}
+
 const createUserSchema = z.object({
   role: z.enum(['STUDENT', 'TEACHER', 'PARENT', 'PRINCIPAL']),
   schoolId: z.string().min(1, 'School is required'),
@@ -13,6 +145,9 @@ const createUserSchema = z.object({
   grade: z.string().optional(), // For students
   department: z.string().optional(), // For teachers
   parentChildRelationships: z.array(z.string()).optional(), // For parents/students
+  // Relationship fields
+  relationshipUserId: z.string().optional(), // ID of user to create relationship with
+  relationshipType: z.enum(['PARENT', 'GUARDIAN', 'GRANDPARENT', 'SIBLING']).optional(), // Type of relationship
   // Student profile fields
   studentProfile: z.object({
     dateOfBirth: z.string().optional(),
@@ -126,7 +261,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
+    console.log('Received request body:', JSON.stringify(body, null, 2))
+    
     const validatedData = createUserSchema.parse(body)
+    console.log('Validated data:', JSON.stringify(validatedData, null, 2))
 
     // Check if this is a self-registration (user doesn't exist yet)
     const currentUser = await prisma.user.findUnique({
@@ -164,8 +302,36 @@ export async function POST(request: NextRequest) {
       where: { email: validatedData.email }
     })
 
-    if (existingUserByEmail && existingUserByEmail.clerkId !== userId) {
-      return NextResponse.json({ error: 'User with this email already exists' }, { status: 400 })
+    if (existingUserByEmail) {
+      // If this is self-registration and the existing user has the same clerkId, update/create profiles
+      if (isSelfRegistration && existingUserByEmail.clerkId === userId) {
+        console.log(`User with email ${validatedData.email} and clerkId ${userId} already exists, updating profiles`)
+        
+        // Use the existing user for profile creation
+        const user = existingUserByEmail
+        
+        // Create/Update role-specific profile
+        await createOrUpdateUserProfile(user, validatedData)
+        
+        // Create/Update ClerkProfile if needed
+        await createOrUpdateClerkProfile(user, validatedData, userId)
+        
+        return NextResponse.json({ 
+          user: {
+            id: existingUserByEmail.id,
+            email: existingUserByEmail.email,
+            role: existingUserByEmail.role,
+            schoolId: existingUserByEmail.schoolId
+          }
+        })
+      }
+      
+      // If the existing user has a different clerkId or no clerkId, it's a conflict
+      if (existingUserByEmail.clerkId !== userId) {
+        return NextResponse.json({ 
+          error: 'A user with this email address already exists. Please use a different email or sign in with your existing account.' 
+        }, { status: 409 })
+      }
     }
 
     // For self-registration, check if user with this clerkId already exists
@@ -175,7 +341,15 @@ export async function POST(request: NextRequest) {
       })
 
       if (existingUserByClerkId) {
-        return NextResponse.json({ error: 'User already registered' }, { status: 400 })
+        console.log(`User with clerkId ${userId} already exists, returning existing user`)
+        return NextResponse.json({ 
+          user: {
+            id: existingUserByClerkId.id,
+            email: existingUserByClerkId.email,
+            role: existingUserByClerkId.role,
+            schoolId: existingUserByClerkId.schoolId
+          }
+        })
       }
     }
 
@@ -225,17 +399,47 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 2: Create user in database
-    const user = await prisma.user.create({
-      data: {
-        clerkId: isSelfRegistration ? userId : '', // Use Clerk ID for self-registration
-        email: validatedData.email,
-        firstName: validatedData.firstName,
-        lastName: validatedData.lastName,
-        role: validatedData.role,
-        schoolId: validatedData.schoolId,
-        isActive: isSelfRegistration // Activate immediately for self-registration
+    let user
+    try {
+      user = await prisma.user.create({
+        data: {
+          clerkId: isSelfRegistration ? userId : '', // Use Clerk ID for self-registration
+          email: validatedData.email,
+          firstName: validatedData.firstName,
+          lastName: validatedData.lastName,
+          role: validatedData.role,
+          schoolId: validatedData.schoolId,
+          isActive: isSelfRegistration // Activate immediately for self-registration
+        }
+      })
+    } catch (error) {
+      // Handle unique constraint violations
+      if (error instanceof Error && 'code' in error && error.code === 'P2002') {
+        console.error('Unique constraint violation during user creation:', error)
+        
+        // Check if it's an email constraint violation
+        if ('meta' in error && Array.isArray(error.meta) && error.meta.includes('email')) {
+          return NextResponse.json({ 
+            error: 'A user with this email address already exists. Please use a different email or sign in with your existing account.' 
+          }, { status: 409 })
+        }
+        
+        // Check if it's a clerkId constraint violation
+        if ('meta' in error && Array.isArray(error.meta) && error.meta.includes('clerkId')) {
+          return NextResponse.json({ 
+            error: 'User account already exists. Please try signing in instead.' 
+          }, { status: 409 })
+        }
+        
+        // Generic unique constraint error
+        return NextResponse.json({ 
+          error: 'A user with this information already exists. Please check your details and try again.' 
+        }, { status: 409 })
       }
-    })
+      
+      // Re-throw other errors
+      throw error
+    }
 
     // Create role-specific profile
     switch (validatedData.role) {
@@ -274,6 +478,7 @@ export async function POST(request: NextRequest) {
         })
         break
       case 'PRINCIPAL':
+        console.log('Creating Principal Profile with data:', JSON.stringify(validatedData.principalProfile, null, 2))
         await prisma.principalProfile.create({
           data: {
             principalId: user.id,
@@ -290,7 +495,84 @@ export async function POST(request: NextRequest) {
             administrativeArea: validatedData.principalProfile?.administrativeArea || null,
           }
         })
+        console.log('Principal Profile created successfully')
         break
+    }
+
+    // Step 2.5: Create ClerkProfile for self-registration users
+    if (isSelfRegistration && userId) {
+      try {
+        await prisma.clerkProfile.create({
+          data: {
+            clerkId: user.id, // Use the database user ID as foreign key
+            employeeId: validatedData.principalProfile?.employeeId || validatedData.teacherProfile?.employeeId || null,
+            department: validatedData.department || null,
+            hireDate: validatedData.principalProfile?.hireDate ? new Date(validatedData.principalProfile.hireDate) : 
+                     validatedData.teacherProfile?.hireDate ? new Date(validatedData.teacherProfile.hireDate) : null,
+            phone: validatedData.principalProfile?.phone || validatedData.parentProfile?.phone || null,
+            address: validatedData.principalProfile?.address || validatedData.parentProfile?.address || null,
+          }
+        })
+        console.log(`Created ClerkProfile for user ${user.id} with Clerk ID ${userId}`)
+      } catch (error) {
+        console.error('Error creating ClerkProfile:', error)
+        console.error('ClerkProfile creation failed with data:', {
+          clerkId: user.id,
+          employeeId: validatedData.principalProfile?.employeeId,
+          department: validatedData.department,
+          phone: validatedData.principalProfile?.phone,
+          address: validatedData.principalProfile?.address,
+        })
+        // Don't fail the entire request if ClerkProfile creation fails
+      }
+    }
+
+    // Step 3: Create parent-child relationship if specified
+    if (validatedData.relationshipUserId && validatedData.relationshipType) {
+      try {
+        // Verify the relationship user exists and is in the same school
+        const relationshipUser = await prisma.user.findUnique({
+          where: { 
+            id: validatedData.relationshipUserId,
+            schoolId: validatedData.schoolId,
+            isActive: true
+          }
+        })
+
+        if (!relationshipUser) {
+          console.warn(`Relationship user ${validatedData.relationshipUserId} not found or not in same school`)
+        } else {
+          // Determine parent and child based on roles
+          let parentId: string
+          let childId: string
+
+          if (validatedData.role === 'PARENT' && relationshipUser.role === 'STUDENT') {
+            parentId = user.id
+            childId = relationshipUser.id
+          } else if (validatedData.role === 'STUDENT' && relationshipUser.role === 'PARENT') {
+            parentId = relationshipUser.id
+            childId = user.id
+          } else {
+            console.warn(`Invalid relationship: ${validatedData.role} cannot have ${validatedData.relationshipType} relationship with ${relationshipUser.role}`)
+            // Still continue, just don't create the relationship
+            return NextResponse.json({ user }, { status: 201 })
+          }
+
+          // Create the relationship
+          await prisma.parentChildRelationship.create({
+            data: {
+              parentId,
+              childId,
+              relationship: validatedData.relationshipType
+            }
+          })
+
+          console.log(`Created ${validatedData.relationshipType} relationship between ${parentId} and ${childId}`)
+        }
+      } catch (relationshipError) {
+        console.error('Error creating relationship:', relationshipError)
+        // Don't fail the user creation if relationship creation fails
+      }
     }
 
     return NextResponse.json({ user }, { status: 201 })
