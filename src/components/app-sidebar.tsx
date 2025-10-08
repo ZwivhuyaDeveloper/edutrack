@@ -313,7 +313,7 @@ export function AppSidebar({ onNavigate, activePage, userRole = "student", ...pr
     <Sidebar 
       collapsible="icon" 
       {...props} 
-      className="border-r border-border/40 bg-gradient-to-b from-background to-background/95 backdrop-blur-sm"
+      className="border-r border-border/40  bg-gradient-to-b from-background to-background/95 backdrop-blur-sm"
     >
       {/* Header with Logo */}
       <SidebarHeader className="border-b border-border/40 px-4 py-6">
