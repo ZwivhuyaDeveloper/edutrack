@@ -414,9 +414,14 @@ export async function POST(request: NextRequest) {
 
         // Validate organization exists in current Clerk project; auto-repair if missing (e.g., env mismatch)
         let organizationId = school.clerkOrganizationId as string
+        console.log(`Checking Clerk organization: ${organizationId} for school: ${school.name} (${school.id})`)
+        
         try {
           await cc.organizations.getOrganization({ organizationId })
+          console.log(`Organization ${organizationId} exists and is valid`)
         } catch (orgErr: unknown) {
+          console.log('Organization validation error caught:', orgErr)
+          
           const hasStatus = (e: unknown): e is Record<string, unknown> & { status: number } =>
             typeof e === 'object' && e !== null && 'status' in e && typeof (e as Record<string, unknown>).status === 'number'
           const hasMessage = (e: unknown): e is Record<string, unknown> & { message: string } =>
@@ -424,7 +429,10 @@ export async function POST(request: NextRequest) {
 
           const status = hasStatus(orgErr) ? orgErr.status : undefined
           const msg = hasMessage(orgErr) ? orgErr.message : undefined
-          const isNotFound = status === 404 || (msg ? msg.includes('Not Found') : false)
+          
+          // Also check for Clerk error structure
+          const errorString = orgErr?.toString ? orgErr.toString() : String(orgErr)
+          const isNotFound = status === 404 || (msg ? msg.includes('Not Found') : false) || errorString.includes('Not Found')
           if (isNotFound) {
             console.warn(`Clerk organization ${organizationId} not found. Attempting auto-repair by creating a new organization for school ${school.name} (${school.id}).`)
             // Generate slug similar to school creation route
@@ -449,6 +457,7 @@ export async function POST(request: NextRequest) {
             console.log(`Auto-repair: created new Clerk organization ${organizationId} for school ${school.id}`)
           } else {
             console.error('Organization validation failed with non-recoverable error:', orgErr)
+            console.error('Error details - Status:', status, 'Message:', msg)
             throw orgErr
           }
         }
