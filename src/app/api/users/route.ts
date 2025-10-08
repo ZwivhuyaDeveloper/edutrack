@@ -462,8 +462,19 @@ export async function POST(request: NextRequest) {
           }
         }
 
+        // Verify user exists in Clerk before adding to organization
+        try {
+          const clerkUser = await cc.users.getUser(userId)
+          console.log(`Clerk user verified: ${clerkUser.id} (${clerkUser.emailAddresses[0]?.emailAddress})`)
+        } catch (userErr) {
+          console.error(`Clerk user ${userId} not found:`, userErr)
+          throw new Error(`User ${userId} not found in Clerk. Cannot add to organization.`)
+        }
+
         // Attempt to add membership; on role validation error, fallback to a safe default
         const desiredRole = getClerkOrgRole(validatedData.role)
+        console.log(`Attempting to add user ${userId} to organization ${organizationId} with role ${desiredRole}`)
+        
         try {
           await cc.organizations.createOrganizationMembership({
             organizationId,
@@ -478,7 +489,13 @@ export async function POST(request: NextRequest) {
 
           const status = hasStatus(membershipErr) ? membershipErr.status : undefined
           const msg = hasMessage(membershipErr) ? membershipErr.message : undefined
+          const errorString = membershipErr?.toString ? membershipErr.toString() : String(membershipErr)
+          
+          console.log(`Membership creation failed - Status: ${status}, Message: ${msg}, Error: ${errorString}`)
+          
           const invalidRole = status === 422 || (msg ? msg.toLowerCase().includes('role') : false)
+          const userNotFound = status === 404 || (msg ? msg.includes('Not Found') : false) || errorString.includes('Not Found')
+          
           if (invalidRole) {
             console.warn(`Clerk role ${desiredRole} not accepted. Falling back to 'org:member'.`)
             await cc.organizations.createOrganizationMembership({
@@ -489,6 +506,9 @@ export async function POST(request: NextRequest) {
           } else if (status === 409) {
             // Already a member; continue
             console.warn(`User ${userId} is already a member of organization ${organizationId}. Proceeding.`)
+          } else if (userNotFound) {
+            console.error(`User ${userId} or organization ${organizationId} not found when creating membership`)
+            throw new Error(`Cannot create organization membership: User or organization not found`)
           } else {
             throw membershipErr
           }
