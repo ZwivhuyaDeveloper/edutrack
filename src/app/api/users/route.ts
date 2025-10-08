@@ -330,6 +330,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'School not found or access denied' }, { status: 404 })
     }
 
+    // Check if school has Clerk organization configured (required for all user creation)
+    if (!school.clerkOrganizationId) {
+      console.warn(`School ${school.name} (${school.id}) does not have a Clerk organization ID. Cannot create users.`)
+      return NextResponse.json(
+        { error: `School "${school.name}" is not properly configured. The school administrator needs to complete the Clerk integration setup.` },
+        { status: 400 }
+      )
+    }
+
     // Check if email already exists
     const existingUserByEmail = await prisma.user.findUnique({
       where: { email: validatedData.email }
