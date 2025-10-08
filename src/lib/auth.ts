@@ -28,7 +28,8 @@ export async function getCurrentUser() {
             state: true,
             country: true,
             logo: true,
-            isActive: true
+            isActive: true,
+            clerkOrganizationId: true,
           }
         },
         studentProfile: true,
@@ -55,7 +56,8 @@ export async function getCurrentUser() {
               state: true,
               country: true,
               logo: true,
-              isActive: true
+              isActive: true,
+              clerkOrganizationId: true,
             }
           },
           studentProfile: true,
@@ -524,7 +526,7 @@ export async function validateTeacherSchoolAccess(schoolId?: string): Promise<{ 
     return { hasAccess: false, reason: 'Access denied to this school' }
   }
 
-  if (!('clerkOrganizationId' in user.school) || !user.school.clerkOrganizationId) {
+  if (!user.school.clerkOrganizationId) {
     return { hasAccess: false, reason: 'School not properly configured with Clerk organization' }
   }
 

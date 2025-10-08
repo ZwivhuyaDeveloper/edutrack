@@ -57,6 +57,19 @@ export async function createUser(userData: CreateUserData): Promise<{ success: b
         return { success: false, error: 'configuration_error' }
       }
 
+      // Organization membership / server errors
+      if (response.status === 500) {
+        const message = typeof result?.error === 'string' ? result.error : 'Server error while creating user.'
+        const hint = message.toLowerCase().includes('organization')
+          ? 'There was a problem adding the user to the school organization. Please try again or contact your administrator.'
+          : 'An unexpected server error occurred. Please try again.'
+        toast.error('Creation Failed', {
+          description: hint,
+          duration: 6000,
+        })
+        return { success: false, error: 'server_error' }
+      }
+
       // Generic error
       toast.error('Failed to create user', {
         description: result.error || 'An unexpected error occurred. Please try again.',

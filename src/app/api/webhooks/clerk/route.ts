@@ -55,25 +55,8 @@ export async function POST(request: NextRequest) {
   if (eventType === 'organization.created') {
     const { id, name, slug } = evt.data
     console.log('Organization created:', { id, name, slug })
-
-    // Create school in database linked to Clerk organization
-    try {
-      await prisma.school.create({
-        data: {
-          id: id, // Use Clerk org ID as school ID for easy mapping
-          name: name,
-          address: '',
-          city: '',
-          state: '',
-          zipCode: '',
-          country: 'US',
-          isActive: true,
-        }
-      })
-      console.log('School created in database:', id)
-    } catch (error) {
-      console.error('Error creating school:', error)
-    }
+    // School creation is handled by our /api/schools route to keep logic consistent.
+    // We only log this event here.
   }
 
   if (eventType === 'organization.updated') {
@@ -82,12 +65,12 @@ export async function POST(request: NextRequest) {
 
     try {
       await prisma.school.update({
-        where: { id },
+        where: { clerkOrganizationId: id },
         data: { name }
       })
-      console.log('School updated in database:', id)
+      console.log('School updated in database by clerkOrganizationId:', id)
     } catch (error) {
-      console.error('Error updating school:', error)
+      console.error('Error updating school (by clerkOrganizationId):', error)
     }
   }
 
@@ -97,12 +80,12 @@ export async function POST(request: NextRequest) {
 
     try {
       await prisma.school.update({
-        where: { id },
+        where: { clerkOrganizationId: id },
         data: { isActive: false }
       })
-      console.log('School deactivated in database:', id)
+      console.log('School deactivated in database by clerkOrganizationId:', id)
     } catch (error) {
-      console.error('Error deactivating school:', error)
+      console.error('Error deactivating school (by clerkOrganizationId):', error)
     }
   }
 

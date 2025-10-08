@@ -409,29 +409,97 @@ export async function POST(request: NextRequest) {
       try {
         const { clerkClient } = await import('@clerk/nextjs/server')
         const { getClerkOrgRole, getPermissionStrings } = await import('@/lib/permissions')
-        
-        // Add to organization with role-based permissions
-        await (await clerkClient()).organizations.createOrganizationMembership({
-          organizationId: school.clerkOrganizationId,
-          userId,
-          role: getClerkOrgRole(validatedData.role),
-        })
-        
+
+        const cc = await clerkClient()
+
+        // Validate organization exists in current Clerk project; auto-repair if missing (e.g., env mismatch)
+        let organizationId = school.clerkOrganizationId as string
+        try {
+          await cc.organizations.getOrganization({ organizationId })
+        } catch (orgErr: unknown) {
+          const hasStatus = (e: unknown): e is Record<string, unknown> & { status: number } =>
+            typeof e === 'object' && e !== null && 'status' in e && typeof (e as Record<string, unknown>).status === 'number'
+          const hasMessage = (e: unknown): e is Record<string, unknown> & { message: string } =>
+            typeof e === 'object' && e !== null && 'message' in e && typeof (e as Record<string, unknown>).message === 'string'
+
+          const status = hasStatus(orgErr) ? orgErr.status : undefined
+          const msg = hasMessage(orgErr) ? orgErr.message : undefined
+          const isNotFound = status === 404 || (msg ? msg.includes('Not Found') : false)
+          if (isNotFound) {
+            console.warn(`Clerk organization ${organizationId} not found. Attempting auto-repair by creating a new organization for school ${school.name} (${school.id}).`)
+            // Generate slug similar to school creation route
+            const baseSlug = (school.name || `school-${Date.now()}`)
+              .toLowerCase()
+              .replace(/[^a-z0-9\s-]/g, '')
+              .replace(/\s+/g, '-')
+              .replace(/-+/g, '-')
+              .replace(/^-|-$/g, '')
+              .substring(0, 50) || `school-${Date.now()}`
+            const org = await cc.organizations.createOrganization({
+              name: school.name,
+              slug: baseSlug,
+              createdBy: userId,
+            })
+            // Persist new organization id in DB
+            await prisma.school.update({
+              where: { id: school.id },
+              data: { clerkOrganizationId: org.id },
+            })
+            organizationId = org.id
+            console.log(`Auto-repair: created new Clerk organization ${organizationId} for school ${school.id}`)
+          } else {
+            console.error('Organization validation failed with non-recoverable error:', orgErr)
+            throw orgErr
+          }
+        }
+
+        // Attempt to add membership; on role validation error, fallback to a safe default
+        const desiredRole = getClerkOrgRole(validatedData.role)
+        try {
+          await cc.organizations.createOrganizationMembership({
+            organizationId,
+            userId,
+            role: desiredRole,
+          })
+        } catch (membershipErr: unknown) {
+          const hasStatus = (e: unknown): e is Record<string, unknown> & { status: number } =>
+            typeof e === 'object' && e !== null && 'status' in e && typeof (e as Record<string, unknown>).status === 'number'
+          const hasMessage = (e: unknown): e is Record<string, unknown> & { message: string } =>
+            typeof e === 'object' && e !== null && 'message' in e && typeof (e as Record<string, unknown>).message === 'string'
+
+          const status = hasStatus(membershipErr) ? membershipErr.status : undefined
+          const msg = hasMessage(membershipErr) ? membershipErr.message : undefined
+          const invalidRole = status === 422 || (msg ? msg.toLowerCase().includes('role') : false)
+          if (invalidRole) {
+            console.warn(`Clerk role ${desiredRole} not accepted. Falling back to 'org:member'.`)
+            await cc.organizations.createOrganizationMembership({
+              organizationId,
+              userId,
+              role: 'org:member',
+            })
+          } else if (status === 409) {
+            // Already a member; continue
+            console.warn(`User ${userId} is already a member of organization ${organizationId}. Proceeding.`)
+          } else {
+            throw membershipErr
+          }
+        }
+
         // Update user's public metadata with permissions
-        await (await clerkClient()).users.updateUserMetadata(userId, {
+        await cc.users.updateUserMetadata(userId, {
           publicMetadata: {
             role: validatedData.role,
             schoolId: validatedData.schoolId,
             schoolName: school.name,
-            organizationId: school.clerkOrganizationId,
+            organizationId,
             permissions: getPermissionStrings(validatedData.role),
             isActive: true,
             ...(validatedData.grade && { grade: validatedData.grade }),
             ...(validatedData.department && { department: validatedData.department }),
           }
         })
-        
-        console.log(`Added user ${userId} to Clerk organization ${school.clerkOrganizationId} with role ${validatedData.role}`)
+
+        console.log(`Added user ${userId} to Clerk organization ${organizationId} with role ${validatedData.role}`)
       } catch (clerkError) {
         console.error('Error adding user to Clerk organization:', clerkError)
         return NextResponse.json(
