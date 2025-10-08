@@ -10,7 +10,6 @@ import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { validateTeacherProfileComplete, validateTeacherSchoolAccess } from "@/lib/auth"
 import { toast } from "sonner"
 import {
   Avatar,
@@ -191,7 +190,7 @@ function DashboardContent() {
     }
   }, [clerkUser, isLoaded, router])
 
-  // Enhanced user data fetching with teacher validation
+  // Enhanced user data fetching
   useEffect(() => {
     const fetchUserData = async () => {
       if (!clerkUser) return
@@ -203,33 +202,6 @@ function DashboardContent() {
         if (response.ok) {
           const data = await response.json()
           setDbUser(data.user)
-          
-          // Enhanced teacher validation
-          if (data.user.role === 'TEACHER') {
-            try {
-              const profileCheck = await validateTeacherProfileComplete()
-              const schoolAccess = await validateTeacherSchoolAccess()
-              
-              if (!profileCheck.isComplete) {
-                setProfileIncomplete(true)
-                toast.error('Profile Incomplete', {
-                  description: `Missing: ${profileCheck.missingFields.join(', ')}. Please complete your profile.`,
-                  duration: 5000,
-                })
-              }
-              
-              if (!schoolAccess.hasAccess) {
-                setError(schoolAccess.reason || 'School access validation failed')
-                toast.error('School Access Issue', {
-                  description: schoolAccess.reason || 'Please contact your administrator.',
-                  duration: 5000,
-                })
-              }
-            } catch (validationError) {
-              console.error('Teacher validation error:', validationError)
-              setError('Failed to validate teacher profile')
-            }
-          }
           
         } else if (response.status === 401) {
           // Not authenticated; redirect to sign-in
