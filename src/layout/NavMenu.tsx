@@ -1,13 +1,14 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { MenuItem } from "../components/ui/navbar-menu";
 import logo from "@/assets/Standalone_Logo.png";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useUser } from "@clerk/nextjs"
 
 
 export default function Navbar({ className }: { className?: string }) {
+  const { user, isLoaded } = useUser();
   
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
     e.preventDefault();
@@ -132,12 +133,43 @@ export default function Navbar({ className }: { className?: string }) {
 
           {/* Desktop Buttons */}
           <div className="hidden lg:flex items-center space-x-3">
-            <Button variant="outline" className="text-sm md:text-base font-semibold text-primary border-2 border-primary px-4 py-2">
-              Login
-            </Button>
-            <Button variant="default" className="text-sm md:text-base font-semibold bg-primary px-4 py-2">
-              Register
-            </Button>
+            {!isLoaded ? (
+              <div className="w-20 h-10 bg-gray-200 animate-pulse rounded-md"></div>
+            ) : user ? (
+              <>
+                <Button
+                  variant="outline"
+                  className="text-sm md:text-base font-semibold text-primary border-2 border-primary px-4 py-2"
+                  onClick={() => window.location.replace('/dashboard')}
+                >
+                  Dashboard
+                </Button>
+                <Button
+                  variant="default"
+                  className="text-sm md:text-base font-semibold bg-primary px-4 py-2"
+                  onClick={() => window.location.replace('/profile')}
+                >
+                  Profile
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  className="text-sm md:text-base font-semibold text-primary border-2 border-primary px-4 py-2"
+                  onClick={() => window.location.replace('/sign-in')}
+                >
+                  Sign In
+                </Button>
+                <Button
+                  variant="default"
+                  className="text-sm md:text-base font-semibold bg-primary px-4 py-2"
+                  onClick={() => window.location.replace('/sign-up')}
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -248,23 +280,61 @@ export default function Navbar({ className }: { className?: string }) {
             </a>
           </div>
           <div className="flex flex-col space-y-3 px-4 py-4 border-t border-gray-200 bg-gray-50/50">
-            <Button 
-              variant="outline" 
-              className="w-full text-base font-semibold text-primary border-2 border-primary py-3 transition-all duration-200 hover:bg-primary hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Login
-            </Button>
-            <Button 
-              variant="default" 
-              className="w-full text-base font-semibold bg-primary py-3 transition-all duration-200 hover:bg-primary hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Register
-            </Button>
+            {!isLoaded ? (
+              <div className="flex space-x-3">
+                <div className="w-full h-12 bg-gray-200 animate-pulse rounded-md"></div>
+                <div className="w-full h-12 bg-gray-200 animate-pulse rounded-md"></div>
+              </div>
+            ) : user ? (
+              <>
+                <Button
+                  variant="outline"
+                  className="w-full text-base font-semibold text-primary border-2 border-primary py-3 transition-all duration-200 hover:bg-primary hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    window.location.replace('/dashboard');
+                  }}
+                >
+                  Dashboard
+                </Button>
+                <Button
+                  variant="default"
+                  className="w-full text-base font-semibold bg-primary py-3 transition-all duration-200 hover:bg-primary hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    window.location.replace('/profile');
+                  }}
+                >
+                  Profile
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  className="w-full text-base font-semibold text-primary border-2 border-primary py-3 transition-all duration-200 hover:bg-primary hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    window.location.replace('/sign-in');
+                  }}
+                >
+                  Sign In
+                </Button>
+                <Button
+                  variant="default"
+                  className="w-full text-base font-semibold bg-primary py-3 transition-all duration-200 hover:bg-primary hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    window.location.replace('/sign-up');
+                  }}
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
           </div>
         </div>
-      </div>
+    </div>
     </div>
   );
 }

@@ -9,9 +9,13 @@ import Third from '@/assets/bottom_hero.png'
 import Fourth from '@/assets/drawing_2.png'
 import StatsSection from './Stats-Section';
 import AnimatedCounter from './AnimatedCounter';
+import { useUser } from "@clerk/nextjs"
+import { useRouter } from "next/navigation"
 
 
 function HeroSection() {
+  const { user, isLoaded } = useUser();
+  const router = useRouter();
       const items = [
         {
             header: (
@@ -86,7 +90,25 @@ function HeroSection() {
                   Empowering Principals, Teachers, Parents, and Learners with <strong className='text-primary'> Real-time Performance, </strong> <strong className='text-primary'> Attendance, </strong> <strong className='text-primary'> Behavior Tracking </strong> and <strong className='text-primary'> Channelled Communication </strong> — so no learner is left behind.
                 </p>
                 <div className='flex flex-col sm:flex-row gap-3 items-center w-full sm:w-auto justify-center lg:justify-start'>
-                    <Button variant="default" className='bg-primary text-white font-bold text-lg md:text-lg lg:text-xl py-3 sm:py-5 px-4 sm:px-6 rounded-lg sm:w-auto'>Get Started For Free</Button>
+                    {!isLoaded ? (
+                      <div className="w-48 h-14 bg-gray-200 animate-pulse rounded-lg"></div>
+                    ) : user ? (
+                      <Button
+                        variant="default"
+                        className='bg-primary text-white font-bold text-lg md:text-lg lg:text-xl py-3 sm:py-5 px-4 sm:px-6 rounded-lg sm:w-auto'
+                        onClick={() => router.push('/dashboard')}
+                      >
+                        Go to Dashboard
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="default"
+                        className='bg-primary text-white font-bold text-lg md:text-lg lg:text-xl py-3 sm:py-5 px-4 sm:px-6 rounded-lg sm:w-auto'
+                        onClick={() => router.push('/sign-up')}
+                      >
+                        Start Your EduTrack Journey
+                      </Button>
+                    )}
                     <div className='flex flex-row gap-3 items-center w-full sm:w-auto justify-center lg:justify-start'>
                       <Button variant="outline" className=' text-primary font-bold text-lg md:text-lg lg:text-xl py-3 sm:py-5 px-4 sm:px-6 rounded-lg border-2 border-primary  sm:w-auto'>Contact</Button>
                       <Button variant="outline" className=' text-primary font-bold text-lg md:text-lg lg:text-xl py-3 sm:py-5 px-4 sm:px-6 rounded-lg border-2 border-primary  sm:w-auto flex items-center justify-center'><ArrowUpRightIcon strokeWidth={3}  className="w-8 h-8" /></Button>
