@@ -108,7 +108,7 @@ async function createOrUpdateClerkProfile(user: User, validatedData: CreateUserT
       create: {
         clerkId: user.id,
         employeeId: validatedData.principalProfile?.employeeId || validatedData.teacherProfile?.employeeId || null,
-        department: validatedData.department || null,
+        department: validatedData.department || (validatedData.principalProfile?.administrativeArea ? `Administration - ${validatedData.principalProfile.administrativeArea}` : null),
         hireDate: validatedData.principalProfile?.hireDate ? new Date(validatedData.principalProfile.hireDate) : 
                  validatedData.teacherProfile?.hireDate ? new Date(validatedData.teacherProfile.hireDate) : null,
         phone: validatedData.principalProfile?.phone || validatedData.parentProfile?.phone || null,
@@ -116,7 +116,7 @@ async function createOrUpdateClerkProfile(user: User, validatedData: CreateUserT
       },
       update: {
         employeeId: validatedData.principalProfile?.employeeId || validatedData.teacherProfile?.employeeId || null,
-        department: validatedData.department || null,
+        department: validatedData.department || (validatedData.principalProfile?.administrativeArea ? `Administration - ${validatedData.principalProfile.administrativeArea}` : null),
         hireDate: validatedData.principalProfile?.hireDate ? new Date(validatedData.principalProfile.hireDate) : 
                  validatedData.teacherProfile?.hireDate ? new Date(validatedData.teacherProfile.hireDate) : null,
         phone: validatedData.principalProfile?.phone || validatedData.parentProfile?.phone || null,
@@ -706,7 +706,7 @@ export async function POST(request: NextRequest) {
           data: {
             clerkId: user.id, // Use the database user ID as foreign key
             employeeId: validatedData.principalProfile?.employeeId || validatedData.teacherProfile?.employeeId || null,
-            department: validatedData.department || null,
+            department: validatedData.department || (validatedData.principalProfile?.administrativeArea ? `Administration - ${validatedData.principalProfile.administrativeArea}` : null),
             hireDate: validatedData.principalProfile?.hireDate ? new Date(validatedData.principalProfile.hireDate) : 
                      validatedData.teacherProfile?.hireDate ? new Date(validatedData.teacherProfile.hireDate) : null,
             phone: validatedData.principalProfile?.phone || validatedData.parentProfile?.phone || null,

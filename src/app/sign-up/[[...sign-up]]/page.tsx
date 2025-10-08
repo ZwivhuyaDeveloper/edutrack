@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, ArrowLeft, UserPlus, Users, UserCheck, Building2, Search } from 'lucide-react'
 import { toast } from 'sonner'
-import { createUser, validateUserData, handlePostCreationRedirect } from '@/lib/user-creation'
+import { createUser, validateUserData } from '@/lib/user-creation'
 
 interface School {
   id: string
@@ -196,26 +196,51 @@ export default function Page() {
       
       try {
         console.log('Creating principal profile with data:', profileData.principal)
+        console.log('Clerk user data:', {
+          firstName: user?.firstName,
+          lastName: user?.lastName,
+          email: user?.primaryEmailAddress?.emailAddress,
+          fullName: user?.fullName
+        })
+
+        // Extract names with fallbacks
+        const firstName = user?.firstName || user?.fullName?.split(' ')[0] || ''
+        const lastName = user?.lastName || user?.fullName?.split(' ').slice(1).join(' ') || ''
+        const email = user?.primaryEmailAddress?.emailAddress || ''
+
+        // Validate required fields
+        if (!firstName.trim()) {
+          toast.error('First name is required. Please update your Clerk profile.')
+          return
+        }
+        if (!lastName.trim()) {
+          toast.error('Last name is required. Please update your Clerk profile.')
+          return
+        }
+        if (!email.trim()) {
+          toast.error('Email is required. Please update your Clerk profile.')
+          return
+        }
         
         // Create a temporary principal profile record with minimal school data
         const principalData = {
           role: 'PRINCIPAL',
           schoolId: 'temp', // Will be updated when school is created
-          firstName: user?.firstName || '',
-          lastName: user?.lastName || '',
-          email: user?.primaryEmailAddress?.emailAddress || '',
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          email: email.trim(),
           principalProfile: {
-            employeeId: profileData.principal.employeeId || null,
-            hireDate: profileData.principal.hireDate || null,
-            phone: profileData.principal.phone || null,
-            address: profileData.principal.address || null,
-            emergencyContact: profileData.principal.emergencyContact || null,
-            qualifications: profileData.principal.qualifications || null,
-            yearsOfExperience: profileData.principal.yearsOfExperience && profileData.principal.yearsOfExperience.trim() ? parseInt(profileData.principal.yearsOfExperience) : null,
-            previousSchool: profileData.principal.previousSchool || null,
-            educationBackground: profileData.principal.educationBackground || null,
-            salary: profileData.principal.salary && profileData.principal.salary.trim() ? parseFloat(profileData.principal.salary) : null,
-            administrativeArea: profileData.principal.administrativeArea || null,
+            employeeId: profileData.principal.employeeId?.trim() || undefined,
+            hireDate: profileData.principal.hireDate?.trim() || undefined,
+            phone: profileData.principal.phone?.trim() || undefined,
+            address: profileData.principal.address?.trim() || undefined,
+            emergencyContact: profileData.principal.emergencyContact?.trim() || undefined,
+            qualifications: profileData.principal.qualifications?.trim() || undefined,
+            yearsOfExperience: profileData.principal.yearsOfExperience?.trim() ? parseInt(profileData.principal.yearsOfExperience.trim()) : undefined,
+            previousSchool: profileData.principal.previousSchool?.trim() || undefined,
+            educationBackground: profileData.principal.educationBackground?.trim() || undefined,
+            salary: profileData.principal.salary?.trim() ? parseFloat(profileData.principal.salary.trim()) : undefined,
+            administrativeArea: profileData.principal.administrativeArea?.trim() || undefined,
           }
         }
         
@@ -311,13 +336,42 @@ export default function Page() {
     setError('')
 
     try {
+      console.log('Clerk user data for registration:', {
+        firstName: user?.firstName,
+        lastName: user?.lastName,
+        email: user?.primaryEmailAddress?.emailAddress,
+        fullName: user?.fullName
+      })
+
+      // Extract names with fallbacks
+      const firstName = user?.firstName || user?.fullName?.split(' ')[0] || ''
+      const lastName = user?.lastName || user?.fullName?.split(' ').slice(1).join(' ') || ''
+      const email = user?.primaryEmailAddress?.emailAddress || ''
+
+      // Validate required fields
+      if (!firstName.trim()) {
+        toast.error('First name is required. Please update your Clerk profile.')
+        setIsLoading(false)
+        return
+      }
+      if (!lastName.trim()) {
+        toast.error('Last name is required. Please update your Clerk profile.')
+        setIsLoading(false)
+        return
+      }
+      if (!email.trim()) {
+        toast.error('Email is required. Please update your Clerk profile.')
+        setIsLoading(false)
+        return
+      }
+
       // Prepare user data for creation
       const userData = {
         role: selectedRole,
         schoolId: selectedSchool.id,
-        firstName: user?.firstName || '',
-        lastName: user?.lastName || '',
-        email: user?.primaryEmailAddress?.emailAddress || '',
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
         // Include role-specific profile data
         ...(selectedRole === 'STUDENT' && {
           grade: profileData.student.grade,
@@ -346,17 +400,17 @@ export default function Page() {
         }),
         ...(selectedRole === 'PRINCIPAL' && {
           principalProfile: {
-            employeeId: profileData.principal.employeeId || null,
-            hireDate: profileData.principal.hireDate || null,
-            phone: profileData.principal.phone || null,
-            address: profileData.principal.address || null,
-            emergencyContact: profileData.principal.emergencyContact || null,
-            qualifications: profileData.principal.qualifications || null,
-            yearsOfExperience: profileData.principal.yearsOfExperience && profileData.principal.yearsOfExperience.trim() ? parseInt(profileData.principal.yearsOfExperience) : null,
-            previousSchool: profileData.principal.previousSchool || null,
-            educationBackground: profileData.principal.educationBackground || null,
-            salary: profileData.principal.salary && profileData.principal.salary.trim() ? parseFloat(profileData.principal.salary) : null,
-            administrativeArea: profileData.principal.administrativeArea || null,
+            employeeId: profileData.principal.employeeId?.trim() || undefined,
+            hireDate: profileData.principal.hireDate?.trim() || undefined,
+            phone: profileData.principal.phone?.trim() || undefined,
+            address: profileData.principal.address?.trim() || undefined,
+            emergencyContact: profileData.principal.emergencyContact?.trim() || undefined,
+            qualifications: profileData.principal.qualifications?.trim() || undefined,
+            yearsOfExperience: profileData.principal.yearsOfExperience?.trim() ? parseInt(profileData.principal.yearsOfExperience.trim()) : undefined,
+            previousSchool: profileData.principal.previousSchool?.trim() || undefined,
+            educationBackground: profileData.principal.educationBackground?.trim() || undefined,
+            salary: profileData.principal.salary?.trim() ? parseFloat(profileData.principal.salary.trim()) : undefined,
+            administrativeArea: profileData.principal.administrativeArea?.trim() || undefined,
           }
         }),
         // Include relationship data if selected
