@@ -91,20 +91,48 @@ export async function PATCH(request: Request) {
     const { firstName, lastName } = body
 
     // Update user in database
-    const updatedUser = await prisma.user.update({
-      where: { clerkId: userId },
-      data: {
-        ...(firstName && { firstName }),
-        ...(lastName && { lastName }),
-      },
-      include: {
-        school: true,
-        studentProfile: true,
-        teacherProfile: true,
-        parentProfile: true,
-        principalProfile: true,
+    let updatedUser
+    try {
+      updatedUser = await prisma.user.update({
+        where: { clerkId: userId },
+        data: {
+          ...(firstName && { firstName }),
+          ...(lastName && { lastName }),
+        },
+        include: {
+          school: true,
+          studentProfile: true,
+          teacherProfile: true,
+          parentProfile: true,
+          principalProfile: true,
+        }
+      })
+    } catch (error) {
+      console.error('[/api/users/me PATCH] Database connection error:', error)
+      if (error instanceof Error && error.message.includes('Server has closed the connection')) {
+        console.log('[/api/users/me PATCH] Retrying database connection...')
+        // Retry once after 1 second delay
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        updatedUser = await prisma.user.update({
+          where: { clerkId: userId },
+          data: {
+            ...(firstName && { firstName }),
+            ...(lastName && { lastName }),
+          },
+          include: {
+            school: true,
+            studentProfile: true,
+            teacherProfile: true,
+            parentProfile: true,
+            principalProfile: true,
+          }
+        })
+        console.log('[/api/users/me PATCH] Retry successful')
+      } else {
+        console.error('[/api/users/me PATCH] Non-connection error, rethrowing:', error)
+        throw error
       }
-    })
+    }
 
     return NextResponse.json({
       user: {

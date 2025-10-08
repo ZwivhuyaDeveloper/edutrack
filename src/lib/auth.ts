@@ -15,27 +15,62 @@ export async function getCurrentUser() {
     return null
   }
 
-  const user = await prisma.user.findUnique({
-    where: { clerkId: userId },
-    include: {
-      school: {
-        select: {
-          id: true,
-          name: true,
-          city: true,
-          state: true,
-          country: true,
-          logo: true,
-          isActive: true
+  let user
+  try {
+    user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+      include: {
+        school: {
+          select: {
+            id: true,
+            name: true,
+            city: true,
+            state: true,
+            country: true,
+            logo: true,
+            isActive: true
+          }
+        },
+        studentProfile: true,
+        teacherProfile: true,
+        parentProfile: true,
+        principalProfile: true,
+        clerkProfile: true
+      }
+    })
+  } catch (error) {
+    console.error('[getCurrentUser] Database connection error:', error)
+    if (error instanceof Error && error.message.includes('Server has closed the connection')) {
+      console.log('[getCurrentUser] Retrying database connection...')
+      // Retry once after 1 second delay
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      user = await prisma.user.findUnique({
+        where: { clerkId: userId },
+        include: {
+          school: {
+            select: {
+              id: true,
+              name: true,
+              city: true,
+              state: true,
+              country: true,
+              logo: true,
+              isActive: true
+            }
+          },
+          studentProfile: true,
+          teacherProfile: true,
+          parentProfile: true,
+          principalProfile: true,
+          clerkProfile: true
         }
-      },
-      studentProfile: true,
-      teacherProfile: true,
-      parentProfile: true,
-      principalProfile: true,
-      clerkProfile: true
+      })
+      console.log('[getCurrentUser] Retry successful')
+    } else {
+      console.error('[getCurrentUser] Non-connection error, rethrowing:', error)
+      throw error
     }
-  })
+  }
 
   console.log('[getCurrentUser] User found in DB:', user ? `Yes (${user.email})` : 'No')
 
