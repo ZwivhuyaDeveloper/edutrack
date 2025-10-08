@@ -1,52 +1,63 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { SettingsLayout, ProfileSection, NotificationSettings, SecuritySettings } from '@/components/settings'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { 
-  Settings, 
-  Building, 
+  Building,
   FileText, 
-  Shield,
-  Upload,
   Download,
   Save,
   Edit,
-  Eye,
   Search,
-  Filter,
   Calendar,
-  User,
-  Mail,
   Phone,
   MapPin,
-  Globe,
   Camera,
   BarChart3,
   Activity,
-  AlertTriangle
+  Shield,
+  Loader2,
+  Briefcase,
+  GraduationCap
 } from 'lucide-react'
 import { toast } from 'sonner'
 
-interface School {
+interface PrincipalProfile {
   id: string
-  name: string
-  address?: string
-  city?: string
-  state?: string
-  zipCode?: string
-  country: string
-  phone?: string
-  email?: string
-  website?: string
-  logo?: string
-  isActive: boolean
+  firstName: string
+  lastName: string
+  email: string
+  avatar: string | null
+  principalProfile: {
+    employeeId: string | null
+    phone: string | null
+    address: string | null
+    emergencyContact: string | null
+    qualifications: string | null
+    yearsOfExperience: number | null
+    administrativeArea: string | null
+    educationBackground: string | null
+  } | null
+  school: {
+    id: string
+    name: string
+    address?: string
+    city?: string
+    state?: string
+    zipCode?: string
+    country: string
+    phone?: string
+    email?: string
+    website?: string
+    logo?: string
+    isActive: boolean
+  }
 }
 
 interface AuditLog {
@@ -54,7 +65,7 @@ interface AuditLog {
   entity: string
   entityId: string
   action: string
-  changes?: any
+  changes?: Record<string, unknown>
   ipAddress?: string
   userAgent?: string
   createdAt: string
@@ -77,56 +88,167 @@ interface Report {
 }
 
 export default function PrincipalSettingsPage() {
-  const [activeTab, setActiveTab] = useState('profile')
-  const [school, setSchool] = useState<School | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [profile, setProfile] = useState<PrincipalProfile | null>(null)
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
   const [reports, setReports] = useState<Report[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isEditing, setIsEditing] = useState(false)
+  const [isEditingSchool, setIsEditingSchool] = useState(false)
+  const [isSavingProfile, setIsSavingProfile] = useState(false)
+  const [isSavingSchool, setIsSavingSchool] = useState(false)
+  const [loadingReports, setLoadingReports] = useState(false)
+  const [loadingAuditLogs, setLoadingAuditLogs] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [actionFilter, setActionFilter] = useState('all')
   const [dateFilter, setDateFilter] = useState('week')
+  const [profileFields, setProfileFields] = useState({
+    phone: '',
+    address: '',
+    emergencyContact: '',
+    qualifications: '',
+    yearsOfExperience: '',
+    administrativeArea: '',
+    educationBackground: ''
+  })
+  const [schoolData, setSchoolData] = useState({
+    name: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: '',
+    phone: '',
+    email: '',
+    website: '',
+    logo: ''
+  })
 
   useEffect(() => {
-    fetchData()
-  }, [activeTab, dateFilter])
+    fetchProfile()
+  }, [])
 
-  const fetchData = async () => {
+  const fetchProfile = async () => {
     try {
-      setIsLoading(true)
+      const response = await fetch('/api/users/me')
+      if (!response.ok) throw new Error('Failed to fetch profile')
       
-      switch (activeTab) {
-        case 'profile':
-          const schoolRes = await fetch('/api/principal/school')
-          if (schoolRes.ok) {
-            const schoolData = await schoolRes.json()
-            setSchool(schoolData.school)
-          }
-          break
-        case 'reports':
-          const reportsRes = await fetch('/api/principal/reports')
-          if (reportsRes.ok) {
-            const reportsData = await reportsRes.json()
-            setReports(reportsData.reports || [])
-          }
-          break
-        case 'audit':
-          const auditRes = await fetch(`/api/principal/audit-logs?period=${dateFilter}`)
-          if (auditRes.ok) {
-            const auditData = await auditRes.json()
-            setAuditLogs(auditData.logs || [])
-          }
-          break
+      const data = await response.json()
+      setProfile(data.user)
+      
+      // Initialize profile fields
+      setProfileFields({
+        phone: data.user.principalProfile?.phone || '',
+        address: data.user.principalProfile?.address || '',
+        emergencyContact: data.user.principalProfile?.emergencyContact || '',
+        qualifications: data.user.principalProfile?.qualifications || '',
+        yearsOfExperience: data.user.principalProfile?.yearsOfExperience?.toString() || '',
+        administrativeArea: data.user.principalProfile?.administrativeArea || '',
+        educationBackground: data.user.principalProfile?.educationBackground || ''
+      })
+
+      // Initialize school data
+      if (data.user.school) {
+        setSchoolData({
+          name: data.user.school.name || '',
+          address: data.user.school.address || '',
+          city: data.user.school.city || '',
+          state: data.user.school.state || '',
+          zipCode: data.user.school.zipCode || '',
+          country: data.user.school.country || '',
+          phone: data.user.school.phone || '',
+          email: data.user.school.email || '',
+          website: data.user.school.website || '',
+          logo: data.user.school.logo || ''
+        })
       }
     } catch (error) {
-      console.error('Error fetching data:', error)
-      toast.error('Failed to load data')
+      console.error('Error fetching profile:', error)
+      toast.error('Failed to load profile')
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleSaveSchool = async (schoolData: Partial<School>) => {
+  const fetchReports = useCallback(async () => {
+    setLoadingReports(true)
+    try {
+      const response = await fetch('/api/principal/reports')
+      if (response.ok) {
+        const data = await response.json()
+        setReports(data.reports || [])
+      }
+    } catch (error) {
+      console.error('Error fetching reports:', error)
+      toast.error('Failed to load reports')
+    } finally {
+      setLoadingReports(false)
+    }
+  }, [])
+
+  const fetchAuditLogs = useCallback(async () => {
+    setLoadingAuditLogs(true)
+    try {
+      const response = await fetch(`/api/principal/audit-logs?period=${dateFilter}`)
+      if (response.ok) {
+        const data = await response.json()
+        setAuditLogs(data.logs || [])
+      }
+    } catch (error) {
+      console.error('Error fetching audit logs:', error)
+      toast.error('Failed to load audit logs')
+    } finally {
+      setLoadingAuditLogs(false)
+    }
+  }, [dateFilter])
+
+  // Load reports when profile is available
+  useEffect(() => {
+    if (profile) {
+      fetchReports()
+    }
+  }, [profile, fetchReports])
+
+  // Load audit logs when profile is available or date filter changes
+  useEffect(() => {
+    if (profile) {
+      fetchAuditLogs()
+    }
+  }, [profile, dateFilter, fetchAuditLogs])
+
+  const handleProfileSave = async () => {
+    setIsSavingProfile(true)
+    try {
+      const response = await fetch('/api/dashboard/principal/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileFields)
+      })
+
+      if (!response.ok) throw new Error('Failed to update profile')
+      toast.success('Profile updated successfully')
+    } catch (error) {
+      toast.error('Failed to update profile')
+      throw error
+    } finally {
+      setIsSavingProfile(false)
+    }
+  }
+
+  const handleNotificationUpdate = async (settings: Record<string, boolean>) => {
+    try {
+      const response = await fetch('/api/dashboard/principal/notifications/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+      })
+
+      if (!response.ok) throw new Error('Failed to update notification settings')
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const handleSaveSchool = async () => {
+    setIsSavingSchool(true)
     try {
       const response = await fetch('/api/principal/school', {
         method: 'PUT',
@@ -136,14 +258,16 @@ export default function PrincipalSettingsPage() {
 
       if (response.ok) {
         toast.success('School profile updated successfully')
-        setIsEditing(false)
-        fetchData()
+        setIsEditingSchool(false)
+        fetchProfile()
       } else {
         toast.error('Failed to update school profile')
       }
     } catch (error) {
       console.error('Error updating school:', error)
       toast.error('Failed to update school profile')
+    } finally {
+      setIsSavingSchool(false)
     }
   }
 
@@ -157,7 +281,7 @@ export default function PrincipalSettingsPage() {
 
       if (response.ok) {
         toast.success('Report generation started')
-        fetchData()
+        fetchReports()
       } else {
         toast.error('Failed to generate report')
       }
@@ -167,36 +291,100 @@ export default function PrincipalSettingsPage() {
     }
   }
 
-  const SchoolProfileTab = () => (
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex items-center justify-center h-full min-h-[400px]">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold">Profile not found</h2>
+          <p className="text-gray-600 mt-2">Unable to load your profile</p>
+        </div>
+      </div>
+    )
+  }
+
+  const notificationOptions = [
+    {
+      id: 'assignments',
+      label: 'Assignments',
+      description: 'Get notified about assignment activities',
+      enabled: true
+    },
+    {
+      id: 'attendance',
+      label: 'Attendance',
+      description: 'Attendance alerts and reports',
+      enabled: true
+    },
+    {
+      id: 'fees',
+      label: 'Fees & Payments',
+      description: 'Financial notifications and payment alerts',
+      enabled: true
+    },
+    {
+      id: 'staff',
+      label: 'Staff Updates',
+      description: 'Teacher and staff-related notifications',
+      enabled: true
+    },
+    {
+      id: 'announcements',
+      label: 'System Announcements',
+      description: 'Important system-wide announcements',
+      enabled: true
+    },
+    {
+      id: 'reports',
+      label: 'Report Generation',
+      description: 'Notifications when reports are ready',
+      enabled: true
+    },
+    {
+      id: 'events',
+      label: 'Events',
+      description: 'School events and calendar reminders',
+      enabled: true
+    }
+  ]
+
+  const SchoolManagementTab = () => (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>School Profile</CardTitle>
-              <CardDescription>Manage your school's basic information</CardDescription>
+              <CardDescription>Manage your school&apos;s basic information</CardDescription>
             </div>
             <Button
-              variant={isEditing ? "default" : "outline"}
-              onClick={() => setIsEditing(!isEditing)}
+              variant={isEditingSchool ? "default" : "outline"}
+              onClick={() => setIsEditingSchool(!isEditingSchool)}
             >
-              {isEditing ? <Save className="h-4 w-4 mr-2" /> : <Edit className="h-4 w-4 mr-2" />}
-              {isEditing ? 'Save Changes' : 'Edit Profile'}
+              {isEditingSchool ? <Save className="h-4 w-4 mr-2" /> : <Edit className="h-4 w-4 mr-2" />}
+              {isEditingSchool ? 'Save Changes' : 'Edit Profile'}
             </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {school && (
+          {profile.school && (
             <>
               {/* Logo Section */}
               <div className="flex items-center gap-6">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage src={school.logo} />
+                  <AvatarImage src={schoolData.logo} />
                   <AvatarFallback className="text-2xl">
-                    {school.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                    {schoolData.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
                   </AvatarFallback>
                 </Avatar>
-                {isEditing && (
+                {isEditingSchool && (
                   <div>
                     <Button variant="outline" size="sm">
                       <Camera className="h-4 w-4 mr-2" />
@@ -214,17 +402,17 @@ export default function PrincipalSettingsPage() {
                 <div>
                   <label className="text-sm font-medium">School Name</label>
                   <Input
-                    value={school.name}
-                    disabled={!isEditing}
-                    onChange={(e) => setSchool({...school, name: e.target.value})}
+                    value={schoolData.name}
+                    disabled={!isEditingSchool}
+                    onChange={(e) => setSchoolData({...schoolData, name: e.target.value})}
                   />
                 </div>
                 <div>
                   <label className="text-sm font-medium">Country</label>
                   <Input
-                    value={school.country}
-                    disabled={!isEditing}
-                    onChange={(e) => setSchool({...school, country: e.target.value})}
+                    value={schoolData.country}
+                    disabled={!isEditingSchool}
+                    onChange={(e) => setSchoolData({...schoolData, country: e.target.value})}
                   />
                 </div>
               </div>
@@ -239,37 +427,37 @@ export default function PrincipalSettingsPage() {
                   <div className="md:col-span-2">
                     <label className="text-sm font-medium">Street Address</label>
                     <Input
-                      value={school.address || ''}
-                      disabled={!isEditing}
+                      value={schoolData.address}
+                      disabled={!isEditingSchool}
                       placeholder="Enter street address"
-                      onChange={(e) => setSchool({...school, address: e.target.value})}
+                      onChange={(e) => setSchoolData({...schoolData, address: e.target.value})}
                     />
                   </div>
                   <div>
                     <label className="text-sm font-medium">City</label>
                     <Input
-                      value={school.city || ''}
-                      disabled={!isEditing}
+                      value={schoolData.city}
+                      disabled={!isEditingSchool}
                       placeholder="Enter city"
-                      onChange={(e) => setSchool({...school, city: e.target.value})}
+                      onChange={(e) => setSchoolData({...schoolData, city: e.target.value})}
                     />
                   </div>
                   <div>
                     <label className="text-sm font-medium">State/Province</label>
                     <Input
-                      value={school.state || ''}
-                      disabled={!isEditing}
+                      value={schoolData.state}
+                      disabled={!isEditingSchool}
                       placeholder="Enter state"
-                      onChange={(e) => setSchool({...school, state: e.target.value})}
+                      onChange={(e) => setSchoolData({...schoolData, state: e.target.value})}
                     />
                   </div>
                   <div>
                     <label className="text-sm font-medium">ZIP/Postal Code</label>
                     <Input
-                      value={school.zipCode || ''}
-                      disabled={!isEditing}
+                      value={schoolData.zipCode}
+                      disabled={!isEditingSchool}
                       placeholder="Enter ZIP code"
-                      onChange={(e) => setSchool({...school, zipCode: e.target.value})}
+                      onChange={(e) => setSchoolData({...schoolData, zipCode: e.target.value})}
                     />
                   </div>
                 </div>
@@ -285,42 +473,51 @@ export default function PrincipalSettingsPage() {
                   <div>
                     <label className="text-sm font-medium">Phone Number</label>
                     <Input
-                      value={school.phone || ''}
-                      disabled={!isEditing}
+                      value={schoolData.phone}
+                      disabled={!isEditingSchool}
                       placeholder="Enter phone number"
-                      onChange={(e) => setSchool({...school, phone: e.target.value})}
+                      onChange={(e) => setSchoolData({...schoolData, phone: e.target.value})}
                     />
                   </div>
                   <div>
                     <label className="text-sm font-medium">Email Address</label>
                     <Input
-                      value={school.email || ''}
-                      disabled={!isEditing}
+                      value={schoolData.email}
+                      disabled={!isEditingSchool}
                       placeholder="Enter email address"
                       type="email"
-                      onChange={(e) => setSchool({...school, email: e.target.value})}
+                      onChange={(e) => setSchoolData({...schoolData, email: e.target.value})}
                     />
                   </div>
                   <div className="md:col-span-2">
                     <label className="text-sm font-medium">Website</label>
                     <Input
-                      value={school.website || ''}
-                      disabled={!isEditing}
+                      value={schoolData.website}
+                      disabled={!isEditingSchool}
                       placeholder="https://school-website.com"
-                      onChange={(e) => setSchool({...school, website: e.target.value})}
+                      onChange={(e) => setSchoolData({...schoolData, website: e.target.value})}
                     />
                   </div>
                 </div>
               </div>
 
-              {isEditing && (
+              {isEditingSchool && (
                 <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setIsEditing(false)}>
+                  <Button variant="outline" onClick={() => setIsEditingSchool(false)}>
                     Cancel
                   </Button>
-                  <Button onClick={() => handleSaveSchool(school)}>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Changes
+                  <Button onClick={handleSaveSchool} disabled={isSavingSchool}>
+                    {isSavingSchool ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </>
+                    )}
                   </Button>
                 </div>
               )}
@@ -331,7 +528,8 @@ export default function PrincipalSettingsPage() {
     </div>
   )
 
-  const ReportsTab = () => (
+  const ReportsTab = () => {
+    return (
     <div className="space-y-6">
       {/* Generate Reports */}
       <Card>
@@ -376,7 +574,11 @@ export default function PrincipalSettingsPage() {
           <CardDescription>Previously generated reports</CardDescription>
         </CardHeader>
         <CardContent>
-          {reports.length > 0 ? (
+          {loadingReports ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : reports.length > 0 ? (
             <div className="space-y-4">
               {reports.map((report) => (
                 <div key={report.id} className="flex items-center justify-between p-3 border rounded-lg">
@@ -412,7 +614,8 @@ export default function PrincipalSettingsPage() {
         </CardContent>
       </Card>
     </div>
-  )
+    )
+  }
 
   const AuditTab = () => {
     const filteredLogs = auditLogs.filter(log => {
@@ -485,7 +688,11 @@ export default function PrincipalSettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {filteredLogs.length > 0 ? (
+            {loadingAuditLogs ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : filteredLogs.length > 0 ? (
               <div className="space-y-4">
                 {filteredLogs.map((log) => (
                   <div key={log.id} className="flex items-start justify-between p-3 border rounded-lg">
@@ -534,85 +741,123 @@ export default function PrincipalSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">School Settings</h1>
-          <p className="text-muted-foreground">
-            Manage school profile, generate reports, and view system logs
-          </p>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="profile">School Profile</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
-          <TabsTrigger value="audit">Audit Logs</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="profile">
-          {isLoading ? (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="space-y-4">
-                  <div className="h-24 w-24 bg-muted animate-pulse rounded-full" />
-                  <div className="space-y-2">
-                    <div className="h-4 w-48 bg-muted animate-pulse rounded" />
-                    <div className="h-4 w-32 bg-muted animate-pulse rounded" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <SchoolProfileTab />
-          )}
-        </TabsContent>
-
-        <TabsContent value="reports">
-          {isLoading ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i}>
-                  <CardHeader>
-                    <div className="h-4 w-32 bg-muted animate-pulse rounded" />
-                    <div className="h-3 w-48 bg-muted animate-pulse rounded" />
-                  </CardHeader>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <ReportsTab />
-          )}
-        </TabsContent>
-
-        <TabsContent value="audit">
-          {isLoading ? (
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <Card key={i}>
-                  <CardContent className="pt-6">
-                    <div className="flex justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 bg-muted animate-pulse rounded-full" />
-                        <div className="space-y-2">
-                          <div className="h-4 w-48 bg-muted animate-pulse rounded" />
-                          <div className="h-3 w-32 bg-muted animate-pulse rounded" />
-                        </div>
-                      </div>
-                      <div className="h-6 w-16 bg-muted animate-pulse rounded" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <AuditTab />
-          )}
-        </TabsContent>
-      </Tabs>
-    </div>
+    <SettingsLayout
+      title="Principal Settings"
+      description="Manage your profile, school settings, reports, and system logs"
+      tabs={[
+        {
+          value: 'profile',
+          label: 'Profile',
+          content: (
+            <ProfileSection
+              firstName={profile.firstName}
+              lastName={profile.lastName}
+              email={profile.email}
+              avatar={profile.avatar}
+              fields={[
+                {
+                  id: 'employeeId',
+                  label: 'Employee ID',
+                  value: profile.principalProfile?.employeeId || '',
+                  disabled: true
+                },
+                {
+                  id: 'phone',
+                  label: 'Phone Number',
+                  type: 'tel',
+                  value: profileFields.phone,
+                  icon: Phone,
+                  onChange: (value) => setProfileFields({ ...profileFields, phone: value })
+                },
+                {
+                  id: 'administrativeArea',
+                  label: 'Administrative Area',
+                  value: profileFields.administrativeArea,
+                  icon: Briefcase,
+                  placeholder: 'e.g., Academic Affairs, Operations',
+                  onChange: (value) => setProfileFields({ ...profileFields, administrativeArea: value })
+                },
+                {
+                  id: 'yearsOfExperience',
+                  label: 'Years of Experience',
+                  type: 'number',
+                  value: profileFields.yearsOfExperience,
+                  icon: Calendar,
+                  onChange: (value) => setProfileFields({ ...profileFields, yearsOfExperience: value })
+                },
+                {
+                  id: 'address',
+                  label: 'Address',
+                  type: 'textarea',
+                  value: profileFields.address,
+                  icon: MapPin,
+                  onChange: (value) => setProfileFields({ ...profileFields, address: value })
+                },
+                {
+                  id: 'emergencyContact',
+                  label: 'Emergency Contact',
+                  type: 'textarea',
+                  value: profileFields.emergencyContact,
+                  icon: Phone,
+                  placeholder: 'Name and phone number',
+                  onChange: (value) => setProfileFields({ ...profileFields, emergencyContact: value })
+                },
+                {
+                  id: 'educationBackground',
+                  label: 'Education Background',
+                  type: 'textarea',
+                  value: profileFields.educationBackground,
+                  icon: GraduationCap,
+                  placeholder: 'Degrees, institutions, specializations...',
+                  onChange: (value) => setProfileFields({ ...profileFields, educationBackground: value })
+                },
+                {
+                  id: 'qualifications',
+                  label: 'Qualifications & Certifications',
+                  type: 'textarea',
+                  value: profileFields.qualifications,
+                  icon: FileText,
+                  placeholder: 'Professional certifications, licenses...',
+                  onChange: (value) => setProfileFields({ ...profileFields, qualifications: value })
+                }
+              ]}
+              onSave={handleProfileSave}
+              isSaving={isSavingProfile}
+              onAvatarUpload={() => toast.info('Avatar upload coming soon')}
+            />
+          )
+        },
+        {
+          value: 'school',
+          label: 'School',
+          content: <SchoolManagementTab />
+        },
+        {
+          value: 'reports',
+          label: 'Reports',
+          content: <ReportsTab />
+        },
+        {
+          value: 'audit',
+          label: 'Audit Logs',
+          content: <AuditTab />
+        },
+        {
+          value: 'notifications',
+          label: 'Notifications',
+          content: (
+            <NotificationSettings
+              options={notificationOptions}
+              onUpdate={handleNotificationUpdate}
+            />
+          )
+        },
+        {
+          value: 'security',
+          label: 'Security',
+          content: <SecuritySettings accountStatus="active" />
+        }
+      ]}
+    />
   )
 }
