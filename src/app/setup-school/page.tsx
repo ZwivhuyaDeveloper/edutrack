@@ -98,13 +98,21 @@ export default function SchoolSetupPage() {
   // Load principal data from session storage on mount
   useEffect(() => {
     try {
-      const savedData = sessionStorage.getItem('principalProfileData')
+      const savedData = sessionStorage.getItem('pendingPrincipalProfile')
+      console.log('Raw session storage data:', savedData)
+      
       if (savedData) {
         const parsedData = JSON.parse(savedData)
-        setPrincipalProfile(parsedData)
-        console.log('Loaded principal profile data from session storage:', parsedData)
+        console.log('Parsed data from session storage:', parsedData)
+        
+        if (parsedData.principalProfile) {
+          setPrincipalProfile(parsedData.principalProfile)
+          console.log('Set principal profile state:', parsedData.principalProfile)
+        } else {
+          console.warn('No principalProfile field in saved data')
+        }
       } else {
-        console.warn('No principal profile data found in session storage.')
+        console.warn('No principal profile data found in session storage. User may have navigated directly to this page.')
       }
     } catch (error) {
       console.error('Failed to load principal profile data:', error)
@@ -224,18 +232,30 @@ export default function SchoolSetupPage() {
         firstName: user?.firstName || '',
         lastName: user?.lastName || '',
         email: user?.primaryEmailAddress?.emailAddress || '',
-        principalProfile: {
-          employeeId: principalProfile?.employeeId,
-          hireDate: principalProfile?.hireDate || undefined,
-          phone: principalProfile?.phone,
-          address: principalProfile?.address,
-          emergencyContact: principalProfile?.emergencyContact,
-          qualifications: principalProfile?.qualifications,
-          yearsOfExperience: principalProfile?.yearsOfExperience ? parseInt(principalProfile.yearsOfExperience) : undefined,
-          previousSchool: principalProfile?.previousSchool,
-          educationBackground: principalProfile?.educationBackground,
-          salary: principalProfile?.salary ? parseFloat(principalProfile.salary) : undefined,
-          administrativeArea: principalProfile?.administrativeArea,
+        principalProfile: principalProfile ? {
+          employeeId: principalProfile.employeeId || null,
+          hireDate: principalProfile.hireDate || null,
+          phone: principalProfile.phone || null,
+          address: principalProfile.address || null,
+          emergencyContact: principalProfile.emergencyContact || null,
+          qualifications: principalProfile.qualifications || null,
+          yearsOfExperience: principalProfile.yearsOfExperience || null,
+          previousSchool: principalProfile.previousSchool || null,
+          educationBackground: principalProfile.educationBackground || null,
+          salary: principalProfile.salary || null,
+          administrativeArea: principalProfile.administrativeArea || null,
+        } : {
+          employeeId: null,
+          hireDate: null,
+          phone: null,
+          address: null,
+          emergencyContact: null,
+          qualifications: null,
+          yearsOfExperience: null,
+          previousSchool: null,
+          educationBackground: null,
+          salary: null,
+          administrativeArea: null,
         }
       }
       
@@ -257,6 +277,12 @@ export default function SchoolSetupPage() {
 
       // Show success step instead of immediate redirect
       setLoadingStep('Finalizing setup...')
+      // Clear the pending profile data from storage since we're done
+      try {
+        sessionStorage.removeItem('pendingPrincipalProfile')
+      } catch (error) {
+        console.error('Failed to clear session storage:', error)
+      }
       
       // Small delay to show the "Finalizing setup..." message
       setTimeout(() => {
@@ -380,7 +406,6 @@ export default function SchoolSetupPage() {
       </div>
     )
   }
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-2xl">
@@ -397,11 +422,24 @@ export default function SchoolSetupPage() {
             <CardTitle className="text-2xl font-bold">Create Your School & Principal Profile</CardTitle>
           </div>
           <CardDescription>
-            Set up your school information and your principal profile. You&apos;ll be registered as the school&apos;s principal and can manage students, teachers, and school settings.
+            Set up your school information and your principal profile. You will be registered as the school&apos;s principal and can manage students, teachers, and school settings.
           </CardDescription>
         </CardHeader>
 
         <CardContent>
+          {/* Debug: Show loaded principal profile data */}
+          {principalProfile && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <h4 className="font-semibold text-green-900 mb-2">✓ Principal Profile Data Loaded</h4>
+              <div className="text-sm text-green-800 grid grid-cols-2 gap-2">
+                <div><strong>Employee ID:</strong> {principalProfile.employeeId || 'Not provided'}</div>
+                <div><strong>Phone:</strong> {principalProfile.phone || 'Not provided'}</div>
+                <div><strong>Qualifications:</strong> {principalProfile.qualifications || 'Not provided'}</div>
+                <div><strong>Years of Experience:</strong> {principalProfile.yearsOfExperience || 'Not provided'}</div>
+              </div>
+            </div>
+          )}
+          
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
               <Alert variant="destructive">

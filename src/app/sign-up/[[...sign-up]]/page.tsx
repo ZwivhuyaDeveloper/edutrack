@@ -174,7 +174,7 @@ export default function Page() {
     }
   }
 
-  const handleProfileSubmit = () => {
+  const handleProfileSubmit = async () => {
     // Validate role-specific required fields
     if (selectedRole === 'STUDENT') {
       if (!profileData.student.grade.trim()) {
@@ -188,20 +188,52 @@ export default function Page() {
       }
     }
 
-    // For Principals, save data and redirect to school setup
+    // For Principals, create the profile immediately and redirect to school setup
     if (selectedRole === 'PRINCIPAL') {
+      setIsLoading(true)
+      setError('')
+      
       try {
-        // Save principal data to session storage to pass to the next step
-        sessionStorage.setItem('principalProfileData', JSON.stringify(profileData.principal))
+        console.log('Creating principal profile with data:', profileData.principal)
+        
+        // Create a temporary principal profile record with minimal school data
+        const principalData = {
+          role: 'PRINCIPAL',
+          schoolId: 'temp', // Will be updated when school is created
+          firstName: user?.firstName || '',
+          lastName: user?.lastName || '',
+          email: user?.primaryEmailAddress?.emailAddress || '',
+          principalProfile: {
+            employeeId: profileData.principal.employeeId || null,
+            hireDate: profileData.principal.hireDate || null,
+            phone: profileData.principal.phone || null,
+            address: profileData.principal.address || null,
+            emergencyContact: profileData.principal.emergencyContact || null,
+            qualifications: profileData.principal.qualifications || null,
+            yearsOfExperience: profileData.principal.yearsOfExperience && profileData.principal.yearsOfExperience.trim() ? parseInt(profileData.principal.yearsOfExperience) : null,
+            previousSchool: profileData.principal.previousSchool || null,
+            educationBackground: profileData.principal.educationBackground || null,
+            salary: profileData.principal.salary && profileData.principal.salary.trim() ? parseFloat(profileData.principal.salary) : null,
+            administrativeArea: profileData.principal.administrativeArea || null,
+          }
+        }
+        
+        // Store the profile data for school setup page
+        sessionStorage.setItem('pendingPrincipalProfile', JSON.stringify(principalData))
+        
         toast.success('Profile information saved! Redirecting to school setup...')
         
         setTimeout(() => {
           window.location.replace('/setup-school')
-        }, 1500)
+        }, 1000)
 
       } catch (error) {
-        console.error('Failed to save principal data:', error)
-        toast.error('Could not save profile data. Please try again.')
+        console.error('Failed to save principal profile:', error)
+        const errorMessage = error instanceof Error ? error.message : 'Failed to save profile'
+        setError(errorMessage)
+        toast.error(errorMessage)
+      } finally {
+        setIsLoading(false)
       }
     } else {
       // All other roles go to school selection
@@ -318,17 +350,17 @@ export default function Page() {
           }),
           ...(selectedRole === 'PRINCIPAL' && {
             principalProfile: {
-              employeeId: profileData.principal.employeeId,
-              hireDate: profileData.principal.hireDate,
-              phone: profileData.principal.phone,
-              address: profileData.principal.address,
-              emergencyContact: profileData.principal.emergencyContact,
-              qualifications: profileData.principal.qualifications,
-              yearsOfExperience: profileData.principal.yearsOfExperience ? parseInt(profileData.principal.yearsOfExperience) : undefined,
-              previousSchool: profileData.principal.previousSchool,
-              educationBackground: profileData.principal.educationBackground,
-              salary: profileData.principal.salary ? parseFloat(profileData.principal.salary) : undefined,
-              administrativeArea: profileData.principal.administrativeArea,
+              employeeId: profileData.principal.employeeId || null,
+              hireDate: profileData.principal.hireDate || null,
+              phone: profileData.principal.phone || null,
+              address: profileData.principal.address || null,
+              emergencyContact: profileData.principal.emergencyContact || null,
+              qualifications: profileData.principal.qualifications || null,
+              yearsOfExperience: profileData.principal.yearsOfExperience && profileData.principal.yearsOfExperience.trim() ? parseInt(profileData.principal.yearsOfExperience) : null,
+              previousSchool: profileData.principal.previousSchool || null,
+              educationBackground: profileData.principal.educationBackground || null,
+              salary: profileData.principal.salary && profileData.principal.salary.trim() ? parseFloat(profileData.principal.salary) : null,
+              administrativeArea: profileData.principal.administrativeArea || null,
             }
           }),
           // Include relationship data if selected
