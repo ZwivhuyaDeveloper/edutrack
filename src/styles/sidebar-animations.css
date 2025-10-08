@@ -1,0 +1,162 @@
+/* Enhanced Sidebar Animations */
+
+/* Staggered animation for menu items */
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Menu item entrance animation */
+[data-sidebar="menu-item"] {
+  animation: slideInFromLeft 0.3s ease-out forwards;
+}
+
+/* Icon pulse effect for active items */
+@keyframes iconPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Active indicator animation */
+@keyframes indicatorPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.9);
+  }
+}
+
+/* Hover glow effect */
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(var(--primary), 0.1);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(var(--primary), 0.05);
+  }
+}
+
+/* Collapsed state transitions */
+[data-state="collapsed"] [data-sidebar="menu-item"] {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced hover effects */
+[data-sidebar="menu-button"]:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+[data-sidebar="menu-button"][data-active="true"] {
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+/* Smooth icon transitions */
+[data-sidebar="menu-button"] svg {
+  transition: all 0.2s ease-out;
+}
+
+[data-sidebar="menu-button"]:hover svg {
+  transform: scale(1.1);
+}
+
+[data-sidebar="menu-button"][data-active="true"] svg {
+  animation: iconPulse 1.5s ease-in-out infinite;
+}
+
+/* Tooltip improvements */
+[data-radix-tooltip-content] {
+  animation: fadeInScale 0.2s ease-out;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Sidebar rail hover effect */
+[data-sidebar="rail"]:hover::after {
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(var(--primary), 0.2),
+    transparent
+  );
+  animation: glowPulse 1s ease-in-out;
+}
+
+/* Collapsible content smooth transitions */
+[data-radix-collapsible-content] {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-radix-collapsible-content][data-state="open"] {
+  animation: fadeInScale 0.3s ease-out;
+}
+
+/* Enhanced focus states */
+[data-sidebar="menu-button"]:focus-visible {
+  outline: 2px solid rgba(var(--primary), 0.5);
+  outline-offset: 2px;
+  transform: scale(1.02);
+}
+
+/* Loading skeleton improvements */
+[data-sidebar="menu-skeleton"] {
+  animation: fadeInScale 0.5s ease-out;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  [data-sidebar="menu-item"] {
+    animation-delay: 0ms;
+  }
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+  [data-sidebar="menu-button"]:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  [data-radix-tooltip-content] {
+    border-color: rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  [data-sidebar="menu-item"],
+  [data-sidebar="menu-button"],
+  [data-sidebar="menu-button"] svg,
+  [data-radix-collapsible-content] {
+    animation: none;
+    transition: none;
+  }
+  
+  [data-sidebar="menu-button"]:hover {
+    transform: none;
+  }
+}
