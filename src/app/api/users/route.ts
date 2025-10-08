@@ -274,6 +274,8 @@ export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth()
     
+    console.log(`POST /api/users - Auth userId: ${userId} (type: ${typeof userId}, length: ${userId?.length})`)
+    
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -463,12 +465,42 @@ export async function POST(request: NextRequest) {
         }
 
         // Verify user exists in Clerk before adding to organization
+        console.log(`Verifying Clerk user exists with ID: ${userId}`)
         try {
           const clerkUser = await cc.users.getUser(userId)
           console.log(`Clerk user verified: ${clerkUser.id} (${clerkUser.emailAddresses[0]?.emailAddress})`)
-        } catch (userErr) {
-          console.error(`Clerk user ${userId} not found:`, userErr)
-          throw new Error(`User ${userId} not found in Clerk. Cannot add to organization.`)
+        } catch (userErr: unknown) {
+          const hasStatus = (e: unknown): e is Record<string, unknown> & { status: number } =>
+            typeof e === 'object' && e !== null && 'status' in e && typeof (e as Record<string, unknown>).status === 'number'
+          const hasMessage = (e: unknown): e is Record<string, unknown> & { message: string } =>
+            typeof e === 'object' && e !== null && 'message' in e && typeof (e as Record<string, unknown>).message === 'string'
+
+          const status = hasStatus(userErr) ? userErr.status : undefined
+          const msg = hasMessage(userErr) ? userErr.message : undefined
+          const errorString = userErr?.toString ? userErr.toString() : String(userErr)
+          
+          console.error(`Clerk user ${userId} verification failed:`)
+          console.error(`- Status: ${status}`)
+          console.error(`- Message: ${msg}`)
+          console.error(`- Full error: ${errorString}`)
+          console.error(`- User ID type: ${typeof userId}`)
+          console.error(`- User ID length: ${userId?.length}`)
+          
+          // If it's a 404, the user might not exist yet (timing issue)
+          if (status === 404) {
+            console.log('User not found in Clerk - this might be a timing issue. Waiting 2 seconds and retrying...')
+            await new Promise(resolve => setTimeout(resolve, 2000))
+            
+            try {
+              const retryUser = await cc.users.getUser(userId)
+              console.log(`Clerk user verified on retry: ${retryUser.id} (${retryUser.emailAddresses[0]?.emailAddress})`)
+            } catch (retryErr) {
+              console.error('Retry also failed:', retryErr)
+              throw new Error(`User ${userId} not found in Clerk after retry. Cannot add to organization.`)
+            }
+          } else {
+            throw new Error(`Failed to verify user ${userId} in Clerk: ${errorString}`)
+          }
         }
 
         // Attempt to add membership; on role validation error, fallback to a safe default
@@ -493,8 +525,13 @@ export async function POST(request: NextRequest) {
           
           console.log(`Membership creation failed - Status: ${status}, Message: ${msg}, Error: ${errorString}`)
           
-          const invalidRole = status === 422 || (msg ? msg.toLowerCase().includes('role') : false)
-          const userNotFound = status === 404 || (msg ? msg.includes('Not Found') : false) || errorString.includes('Not Found')
+          const invalidRole = status === 422 || 
+                             (msg ? msg.toLowerCase().includes('role') : false) ||
+                             (errorString.includes('Organization role not found')) ||
+                             (status === 404 && errorString.includes('role'))
+          const userNotFound = status === 404 && 
+                              !errorString.includes('role') && 
+                              (msg ? msg.includes('Not Found') : false || errorString.includes('Not Found'))
           
           if (invalidRole) {
             console.warn(`Clerk role ${desiredRole} not accepted. Falling back to 'org:member'.`)

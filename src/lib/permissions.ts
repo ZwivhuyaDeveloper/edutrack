@@ -15,11 +15,11 @@ import { UserRole } from '@prisma/client'
  */
 export const CLERK_ORG_ROLES = {
   PRINCIPAL: 'org:admin',      // Full administrative access
-  TEACHER: 'org:teacher',       // Teaching and grading permissions
-  STUDENT: 'org:student',       // Student access
-  PARENT: 'org:parent',         // Parent/guardian access
-  CLERK: 'org:clerk',           // Administrative staff
-  ADMIN: 'org:super_admin',     // System administrator
+  TEACHER: 'org:member',       // Teaching and grading permissions (using standard role)
+  STUDENT: 'org:member',       // Student access (using standard role)
+  PARENT: 'org:member',        // Parent/guardian access (using standard role)
+  CLERK: 'org:member',         // Administrative staff (using standard role)
+  ADMIN: 'org:admin',          // System administrator
 } as const
 
 /**
