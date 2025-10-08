@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { useUser, SignUp } from '@clerk/nextjs'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, ArrowLeft, UserPlus, Users, GraduationCap, UserCheck, Building2, Search } from 'lucide-react'
+import { Loader2, ArrowLeft, UserPlus, Users, UserCheck, Building2, Search } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface School {
@@ -187,13 +188,21 @@ export default function Page() {
       }
     }
 
-    // Principals go directly to setup-school page
+    // For Principals, save data and redirect to school setup
     if (selectedRole === 'PRINCIPAL') {
-      toast.success('Redirecting to school setup...')
-      // Use replace to avoid back button issues
-      setTimeout(() => {
-        window.location.replace('/setup-school')
-      }, 1000)
+      try {
+        // Save principal data to session storage to pass to the next step
+        sessionStorage.setItem('principalProfileData', JSON.stringify(profileData.principal))
+        toast.success('Profile information saved! Redirecting to school setup...')
+        
+        setTimeout(() => {
+          window.location.replace('/setup-school')
+        }, 1500)
+
+      } catch (error) {
+        console.error('Failed to save principal data:', error)
+        toast.error('Could not save profile data. Please try again.')
+      }
     } else {
       // All other roles go to school selection
       setStep('school')
@@ -380,7 +389,7 @@ export default function Page() {
 
   if (!isLoaded || isRedirecting) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="font-sans min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           {isRedirecting && <p className="text-gray-600">Redirecting to dashboard...</p>}
@@ -392,17 +401,23 @@ export default function Page() {
   // Show Clerk SignUp if user is not authenticated
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
+      <div className="font-sans min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md flex flex-col justify-center items-center">
+          <div className="text-center justify-center items-center mb-8">
             <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4">
-              <GraduationCap className="h-10 w-10 text-white" />
+              <Image 
+                src="/logo_white.png" 
+                alt="EduTrack AI Logo" 
+                width={40} 
+                height={40} 
+                className="object-contain"
+              />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Join EduTrack
+              Join EduTrack AI Software
             </h1>
             <p className="text-gray-600">
-              Create your account to get started
+              Create your account to get started with the application process.
             </p>
           </div>
 
@@ -487,8 +502,8 @@ export default function Page() {
 
   if (step === 'role') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <Card className="w-full max-w-md">
+      <div className="font-sans min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <Card className="w-full font-sans max-w-md">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">Choose Your Role</CardTitle>
             <CardDescription className="text-center">
@@ -502,7 +517,13 @@ export default function Page() {
                 className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-blue-50 hover:border-blue-200"
                 onClick={() => handleRoleSelect('STUDENT')}
               >
-                <GraduationCap className="h-8 w-8 text-blue-600" />
+                <Image 
+                  src="/logo_white.png" 
+                  alt="EduTrack AI Logo" 
+                  width={32} 
+                  height={32} 
+                  className="object-contain"
+                />
                 <span className="font-semibold">Student/Learner</span>
               </Button>
 
@@ -552,8 +573,8 @@ export default function Page() {
     console.log('Rendering profile step for role:', selectedRole)
     console.log('Current step:', step)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <Card className="w-full max-w-2xl">
+      <div className="min-h-screen font-sans flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <Card className="w-full font-sans max-w-2xl">
           <CardHeader className="space-y-1">
             <div className="flex items-center gap-2">
               <Button
@@ -585,7 +606,7 @@ export default function Page() {
 
             {/* Display Clerk User Info */}
             {user && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="bg-blue-50 font-sans border border-blue-200 rounded-lg p-4">
                 <h4 className="font-semibold text-blue-900 mb-2">Account Information (from Clerk)</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-blue-800">
                   <div>
@@ -603,9 +624,15 @@ export default function Page() {
 
             {/* Student Fields */}
             {selectedRole === 'STUDENT' && (
-              <div className="space-y-4">
+              <div className="space-y-4 font-sans">
                 <div className="flex items-center gap-2 mb-4">
-                  <GraduationCap className="h-5 w-5 text-blue-600" />
+                  <Image 
+                    src="/logo_white.png" 
+                    alt="EduTrack AI Logo" 
+                    width={20} 
+                    height={20} 
+                    className="object-contain"
+                  />
                   <h3 className="text-lg font-semibold">Student Details</h3>
                 </div>
 

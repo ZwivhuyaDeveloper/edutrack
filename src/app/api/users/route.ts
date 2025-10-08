@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
+import { User } from '@prisma/client'
 import { z } from 'zod'
 
 // Helper function to create or update user profile based on role
-async function createOrUpdateUserProfile(user: any, validatedData: any) {
+async function createOrUpdateUserProfile(user: User, validatedData: CreateUserType) {
   switch (validatedData.role) {
     case 'STUDENT':
       await prisma.studentProfile.upsert({
@@ -100,7 +101,7 @@ async function createOrUpdateUserProfile(user: any, validatedData: any) {
 }
 
 // Helper function to create or update ClerkProfile
-async function createOrUpdateClerkProfile(user: any, validatedData: any, userId: string) {
+async function createOrUpdateClerkProfile(user: User, validatedData: CreateUserType, userId: string) {
   try {
     await prisma.clerkProfile.upsert({
       where: { clerkId: user.id },
@@ -183,6 +184,8 @@ const createUserSchema = z.object({
     administrativeArea: z.string().optional(),
   }).optional(),
 })
+
+type CreateUserType = z.infer<typeof createUserSchema>
 
 export async function GET(request: NextRequest) {
   try {

@@ -10,18 +10,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, ArrowLeft, CheckCircle, School, User, Building2, Phone, Globe, UserCheck } from 'lucide-react'
 import { toast } from 'sonner'
 
-interface SchoolFormData {
-  name: string
-  address: string
-  city: string
-  state: string
-  zipCode: string
-  country: string
-  phone: string
-  email: string
-  website: string
-}
-
 interface PrincipalProfileData {
   employeeId: string
   hireDate: string
@@ -36,6 +24,18 @@ interface PrincipalProfileData {
   administrativeArea: string
 }
 
+interface SchoolFormData {
+  name: string
+  address: string
+  city: string
+  state: string
+  zipCode: string
+  country: string
+  phone: string
+  email: string
+  website: string
+}
+
 export default function SchoolSetupPage() {
   const [formData, setFormData] = useState<SchoolFormData>({
     name: '',
@@ -48,19 +48,6 @@ export default function SchoolSetupPage() {
     email: '',
     website: ''
   })
-  const [principalData, setPrincipalData] = useState<PrincipalProfileData>({
-    employeeId: '',
-    hireDate: '',
-    phone: '',
-    address: '',
-    emergencyContact: '',
-    qualifications: '',
-    yearsOfExperience: '',
-    previousSchool: '',
-    educationBackground: '',
-    salary: '',
-    administrativeArea: ''
-  })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [loadingStep, setLoadingStep] = useState('')
@@ -69,6 +56,7 @@ export default function SchoolSetupPage() {
   const [createdSchool, setCreatedSchool] = useState<{name: string} | null>(null)
   const [redirectCountdown, setRedirectCountdown] = useState(10)
   const { user, isLoaded } = useUser()
+  const [principalProfile, setPrincipalProfile] = useState<PrincipalProfileData | null>(null)
   const router = useRouter()
 
   // Check if user is authenticated and verify they should be here
@@ -106,6 +94,22 @@ export default function SchoolSetupPage() {
 
     checkAuth()
   }, [isLoaded, user, router, showSuccess, isLoading])
+
+  // Load principal data from session storage on mount
+  useEffect(() => {
+    try {
+      const savedData = sessionStorage.getItem('principalProfileData')
+      if (savedData) {
+        const parsedData = JSON.parse(savedData)
+        setPrincipalProfile(parsedData)
+        console.log('Loaded principal profile data from session storage:', parsedData)
+      } else {
+        console.warn('No principal profile data found in session storage.')
+      }
+    } catch (error) {
+      console.error('Failed to load principal profile data:', error)
+    }
+  }, [])
 
   // Countdown timer for automatic redirect
   useEffect(() => {
@@ -221,17 +225,17 @@ export default function SchoolSetupPage() {
         lastName: user?.lastName || '',
         email: user?.primaryEmailAddress?.emailAddress || '',
         principalProfile: {
-          employeeId: principalData.employeeId,
-          hireDate: principalData.hireDate || undefined,
-          phone: principalData.phone,
-          address: principalData.address,
-          emergencyContact: principalData.emergencyContact,
-          qualifications: principalData.qualifications,
-          yearsOfExperience: principalData.yearsOfExperience ? parseInt(principalData.yearsOfExperience) : undefined,
-          previousSchool: principalData.previousSchool,
-          educationBackground: principalData.educationBackground,
-          salary: principalData.salary ? parseFloat(principalData.salary) : undefined,
-          administrativeArea: principalData.administrativeArea,
+          employeeId: principalProfile?.employeeId,
+          hireDate: principalProfile?.hireDate || undefined,
+          phone: principalProfile?.phone,
+          address: principalProfile?.address,
+          emergencyContact: principalProfile?.emergencyContact,
+          qualifications: principalProfile?.qualifications,
+          yearsOfExperience: principalProfile?.yearsOfExperience ? parseInt(principalProfile.yearsOfExperience) : undefined,
+          previousSchool: principalProfile?.previousSchool,
+          educationBackground: principalProfile?.educationBackground,
+          salary: principalProfile?.salary ? parseFloat(principalProfile.salary) : undefined,
+          administrativeArea: principalProfile?.administrativeArea,
         }
       }
       
@@ -562,86 +566,6 @@ export default function SchoolSetupPage() {
               </div>
             </div>
 
-            {/* Principal Profile Section */}
-            <div className="space-y-4 border-t pt-6">
-              <div className="flex items-center gap-2 mb-4">
-                <UserCheck className="h-5 w-5 text-orange-600" />
-                <h3 className="text-lg font-semibold">Your Principal Profile</h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="principalEmployeeId" className="block text-sm font-medium text-gray-700 mb-2">
-                    Employee ID
-                  </label>
-                  <Input
-                    id="principalEmployeeId"
-                    type="text"
-                    value={principalData.employeeId}
-                    onChange={(e) => setPrincipalData(prev => ({ ...prev, employeeId: e.target.value }))}
-                    placeholder="Employee ID"
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="principalPhone" className="block text-sm font-medium text-gray-700 mb-2">
-                    Your Phone Number
-                  </label>
-                  <Input
-                    id="principalPhone"
-                    type="tel"
-                    value={principalData.phone}
-                    onChange={(e) => setPrincipalData(prev => ({ ...prev, phone: e.target.value }))}
-                    placeholder="(555) 123-4567"
-                    className="w-full"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="principalQualifications" className="block text-sm font-medium text-gray-700 mb-2">
-                    Qualifications
-                  </label>
-                  <Input
-                    id="principalQualifications"
-                    type="text"
-                    value={principalData.qualifications}
-                    onChange={(e) => setPrincipalData(prev => ({ ...prev, qualifications: e.target.value }))}
-                    placeholder="Degrees, certifications"
-                    className="w-full"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="principalYearsOfExperience" className="block text-sm font-medium text-gray-700 mb-2">
-                    Years of Experience
-                  </label>
-                  <Input
-                    id="principalYearsOfExperience"
-                    type="number"
-                    value={principalData.yearsOfExperience}
-                    onChange={(e) => setPrincipalData(prev => ({ ...prev, yearsOfExperience: e.target.value }))}
-                    placeholder="Years in education"
-                    className="w-full"
-                    min="0"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="principalAdministrativeArea" className="block text-sm font-medium text-gray-700 mb-2">
-                  Administrative Area
-                </label>
-                <Input
-                  id="principalAdministrativeArea"
-                  type="text"
-                  value={principalData.administrativeArea}
-                  onChange={(e) => setPrincipalData(prev => ({ ...prev, administrativeArea: e.target.value }))}
-                  placeholder="e.g., Academic Affairs, Student Services"
-                  className="w-full"
-                />
-              </div>
-            </div>
 
             {/* Submit Button */}
             <Button

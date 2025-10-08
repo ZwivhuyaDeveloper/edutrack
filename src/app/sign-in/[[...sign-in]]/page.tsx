@@ -3,8 +3,9 @@
 import { SignIn, useUser } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
-import { Loader2, GraduationCap } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 export default function Page() {
   const { isSignedIn, isLoaded } = useUser()
@@ -54,7 +55,7 @@ export default function Page() {
 
   if (isRedirecting) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="font-sans min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
           <p className="text-gray-600">Redirecting to your dashboard...</p>
@@ -64,15 +65,21 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md">
+    <div className="font-sans min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="w-full justify-center flex flex-col items-center max-w-md">
         {/* Logo and Header */}
-        <div className="text-center mb-8">
+        <div className="text-center justify-center items-center mb-8">
           <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4">
-            <GraduationCap className="h-10 w-10 text-white" />
+            <Image 
+              src="/logo_white.png" 
+              alt="EduTrack AI Logo" 
+              width={40} 
+              height={40} 
+              className="object-contain"
+            />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome Back to EduTrack
+            Welcome Back to EduTrack AI Software
           </h1>
           <p className="text-gray-600">
             Sign in to access your personalized dashboard
