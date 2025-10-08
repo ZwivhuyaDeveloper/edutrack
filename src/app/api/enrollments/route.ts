@@ -50,15 +50,13 @@ export async function GET(request: NextRequest) {
       // Teachers can see enrollments for their assigned classes
       if (!classId) {
         // If no classId specified, get all classes teacher is assigned to
-        const teachingAssignments = await prisma.teachingAssignment.findMany({
+        const classSubjects = await prisma.classSubject.findMany({
           where: { teacherId: user.id },
-          include: {
-            classSubject: {
-              select: { classId: true }
-            }
+          select: {
+            classId: true
           }
         })
-        const classIds = [...new Set(teachingAssignments.map(ta => ta.classSubject.classId))]
+        const classIds = [...new Set(classSubjects.map(cs => cs.classId))]
         
         if (classIds.length === 0) {
           return NextResponse.json({

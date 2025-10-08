@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { title, description, dueDate, maxPoints, classId, subjectId, attachments } = body
+    const { title, description, dueDate, maxPoints, classId, subjectId } = body
 
     // Validation
     if (!title || !dueDate || !classId || !subjectId) {
@@ -68,7 +68,6 @@ export async function POST(request: NextRequest) {
         description: description || null,
         dueDate: new Date(dueDate),
         maxPoints: maxPoints ? parseFloat(maxPoints) : null,
-        attachments: attachments || [],
         classId,
         subjectId,
         termId: activeTerm.id
@@ -134,15 +133,14 @@ export async function GET(request: NextRequest) {
       whereClause.classId = { in: classIds }
     } else if (user.role === 'TEACHER') {
       // Teachers see assignments for their teaching classes
-      const teachingAssignments = await prisma.teachingAssignment.findMany({
+      const classSubjects = await prisma.classSubject.findMany({
         where: { teacherId: user.id },
-        include: {
-          classSubject: {
-            select: { classId: true, subjectId: true }
-          }
+        select: {
+          classId: true,
+          subjectId: true
         }
       })
-      const classIds = teachingAssignments.map(ta => ta.classSubject.classId)
+      const classIds = classSubjects.map(cs => cs.classId)
       whereClause.classId = { in: classIds }
     }
 

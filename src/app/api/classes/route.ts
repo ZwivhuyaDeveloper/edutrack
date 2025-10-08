@@ -40,15 +40,13 @@ export async function GET() {
 
     if (user.role === 'TEACHER') {
       // Teachers see only their assigned classes
-      const teachingAssignments = await prisma.teachingAssignment.findMany({
+      const classSubjects = await prisma.classSubject.findMany({
         where: { teacherId: user.id },
-        include: {
-          classSubject: {
-            select: { classId: true }
-          }
+        select: {
+          classId: true
         }
       })
-      const classIds = [...new Set(teachingAssignments.map(ta => ta.classSubject.classId))]
+      const classIds = [...new Set(classSubjects.map(cs => cs.classId))]
       
       // If teacher has no assignments, return empty array
       if (classIds.length === 0) {

@@ -213,8 +213,8 @@ export default function PrincipalPeoplePage() {
               <div className="flex items-center gap-1">
                 <Icon className="h-4 w-4" />
                 <span>
-                  {user.role === 'TEACHER' && user._count?.teachingAssignments 
-                    ? `${user._count.teachingAssignments} classes`
+                  {user.role === 'TEACHER' && user._count?.classSubjects 
+                    ? `${user._count.classSubjects} classes`
                     : user.role === 'STUDENT' && user._count?.enrollments
                     ? `${user._count.enrollments} classes`
                     : user.role === 'PARENT' && user._count?.childRelationships

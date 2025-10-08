@@ -57,10 +57,10 @@ model User {
   conversationParticipants  ConversationParticipant[]
   enrollments               Enrollment[]
   eventsCreated             Event[]
+  eventAttendees            EventAttendee[]
   gradesReceived            Grade[]                   @relation("GradesToStudent")
   gradesGiven               Grade[]                   @relation("GradesByTeacher")
   lessonPlans               LessonPlan[]
-  receivedMessages          Message[]                 @relation("MessageRecipient")
   sentMessages              Message[]                 @relation("MessageSender")
   notifications             Notification[]
   childRelationships        ParentChildRelationship[] @relation("ChildParent")
@@ -70,7 +70,7 @@ model User {
   resourcesCreated          Resource[]
   studentProfile            StudentProfile?
   teacherProfile            TeacherProfile?
-  teachingAssignments       TeachingAssignment[]
+  announcementsCreated      Announcement[]
   school                    School                    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@map("users")
@@ -142,17 +142,16 @@ model PrincipalProfile {
 }
 
 model ClerkProfile {
-  id         String      @id @default(cuid())
-  clerkId    String      @unique
+  id         String    @id @default(cuid())
+  clerkId    String    @unique
   employeeId String?
   department String?
   hireDate   DateTime?
   phone      String?
   address    String?
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  clerk      User        @relation(fields: [clerkId], references: [id], onDelete: Cascade)
-  feeRecords FeeRecord[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  clerk      User      @relation(fields: [clerkId], references: [id], onDelete: Cascade)
   payments   Payment[]
 
   @@map("clerk_profiles")
@@ -206,22 +205,21 @@ model Subject {
 }
 
 model ClassSubject {
-  id                  String               @id @default(cuid())
-  classId             String
-  subjectId           String
-  teacherId           String
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  attendanceSessions  AttendanceSession[]
-  classMeetings       ClassMeeting[]
-  class               Class                @relation(fields: [classId], references: [id], onDelete: Cascade)
-  subject             Subject              @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  teacher             User                 @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  gradeCategories     GradeCategory[]
-  gradeItems          GradeItem[]
-  lessonPlans         LessonPlan[]
-  resourceLinks       ResourceLink[]
-  teachingAssignments TeachingAssignment[]
+  id                 String              @id @default(cuid())
+  classId            String
+  subjectId          String
+  teacherId          String
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  attendanceSessions AttendanceSession[]
+  classMeetings      ClassMeeting[]
+  class              Class               @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subject            Subject             @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacher            User                @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  gradeCategories    GradeCategory[]
+  gradeItems         GradeItem[]
+  lessonPlans        LessonPlan[]
+  resourceLinks      ResourceLink[]
 
   @@unique([classId, subjectId])
   @@map("class_subjects")
@@ -242,31 +240,18 @@ model Enrollment {
   @@map("enrollments")
 }
 
-model TeachingAssignment {
-  id             String       @id @default(cuid())
-  teacherId      String
-  classSubjectId String
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  classSubject   ClassSubject @relation(fields: [classSubjectId], references: [id], onDelete: Cascade)
-  teacher        User         @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-
-  @@unique([teacherId, classSubjectId])
-  @@map("teaching_assignments")
-}
 
 model Term {
-  id            String         @id @default(cuid())
-  name          String
-  startDate     DateTime
-  endDate       DateTime
-  isActive      Boolean        @default(false)
-  schoolId      String
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  assignments   Assignment[]
-  resourceLinks ResourceLink[]
-  school        School         @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  id          String       @id @default(cuid())
+  name        String
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean      @default(false)
+  schoolId    String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  assignments Assignment[]
+  school      School       @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@map("terms")
 }
@@ -298,8 +283,6 @@ model AssignmentSubmission {
   content      String?
   attachments  String[]
   submittedAt  DateTime   @default(now())
-  grade        Float?
-  feedback     String?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
@@ -476,13 +459,11 @@ model Message {
   status         MessageStatus       @default(SENT)
   conversationId String
   senderId       String
-  recipientId    String?
   sentAt         DateTime            @default(now())
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
   attachments    MessageAttachment[]
   conversation   Conversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  recipient      User?               @relation("MessageRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
   sender         User                @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([conversationId])
@@ -548,13 +529,12 @@ model ResourceTagJoin {
 model ResourceLink {
   id             String        @id @default(cuid())
   resourceId     String
-  classSubjectId String?
-  termId         String?
+  classSubjectId String
   createdAt      DateTime      @default(now())
-  classSubject   ClassSubject? @relation(fields: [classSubjectId], references: [id], onDelete: Cascade)
+  classSubject   ClassSubject  @relation(fields: [classSubjectId], references: [id], onDelete: Cascade)
   resource       Resource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
-  term           Term?         @relation(fields: [termId], references: [id], onDelete: Cascade)
 
+  @@unique([resourceId, classSubjectId])
   @@map("resource_links")
 }
 
@@ -600,6 +580,7 @@ model EventAttendee {
   userId     String
   createdAt  DateTime @default(now())
   event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([eventId, userId])
   @@map("event_attendees")
@@ -665,22 +646,6 @@ model Payment {
   @@map("payments")
 }
 
-model FeeRecord {
-  id          String        @id @default(cuid())
-  description String
-  amount      Float
-  dueDate     DateTime
-  paid        Boolean       @default(false)
-  paidAt      DateTime?
-  studentId   String
-  clerkId     String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  clerk       ClerkProfile? @relation(fields: [clerkId], references: [id])
-
-  @@index([studentId])
-  @@map("fee_records")
-}
 
 model LessonPlan {
   id             String                 @id @default(cuid())
@@ -730,6 +695,7 @@ model Announcement {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   school      School     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdBy   User       @relation(fields: [createdById], references: [id], onDelete: Cascade)
 
   @@index([schoolId, publishedAt])
   @@map("announcements")
