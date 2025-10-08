@@ -396,6 +396,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 1: Add user to Clerk organization and set metadata
+    console.log(`isSelfRegistration: ${isSelfRegistration}, School has clerkOrganizationId: ${!!school.clerkOrganizationId}`)
     if (isSelfRegistration) {
       if (!school.clerkOrganizationId) {
         console.warn(`School ${school.name} (${school.id}) does not have a Clerk organization ID. User will be created without organization membership.`)
@@ -441,6 +442,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 2: Create user in database
+    console.log(`About to create user in database with data:`, {
+      clerkId: isSelfRegistration ? userId : '',
+      email: validatedData.email,
+      firstName: validatedData.firstName,
+      lastName: validatedData.lastName,
+      role: validatedData.role,
+      schoolId: validatedData.schoolId
+    })
     let user
     try {
       user = await prisma.user.create({
@@ -483,7 +492,10 @@ export async function POST(request: NextRequest) {
       throw error
     }
 
+    console.log(`User created successfully: ${user.id} (${user.email}) - Role: ${user.role}`)
+
     // Create role-specific profile
+    console.log(`Creating ${validatedData.role} profile for user ${user.id} (${user.email})`)
     switch (validatedData.role) {
       case 'STUDENT':
         await prisma.studentProfile.create({
@@ -499,6 +511,11 @@ export async function POST(request: NextRequest) {
         })
         break
       case 'TEACHER':
+        console.log('Creating Teacher Profile with data:', JSON.stringify({
+          teacherId: user.id,
+          department: validatedData.department,
+          teacherProfile: validatedData.teacherProfile
+        }, null, 2))
         await prisma.teacherProfile.create({
           data: {
             teacherId: user.id,
@@ -508,6 +525,7 @@ export async function POST(request: NextRequest) {
             qualifications: validatedData.teacherProfile?.qualifications || null,
           }
         })
+        console.log('Teacher Profile created successfully')
         break
       case 'PARENT':
         await prisma.parentProfile.create({
