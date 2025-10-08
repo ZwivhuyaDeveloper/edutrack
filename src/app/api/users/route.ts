@@ -469,9 +469,15 @@ export async function POST(request: NextRequest) {
         console.error('Unique constraint violation during user creation:', error)
         
         // Check if it's an email constraint violation
-        if ('meta' in error && Array.isArray(error.meta) && error.meta.includes('email')) {
+        if ('meta' in error && error.meta && 
+            typeof error.meta === 'object' && 
+            'target' in error.meta && 
+            Array.isArray(error.meta.target) && 
+            error.meta.target.includes('email')) {
           return NextResponse.json({ 
-            error: 'A user with this email address already exists. Please use a different email or sign in with your existing account.' 
+            error: 'A user with this email address already exists. Please use a different email or sign in with your existing account.',
+            field: 'email',
+            code: 'DUPLICATE_EMAIL'
           }, { status: 409 })
         }
         
