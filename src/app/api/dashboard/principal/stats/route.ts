@@ -27,36 +27,153 @@ export async function GET() {
 
     // Get school statistics
     const [
-      totalStudents,
-      totalTeachers,
-      totalClasses,
-      totalSubjects
+      allStudents,
+      teacherCount,
+      classCount,
+      subjectCount,
+      attendanceData,
+      schoolStudents,
+      upcomingEventsData,
+      unreadNotifications
     ] = await Promise.all([
-      prisma.user.count({
-        where: { schoolId: user.schoolId, role: 'STUDENT', isActive: true }
+      // Get detailed student information
+      prisma.user.findMany({
+        where: { schoolId: user.schoolId, role: 'STUDENT' },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          isActive: true,
+          createdAt: true,
+          enrollments: {
+            where: {
+              status: 'ACTIVE'
+            },
+            include: {
+              class: {
+                select: {
+                  name: true,
+                  grade: true
+                }
+              }
+            }
+          }
+        }
       }),
       prisma.user.count({
         where: { schoolId: user.schoolId, role: 'TEACHER', isActive: true }
       }),
       prisma.class.count({
-        where: { schoolId: user.schoolId, isActive: true }
+        where: { schoolId: user.schoolId }
       }),
       prisma.subject.count({
-        where: { schoolId: user.schoolId, isActive: true }
+        where: { schoolId: user.schoolId }
+      }),
+      
+      // Real attendance rate calculation (last 30 days)
+      prisma.attendance.findMany({
+        where: {
+          session: {
+            classSubject: {
+              class: {
+                schoolId: user.schoolId
+              }
+            }
+          },
+          createdAt: {
+            gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Last 30 days
+          }
+        },
+        select: {
+          status: true
+        }
+      }),
+      
+      // Real pending fees calculation - get student IDs first, then query invoices
+      prisma.user.findMany({
+        where: { schoolId: user.schoolId, role: 'STUDENT' },
+        select: { id: true }
+      }),
+      
+      // Real upcoming events (next 7 days)
+      prisma.event.count({
+        where: {
+          schoolId: user.schoolId,
+          startDate: {
+            gte: new Date(),
+            lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Next 7 days
+          }
+        }
+      }),
+      
+      // Real unread notifications for principal
+      prisma.notification.count({
+        where: {
+          userId: user.id,
+          isRead: false
+        }
       })
     ])
 
-    // Mock data for now (can be replaced with real calculations)
-    const attendanceRate = 94.2
-    const pendingFees = 25000
-    const upcomingEvents = 5
-    const unreadMessages = 12
+    // Calculate real attendance rate
+    const totalAttendanceRecords = attendanceData.length
+    const presentRecords = attendanceData.filter(record => 
+      record.status === 'PRESENT' || record.status === 'LATE'
+    ).length
+    const attendanceRate = totalAttendanceRecords > 0 
+      ? Math.round((presentRecords / totalAttendanceRecords) * 100 * 10) / 10 
+      : 0
+
+    // Get student IDs for pending fees calculation
+    const studentIds = schoolStudents.map(student => student.id)
+    
+    // Query pending invoices for school students
+    const pendingInvoices = await prisma.invoice.findMany({
+      where: {
+        status: 'PENDING',
+        account: {
+          studentId: {
+            in: studentIds
+          }
+        }
+      },
+      select: {
+        total: true
+      }
+    })
+
+    // Calculate student statistics
+    const totalStudents = allStudents.length
+    const activeStudents = allStudents.filter(student => student.isActive).length
+    const enrolledStudents = allStudents.filter(student => student.enrollments.length > 0).length
+
+    // Calculate total pending fees
+    const pendingFees = pendingInvoices.reduce((sum: number, invoice: { total: number }) => sum + invoice.total, 0)
+    
+    const upcomingEvents = upcomingEventsData
+    const unreadMessages = unreadNotifications
+
+    // Log the stats for debugging
+    console.log('Principal Dashboard Stats:', {
+      schoolId: user.schoolId,
+      totalStudents,
+      activeStudents,
+      enrolledStudents,
+      totalTeachers: teacherCount,
+      totalClasses: classCount,
+      totalSubjects: subjectCount,
+      attendanceRate,
+      pendingFees,
+      upcomingEvents,
+      unreadMessages,
+      studentDetails: allStudents.slice(0, 3) // Log first 3 students for debugging
+    })
 
     return NextResponse.json({
       totalStudents,
-      totalTeachers,
-      totalClasses,
-      totalSubjects,
+      totalTeachers: teacherCount,
+      totalClasses: classCount,
+      totalSubjects: subjectCount,
       attendanceRate,
       pendingFees,
       upcomingEvents,
