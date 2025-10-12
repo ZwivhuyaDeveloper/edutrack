@@ -321,7 +321,7 @@ export default function PrincipalHomePage() {
         <div className="space-y-1">
           <h1 className="text-3xl text-primary font-bold tracking-tight">Principal Dashboard</h1>
           <p className="text-muted-foreground">
-            Welcome back! Here's what's happening at your school today.
+            Welcome back! Here&apos;s what&apos;s happening at your school today.
           </p>
         </div>
       </div>
@@ -406,6 +406,48 @@ export default function PrincipalHomePage() {
         </Card>
       </div>
 
+            {/* Additional Stats */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Classes</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalClasses}</div>
+            <p className="text-xs text-muted-foreground">
+              {stats.totalSubjects} subjects total
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Upcoming Events</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.upcomingEvents}</div>
+            <p className="text-xs text-muted-foreground">
+              Next 7 days
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Messages</CardTitle>
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.unreadMessages}</div>
+            <p className="text-xs text-muted-foreground">
+              Unread messages
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Quick Actions */}
       <Card>
         <CardHeader>
@@ -432,19 +474,7 @@ export default function PrincipalHomePage() {
       </Card>
 
       {/* Main Content */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Analytics Chart */}
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle>School Analytics</CardTitle>
-            <CardDescription>
-              Student enrollment and performance trends
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartAreaInteractive />
-          </CardContent>
-        </Card>
+      <div className="grid gap-6 lg:grid-cols-1">
 
         {/* Recent Activity */}
         <Card>
@@ -501,48 +531,6 @@ export default function PrincipalHomePage() {
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Additional Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Classes</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalClasses}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.totalSubjects} subjects total
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Upcoming Events</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.upcomingEvents}</div>
-            <p className="text-xs text-muted-foreground">
-              Next 7 days
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Messages</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.unreadMessages}</div>
-            <p className="text-xs text-muted-foreground">
-              Unread messages
-            </p>
           </CardContent>
         </Card>
       </div>
