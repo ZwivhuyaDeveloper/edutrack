@@ -29,8 +29,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { LineChart, Line, ResponsiveContainer, Tooltip } from 'recharts'
 import { toast } from 'sonner'
+import { StudentEnrollmentChart } from '@/components/student-enrollment-chart'
 
 interface DashboardStats {
   totalStudents: number
@@ -392,55 +392,27 @@ export default function PrincipalHomePage() {
               Active enrollments
             </p>
             {/* Student Enrollment Trend Chart */}
-            <div className="w-full h-[80px] mt-3">
-              {!isLoading && (
-                <ResponsiveContainer width="100%" height={80}>
-                  <LineChart
-                    data={enrollmentTrends.length > 0 ? enrollmentTrends : [
-                      { month: 'Jan', students: Math.max(stats.totalStudents - 150, 0) },
-                      { month: 'Feb', students: Math.max(stats.totalStudents - 120, 0) },
-                      { month: 'Mar', students: Math.max(stats.totalStudents - 80, 0) },
-                      { month: 'Apr', students: Math.max(stats.totalStudents - 50, 0) },
-                      { month: 'May', students: Math.max(stats.totalStudents - 20, 0) },
-                      { month: 'Jun', students: stats.totalStudents },
-                    ]}
-                    margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
-                  >
-                    <Tooltip
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          return (
-                            <div className="rounded-lg border bg-white p-2 shadow-md">
-                              <div className="flex flex-col gap-1">
-                                <span className="text-[0.70rem] uppercase text-muted-foreground font-medium">
-                                  {payload[0].payload.month}
-                                </span>
-                                <span className="font-bold text-primary text-sm">
-                                  {payload[0].value} students
-                                </span>
-                              </div>
-                            </div>
-                          )
-                        }
-                        return null
-                      }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="students"
-                      stroke="hsl(var(--primary))"
-                      strokeWidth={2.5}
-                      dot={false}
-                      activeDot={{ 
-                        r: 5, 
-                        fill: "hsl(var(--primary))",
-                        stroke: "white",
-                        strokeWidth: 2
-                      }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              )}
+            <div className="w-full mt-3">
+              <StudentEnrollmentChart
+                data={enrollmentTrends.length > 0 ? enrollmentTrends : 
+                  stats.totalStudents > 0 ? [
+                    { month: 'Jan', students: Math.max(stats.totalStudents - 150, 50) },
+                    { month: 'Feb', students: Math.max(stats.totalStudents - 120, 80) },
+                    { month: 'Mar', students: Math.max(stats.totalStudents - 80, 120) },
+                    { month: 'Apr', students: Math.max(stats.totalStudents - 50, 160) },
+                    { month: 'May', students: Math.max(stats.totalStudents - 20, 200) },
+                    { month: 'Jun', students: stats.totalStudents },
+                  ] : [
+                    { month: 'Jan', students: 150 },
+                    { month: 'Feb', students: 220 },
+                    { month: 'Mar', students: 320 },
+                    { month: 'Apr', students: 450 },
+                    { month: 'May', students: 620 },
+                    { month: 'Jun', students: 800 },
+                  ]
+                }
+                isLoading={isLoading}
+              />
             </div>
           </CardContent>
         </Card>
