@@ -12,7 +12,9 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
-    "db:seed-students": "tsx prisma/seed-students.ts"
+    "db:seed-extended": "tsx prisma/seed-extended.ts",
+    "db:seed-students": "tsx prisma/seed-students.ts",
+    "db:seed-all": "tsx prisma/seed.ts && tsx prisma/seed-extended.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.33.2",
@@ -40,6 +42,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tabler/icons-react": "^3.35.0",
     "@tanstack/react-table": "^8.21.3",
+    "@vercel/analytics": "^1.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -62,6 +65,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@faker-js/faker": "^10.0.0",
     "@tailwindcss/postcss": "^4",
     "@types/lodash": "^4.17.20",
     "@types/node": "^20",

@@ -8,70 +8,71 @@ datasource db {
 }
 
 model School {
-  id                 String   @id @default(cuid())
-  name               String
-  clerkOrganizationId String?  @unique // Clerk organization ID
-  address            String?
-  city               String?
-  state              String?
-  zipCode            String?
-  country            String   @default("US")
-  phone              String?
-  email              String?
-  website            String?
-  logo               String?
-  isActive           Boolean  @default(true)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  announcements Announcement[]
-  classes       Class[]
-  events        Event[]
-  periods       Period[]
-  resources     Resource[]
-  rooms         Room[]
-  subjects      Subject[]
-  terms         Term[]
-  users         User[]
+  id                    String         @id @default(cuid())
+  name                  String
+  address               String?
+  city                  String?
+  state                 String?
+  zipCode               String?
+  country               String         @default("US")
+  phone                 String?
+  email                 String?
+  website               String?
+  logo                  String?
+  clerkOrganizationId   String?        @unique
+  isActive              Boolean        @default(true)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  announcements         Announcement[]
+  classes               Class[]
+  events                Event[]
+  periods               Period[]
+  resources             Resource[]
+  rooms                 Room[]
+  subjects              Subject[]
+  terms                 Term[]
+  users                 User[]
 
   @@map("schools")
 }
 
 model User {
-  id                        String                    @id @default(cuid())
-  clerkId                   String                    @unique
-  email                     String                    @unique
-  firstName                 String
-  lastName                  String
-  role                      UserRole
-  avatar                    String?
-  isActive                  Boolean                   @default(true)
-  createdAt                 DateTime                  @default(now())
-  updatedAt                 DateTime                  @updatedAt
-  schoolId                  String
-  assignmentSubmissions     AssignmentSubmission[]
-  attendanceSessionsCreated AttendanceSession[]
-  attendanceRecords         Attendance[]
-  auditLogs                 AuditLog[]
-  classSubjects             ClassSubject[]
-  clerkProfile              ClerkProfile?
-  conversationParticipants  ConversationParticipant[]
-  enrollments               Enrollment[]
-  eventsCreated             Event[]
-  eventAttendees            EventAttendee[]
-  gradesReceived            Grade[]                   @relation("GradesToStudent")
-  gradesGiven               Grade[]                   @relation("GradesByTeacher")
-  lessonPlans               LessonPlan[]
-  sentMessages              Message[]                 @relation("MessageSender")
-  notifications             Notification[]
-  childRelationships        ParentChildRelationship[] @relation("ChildParent")
-  parentRelationships       ParentChildRelationship[] @relation("ParentChild")
-  parentProfile             ParentProfile?
-  principalProfile          PrincipalProfile?
-  resourcesCreated          Resource[]
-  studentProfile            StudentProfile?
-  teacherProfile            TeacherProfile?
-  announcementsCreated      Announcement[]
-  school                    School                    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  id                                   String                    @id @default(cuid())
+  clerkId                              String                    @unique
+  email                                String                    @unique
+  firstName                            String
+  lastName                             String
+  role                                 UserRole
+  avatar                               String?
+  isActive                             Boolean                   @default(true)
+  createdAt                            DateTime                  @default(now())
+  updatedAt                            DateTime                  @updatedAt
+  schoolId                             String
+  assignmentSubmissions                AssignmentSubmission[]
+  attendanceSessionsCreated            AttendanceSession[]
+  attendanceRecords                    Attendance[]
+  auditLogs                            AuditLog[]
+  classSubjects                        ClassSubject[]
+  clerkProfile                         ClerkProfile?
+  conversationParticipants             ConversationParticipant[]
+  enrollments                          Enrollment[]
+  eventsCreated                        Event[]
+  gradesReceived                       Grade[]                   @relation("GradesToStudent")
+  gradesGiven                          Grade[]                   @relation("GradesByTeacher")
+  lessonPlans                          LessonPlan[]
+  messages_messages_recipientIdTousers Message[]                 @relation("messages_recipientIdTousers")
+  sentMessages                         Message[]                 @relation("MessageSender")
+  notifications                        Notification[]
+  childRelationships                   ParentChildRelationship[] @relation("ChildParent")
+  parentRelationships                  ParentChildRelationship[] @relation("ParentChild")
+  parentProfile                        ParentProfile?
+  principalProfile                     PrincipalProfile?
+  resourcesCreated                     Resource[]
+  studentProfile                       StudentProfile?
+  teacherProfile                       TeacherProfile?
+  teaching_assignments                 teaching_assignments[]
+  announcementsCreated                 Announcement[]            @relation("AnnouncementCreator")
+  school                               School                    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@map("users")
 }
@@ -142,17 +143,18 @@ model PrincipalProfile {
 }
 
 model ClerkProfile {
-  id         String    @id @default(cuid())
-  clerkId    String    @unique
-  employeeId String?
-  department String?
-  hireDate   DateTime?
-  phone      String?
-  address    String?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  clerk      User      @relation(fields: [clerkId], references: [id], onDelete: Cascade)
-  payments   Payment[]
+  id          String        @id @default(cuid())
+  clerkId     String        @unique
+  employeeId  String?
+  department  String?
+  hireDate    DateTime?
+  phone       String?
+  address     String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  clerk       User          @relation(fields: [clerkId], references: [id], onDelete: Cascade)
+  fee_records fee_records[]
+  payments    Payment[]
 
   @@map("clerk_profiles")
 }
@@ -205,21 +207,22 @@ model Subject {
 }
 
 model ClassSubject {
-  id                 String              @id @default(cuid())
-  classId            String
-  subjectId          String
-  teacherId          String
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  attendanceSessions AttendanceSession[]
-  classMeetings      ClassMeeting[]
-  class              Class               @relation(fields: [classId], references: [id], onDelete: Cascade)
-  subject            Subject             @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  teacher            User                @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  gradeCategories    GradeCategory[]
-  gradeItems         GradeItem[]
-  lessonPlans        LessonPlan[]
-  resourceLinks      ResourceLink[]
+  id                   String                 @id @default(cuid())
+  classId              String
+  subjectId            String
+  teacherId            String
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  attendanceSessions   AttendanceSession[]
+  classMeetings        ClassMeeting[]
+  class                Class                  @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subject              Subject                @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  teacher              User                   @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  gradeCategories      GradeCategory[]
+  gradeItems           GradeItem[]
+  lessonPlans          LessonPlan[]
+  resourceLinks        ResourceLink[]
+  teaching_assignments teaching_assignments[]
 
   @@unique([classId, subjectId])
   @@map("class_subjects")
@@ -240,18 +243,18 @@ model Enrollment {
   @@map("enrollments")
 }
 
-
 model Term {
-  id          String       @id @default(cuid())
-  name        String
-  startDate   DateTime
-  endDate     DateTime
-  isActive    Boolean      @default(false)
-  schoolId    String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  assignments Assignment[]
-  school      School       @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  id             String         @id @default(cuid())
+  name           String
+  startDate      DateTime
+  endDate        DateTime
+  isActive       Boolean        @default(false)
+  schoolId       String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  assignments    Assignment[]
+  resource_links ResourceLink[]
+  school         School         @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@map("terms")
 }
@@ -283,6 +286,8 @@ model AssignmentSubmission {
   content      String?
   attachments  String[]
   submittedAt  DateTime   @default(now())
+  grade        Float?
+  feedback     String?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   assignment   Assignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
@@ -454,17 +459,19 @@ model ConversationParticipant {
 }
 
 model Message {
-  id             String              @id @default(cuid())
-  content        String
-  status         MessageStatus       @default(SENT)
-  conversationId String
-  senderId       String
-  sentAt         DateTime            @default(now())
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  attachments    MessageAttachment[]
-  conversation   Conversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender         User                @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  id                                String              @id @default(cuid())
+  content                           String
+  status                            MessageStatus       @default(SENT)
+  conversationId                    String
+  senderId                          String
+  recipientId                       String?
+  sentAt                            DateTime            @default(now())
+  createdAt                         DateTime            @default(now())
+  updatedAt                         DateTime            @updatedAt
+  attachments                       MessageAttachment[]
+  conversation                      Conversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  users_messages_recipientIdTousers User?               @relation("messages_recipientIdTousers", fields: [recipientId], references: [id], onDelete: Cascade)
+  sender                            User                @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([conversationId])
   @@index([senderId])
@@ -529,12 +536,13 @@ model ResourceTagJoin {
 model ResourceLink {
   id             String        @id @default(cuid())
   resourceId     String
-  classSubjectId String
+  classSubjectId String?
+  termId         String?
   createdAt      DateTime      @default(now())
-  classSubject   ClassSubject  @relation(fields: [classSubjectId], references: [id], onDelete: Cascade)
+  classSubject   ClassSubject? @relation(fields: [classSubjectId], references: [id], onDelete: Cascade)
   resource       Resource      @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  terms          Term?         @relation(fields: [termId], references: [id], onDelete: Cascade)
 
-  @@unique([resourceId, classSubjectId])
   @@map("resource_links")
 }
 
@@ -580,7 +588,6 @@ model EventAttendee {
   userId     String
   createdAt  DateTime @default(now())
   event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([eventId, userId])
   @@map("event_attendees")
@@ -646,7 +653,6 @@ model Payment {
   @@map("payments")
 }
 
-
 model LessonPlan {
   id             String                 @id @default(cuid())
   title          String
@@ -695,9 +701,10 @@ model Announcement {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   school      School     @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  createdBy   User       @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdBy   User       @relation("AnnouncementCreator", fields: [createdById], references: [id], onDelete: Cascade)
 
   @@index([schoolId, publishedAt])
+  @@index([createdById])
   @@map("announcements")
 }
 
@@ -733,6 +740,34 @@ model AuditLog {
   @@index([actorId])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+model fee_records {
+  id             String        @id
+  description    String
+  amount         Float
+  dueDate        DateTime
+  paid           Boolean       @default(false)
+  paidAt         DateTime?
+  studentId      String
+  clerkId        String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime
+  clerk_profiles ClerkProfile? @relation(fields: [clerkId], references: [id])
+
+  @@index([studentId])
+}
+
+model teaching_assignments {
+  id             String       @id
+  teacherId      String
+  classSubjectId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime
+  class_subjects ClassSubject @relation(fields: [classSubjectId], references: [id], onDelete: Cascade)
+  users          User         @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, classSubjectId])
 }
 
 enum UserRole {

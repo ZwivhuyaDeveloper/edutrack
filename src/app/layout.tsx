@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Instrument_Sans,  } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from '@clerk/nextjs';
-
+import { Analytics } from "@vercel/analytics/next"
+ 
 const instrumentSans = Instrument_Sans({
   variable: "--font-instrument-sans",
   weight: ["400", "500", "600", "700",],
