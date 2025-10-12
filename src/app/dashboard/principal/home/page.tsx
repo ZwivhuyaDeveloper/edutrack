@@ -333,7 +333,7 @@ export default function PrincipalHomePage() {
           </CardContent>
         </Card>
       )}
-
+ 
       {/* Header */}
       <div className="items-center hidden justify-between">
         <div className="space-y-1">

@@ -49,6 +49,10 @@ import {
   Loader2,
   AlertCircle,
   Building2,
+  X,
+  Info,
+  AlertTriangle,
+  XCircle,
 } from "lucide-react"
 
 // Role-based page components mapping
@@ -165,7 +169,11 @@ interface DatabaseUser {
   permissions?: Record<string, boolean>
   dashboardRoute?: string
   studentProfile?: unknown
-  teacherProfile?: unknown
+  teacherProfile?: {
+    department?: string
+    employeeId?: string
+    [key: string]: unknown
+  }
   parentProfile?: unknown
   principalProfile?: unknown
   clerkProfile?: unknown
@@ -177,10 +185,75 @@ function DashboardContent() {
   const [dbUser, setDbUser] = useState<DatabaseUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [profileIncomplete, setProfileIncomplete] = useState(false)
+  const [roleAlert, setRoleAlert] = useState<{
+    show: boolean
+    type: 'warning' | 'info' | 'error'
+    title: string
+    message: string
+    actionLabel?: string
+    actionUrl?: string
+  } | null>(null)
   const { user: clerkUser, isLoaded } = useUser()
   const { signOut } = useClerk()
   const router = useRouter()
+
+  // Function to check for role-specific alerts
+  const checkRoleAlerts = (user: DatabaseUser) => {
+    switch (user.role) {
+      case 'TEACHER':
+        // Check if teacher profile is incomplete
+        if (!user.teacherProfile?.department || !user.teacherProfile?.employeeId) {
+          setRoleAlert({
+            show: true,
+            type: 'warning',
+            title: 'Profile Incomplete',
+            message: 'Please complete your teacher profile to access all features.',
+            actionLabel: 'Complete Profile',
+            actionUrl: '/dashboard/profile'
+          })
+        }
+        break
+      
+      case 'STUDENT':
+        // Check if student has pending assignments or low grades
+        setRoleAlert({
+          show: true,
+          type: 'info',
+          title: 'Welcome Back!',
+          message: 'You have new assignments and upcoming exams this week.',
+          actionLabel: 'View Assignments',
+          actionUrl: '/dashboard/assignments'
+        })
+        break
+      
+      case 'PRINCIPAL':
+        // Check for important school metrics or pending approvals
+        setRoleAlert({
+          show: true,
+          type: 'info',
+          title: 'School Overview',
+          message: 'Your school dashboard is ready. Monitor key metrics and manage operations.',
+          actionLabel: 'View Reports',
+          actionUrl: '/dashboard/operations'
+        })
+        break
+      
+      case 'PARENT':
+        // Check for student updates or messages
+        setRoleAlert({
+          show: true,
+          type: 'info',
+          title: 'Student Updates',
+          message: 'Stay informed about your child\'s academic progress and school activities.',
+          actionLabel: 'View Reports',
+          actionUrl: '/dashboard/reports'
+        })
+        break
+      
+      default:
+        setRoleAlert(null)
+    }
+  }
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -201,6 +274,9 @@ function DashboardContent() {
         if (response.ok) {
           const data = await response.json()
           setDbUser(data.user)
+          
+          // Check for role-specific alerts
+          checkRoleAlerts(data.user)
           
         } else if (response.status === 401) {
           // Not authenticated; redirect to sign-in
@@ -648,15 +724,15 @@ function DashboardContent() {
           dbUser.role.toLowerCase() as 'student' | 'teacher' | 'parent'
         } 
       />
-      <SidebarInset className="bg-zinc-100">
-        <header className="flex h-16 shrink-0 bg-white rounded-4xl shadow-none mx-4 mt-7 mb-0 items-center px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 font-sans">
+      <SidebarInset className="bg-zinc-100 h-full w-full">
+        <header className="flex h-25 shrink-0 bg-white rounded-4xl shadow-none mx-4 mt-7 mb-0 items-center px-6 pr-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-16 font-sans">
           {/* Left section - Sidebar trigger */}
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4 bg-gray-200" />
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-primary capitalize">{dbUser.role.toLowerCase()} Dashboard</span>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-sm text-muted-foreground">
                 Welcome back, {dbUser.firstName} {dbUser.lastName}
               </span>
             </div>
@@ -665,7 +741,7 @@ function DashboardContent() {
           {/* Center section - Search input */}
           <div className="flex-1 flex justify-center">
             <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
                 placeholder="Search reports, assignments, etc."
@@ -740,26 +816,98 @@ function DashboardContent() {
 
         {/* Main content area */}
         <div className="flex flex-1 bg-zinc-100 flex-col gap-4 px-4 pb-4 pt-0 font-sans">
-          {/* Profile incomplete alert for teachers */}
-          {profileIncomplete && dbUser.role === 'TEACHER' && (
-            <Alert className="border-amber-200 bg-amber-50">
-              <AlertCircle className="h-4 w-4 text-amber-600" />
-              <AlertDescription className="text-amber-800">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Profile Incomplete</p>
-                    <p className="text-sm">Please complete your teacher profile to access all features.</p>
+          {/* Role-specific alert banner */}
+          {roleAlert?.show && (
+            <div className="pt-4">
+              <Alert className={`relative flex flex-col shadow-sm p-0 overflow-hidden ${
+                roleAlert.type === 'warning' 
+                  ? 'border-l-4 border-l-amber-500 border-amber-200 bg-gradient-to-r from-amber-50 to-amber-50/50' 
+                  : roleAlert.type === 'error'
+                  ? 'border-l-4 border-l-red-500 border-red-200 bg-gradient-to-r from-red-50 to-red-50/50'
+                  : 'border-l-4 border-primary bg-gradient-to-r from-primary/10 to-primary/20'
+                }`}>
+                {/* Header Section */}
+                <div className="flex items-center justify-between w-full px-4 py-3 border-b border-current/10">
+                  <div className="flex items-center gap-3">
+                    {/* Icon */}
+                    <div className={`flex-shrink-0 rounded-full p-2 ${
+                      roleAlert.type === 'warning'
+                        ? 'bg-amber-100'
+                        : roleAlert.type === 'error'
+                        ? 'bg-red-100'
+                        : 'bg-primary/20'
+                    }`}>
+                      {roleAlert.type === 'warning' ? (
+                        <AlertTriangle className="h-5 w-5 text-amber-600" strokeWidth={2.5} />
+                      ) : roleAlert.type === 'error' ? (
+                        <XCircle className="h-5 w-5 text-red-600" strokeWidth={2.5} />
+                      ) : (
+                        <Info className="h-5 w-5 text-primary" strokeWidth={2.5} />
+                      )}
+                    </div>
+                    
+                    {/* Title */}
+                    <h4 className={`font-semibold text-base ${
+                      roleAlert.type === 'warning'
+                        ? 'text-amber-900'
+                        : roleAlert.type === 'error'
+                        ? 'text-red-900'
+                        : 'text-primary'
+                    }`}>
+                      {roleAlert.title}
+                    </h4>
                   </div>
-                  <Button 
-                    onClick={() => router.push('/dashboard/profile')} 
-                    size="sm"
-                    className="ml-4"
-                  >
-                    Complete Profile
-                  </Button>
+                  
+                  <div className="flex items-center gap-2">
+                    {/* Action Button */}
+                    {roleAlert.actionLabel && roleAlert.actionUrl && (
+                      <Button 
+                        onClick={() => router.push(roleAlert.actionUrl!)} 
+                        size="sm"
+                        className={`flex-shrink-0 ${
+                          roleAlert.type === 'warning'
+                            ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                            : roleAlert.type === 'error'
+                            ? 'bg-red-600 hover:bg-red-700 text-white'
+                            : 'bg-primary hover:bg-primary text-white'
+                        }`}
+                      >
+                        {roleAlert.actionLabel}
+                      </Button>
+                    )}
+                    
+                    {/* Dismiss Button */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setRoleAlert(null)}
+                      className={`flex-shrink-0 h-8 w-8 p-0 rounded-full hover:bg-white/50 ${
+                        roleAlert.type === 'warning'
+                          ? 'text-amber-600 hover:text-amber-700'
+                          : roleAlert.type === 'error'
+                          ? 'text-red-600 hover:text-red-700'
+                          : 'text-primary hover:text-primary'
+                      }`}
+                    >
+                      <X className="h-4 w-4" strokeWidth={2.5} />
+                    </Button>
+                  </div>
                 </div>
-              </AlertDescription>
-            </Alert>
+                
+                {/* Body Section - Description */}
+                <div className="px-6 py-5">
+                  <AlertDescription className={`text-lg ${
+                    roleAlert.type === 'warning'
+                      ? 'text-amber-800'
+                      : roleAlert.type === 'error'
+                      ? 'text-red-800'
+                      : 'text-primary'
+                  }`}>
+                    {roleAlert.message}
+                  </AlertDescription>
+                </div>
+              </Alert>
+            </div>
           )}
           {renderPageContent()}
         </div>

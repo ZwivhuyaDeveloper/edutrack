@@ -103,7 +103,7 @@ export function AlertsDropdown({ role }: AlertsDropdownProps) {
         <button className="relative rounded-full p-2 hover:bg-accent transition-colors" aria-label="Notifications">
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
@@ -116,7 +116,7 @@ export function AlertsDropdown({ role }: AlertsDropdownProps) {
             <Bell className="h-5 w-5 text-primary" />
             <h3 className="font-semibold text-base">Alerts</h3>
             {unreadCount > 0 && (
-              <Badge variant="destructive" className="text-xs">
+              <Badge variant="destructive" className="text-xs bg-primary text-primary-foreground">
                 {unreadCount} new
               </Badge>
             )}
@@ -146,25 +146,25 @@ export function AlertsDropdown({ role }: AlertsDropdownProps) {
               {alerts.map((alert) => (
                 <div
                   key={alert.id}
-                  className={`relative p-3 mb-2 rounded-lg border ${getPriorityColor(alert.priority)} hover:shadow-sm transition-shadow`}
+                  className={`relative p-3 mx-2 mb-2 bg-primary/10 border-2 border-primary rounded-lg  ${getPriorityColor(alert.priority)} hover:shadow-sm transition-shadow`}
                 >
                   <button
                     onClick={() => dismissAlert(alert.id)}
                     className="absolute top-2 right-2 rounded-full p-1 hover:bg-white/50 transition-colors"
                     aria-label="Dismiss alert"
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-4 w-4 text-primary" />
                   </button>
                   <div className="flex items-start gap-3 pr-6">
-                    <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <AlertTriangle  className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold leading-tight">{alert.title}</p>
+                        <p className="text-sm font-semibold text-primary leading-tight">{alert.title}</p>
                         <Badge variant={getAlertColor(alert.type)} className="text-[10px] px-1.5 py-0">
                           {alert.priority}
                         </Badge>
                       </div>
-                      <p className="text-xs leading-relaxed">{alert.message}</p>
+                      <p className="text-xs text-primary leading-relaxed">{alert.message}</p>
                     </div>
                   </div>
                 </div>
