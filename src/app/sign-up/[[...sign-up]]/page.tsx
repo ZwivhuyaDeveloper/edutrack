@@ -573,6 +573,15 @@ export default function Page() {
                 socialButtonsBlockButtonText: 'text-gray-700 font-medium',
                 socialButtonsProviderIcon: 'w-5 h-5',
                 
+                // Profile image upload styling
+                avatarBox: 'w-24 h-24 mx-auto mb-4',
+                avatarImage: 'rounded-full border-4 border-primary/20',
+                fileDropAreaBox: 'border-2 border-dashed border-primary/30 rounded-lg p-4 hover:border-primary/50 transition-colors',
+                fileDropAreaButtonPrimary: 'bg-primary hover:bg-primary/90 text-white rounded-lg px-4 py-2 normal-case font-medium',
+                fileDropAreaIcon: 'text-primary',
+                fileDropAreaFooterHint: 'text-xs text-gray-500',
+                fileDropAreaButtonSecondary: 'text-red-600 hover:text-red-700 text-sm font-medium',
+                
                 // Divider
                 dividerLine: 'bg-gray-300',
                 dividerText: 'text-gray-500 text-sm',

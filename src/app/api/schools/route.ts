@@ -13,6 +13,7 @@ const createSchoolSchema = z.object({
   phone: z.string().optional(),
   email: z.string().email().optional().or(z.literal('')),
   website: z.string().url().optional().or(z.literal('')),
+  logo: z.string().optional(), // Base64 encoded image string
 })
 
 export async function GET(request: NextRequest) {

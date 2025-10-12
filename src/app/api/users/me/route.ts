@@ -88,7 +88,7 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json()
-    const { firstName, lastName } = body
+    const { firstName, lastName, avatar } = body
 
     // Update user in database
     let updatedUser
@@ -98,6 +98,7 @@ export async function PATCH(request: Request) {
         data: {
           ...(firstName && { firstName }),
           ...(lastName && { lastName }),
+          ...(avatar !== undefined && { avatar }),
         },
         include: {
           school: true,
@@ -118,6 +119,7 @@ export async function PATCH(request: Request) {
           data: {
             ...(firstName && { firstName }),
             ...(lastName && { lastName }),
+            ...(avatar !== undefined && { avatar }),
           },
           include: {
             school: true,
@@ -143,6 +145,7 @@ export async function PATCH(request: Request) {
         lastName: updatedUser.lastName,
         fullName: `${updatedUser.firstName} ${updatedUser.lastName}`,
         role: updatedUser.role,
+        avatar: updatedUser.avatar,
         isActive: updatedUser.isActive,
         school: updatedUser.school,
         createdAt: updatedUser.createdAt,

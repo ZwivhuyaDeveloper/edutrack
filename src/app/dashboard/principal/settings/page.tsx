@@ -24,7 +24,11 @@ import {
   Shield,
   Loader2,
   Briefcase,
-  GraduationCap
+  GraduationCap,
+  X,
+  Mail,
+  Globe,
+  CheckCircle2
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -121,6 +125,10 @@ export default function PrincipalSettingsPage() {
     website: '',
     logo: ''
   })
+  const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
 
   useEffect(() => {
     fetchProfile()
@@ -224,12 +232,95 @@ export default function PrincipalSettingsPage() {
       })
 
       if (!response.ok) throw new Error('Failed to update profile')
-      toast.success('Profile updated successfully')
+      toast.success('Profile updated successfully', {
+        description: 'Your profile information has been saved.'
+      })
+      await fetchProfile() // Refresh profile data
     } catch (error) {
-      toast.error('Failed to update profile')
+      toast.error('Failed to update profile', {
+        description: 'Please try again or contact support.'
+      })
       throw error
     } finally {
       setIsSavingProfile(false)
+    }
+  }
+
+  // Handle avatar upload
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file')
+      return
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image size must be less than 2MB')
+      return
+    }
+
+    setUploadingAvatar(true)
+    try {
+      const reader = new FileReader()
+      reader.onloadend = async () => {
+        const base64String = reader.result as string
+        setAvatarPreview(base64String)
+        
+        // Update avatar via API
+        const response = await fetch('/api/users/me', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ avatar: base64String })
+        })
+
+        if (response.ok) {
+          toast.success('Avatar updated successfully')
+          await fetchProfile()
+        } else {
+          toast.error('Failed to update avatar')
+        }
+        setUploadingAvatar(false)
+      }
+      reader.readAsDataURL(file)
+    } catch (error) {
+      console.error('Error uploading avatar:', error)
+      toast.error('Failed to upload avatar')
+      setUploadingAvatar(false)
+    }
+  }
+
+  // Handle school logo upload
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file')
+      return
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image size must be less than 2MB')
+      return
+    }
+
+    setUploadingLogo(true)
+    try {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const base64String = reader.result as string
+        setLogoPreview(base64String)
+        setSchoolData(prev => ({ ...prev, logo: base64String }))
+        toast.success('Logo uploaded successfully')
+        setUploadingLogo(false)
+      }
+      reader.readAsDataURL(file)
+    } catch (error) {
+      console.error('Error uploading logo:', error)
+      toast.error('Failed to upload logo')
+      setUploadingLogo(false)
     }
   }
 
@@ -248,24 +339,48 @@ export default function PrincipalSettingsPage() {
   }
 
   const handleSaveSchool = async () => {
+    if (!profile?.school?.id) {
+      toast.error('School ID not found')
+      return
+    }
+
     setIsSavingSchool(true)
     try {
-      const response = await fetch('/api/principal/school', {
-        method: 'PUT',
+      const response = await fetch(`/api/schools/${profile.school.id}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(schoolData)
+        body: JSON.stringify({
+          name: schoolData.name,
+          address: schoolData.address || null,
+          city: schoolData.city || null,
+          state: schoolData.state || null,
+          zipCode: schoolData.zipCode || null,
+          country: schoolData.country,
+          phone: schoolData.phone || null,
+          email: schoolData.email || null,
+          website: schoolData.website || null,
+          logo: schoolData.logo || null
+        })
       })
 
       if (response.ok) {
-        toast.success('School profile updated successfully')
+        toast.success('School profile updated successfully', {
+          description: 'All changes have been saved to the database.'
+        })
         setIsEditingSchool(false)
-        fetchProfile()
+        setLogoPreview(null)
+        await fetchProfile()
       } else {
-        toast.error('Failed to update school profile')
+        const errorData = await response.json()
+        toast.error('Failed to update school profile', {
+          description: errorData.error || 'Please try again.'
+        })
       }
     } catch (error) {
       console.error('Error updating school:', error)
-      toast.error('Failed to update school profile')
+      toast.error('Failed to update school profile', {
+        description: 'Network error. Please check your connection.'
+      })
     } finally {
       setIsSavingSchool(false)
     }
@@ -357,63 +472,109 @@ export default function PrincipalSettingsPage() {
 
   const SchoolManagementTab = () => (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
+      <Card className="border-2">
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
           <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>School Profile</CardTitle>
-              <CardDescription>Manage your school&apos;s basic information</CardDescription>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Building className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-xl">School Profile</CardTitle>
+                <CardDescription>Manage your school&apos;s information and branding</CardDescription>
+              </div>
             </div>
-            <Button
-              variant={isEditingSchool ? "default" : "outline"}
-              onClick={() => setIsEditingSchool(!isEditingSchool)}
-            >
-              {isEditingSchool ? <Save className="h-4 w-4 mr-2" /> : <Edit className="h-4 w-4 mr-2" />}
-              {isEditingSchool ? 'Save Changes' : 'Edit Profile'}
-            </Button>
+            {!isEditingSchool && (
+              <Button
+                variant="outline"
+                onClick={() => setIsEditingSchool(true)}
+                className="gap-2"
+              >
+                <Edit className="h-4 w-4" />
+                Edit Profile
+              </Button>
+            )}
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-8 pt-6">
           {profile.school && (
             <>
               {/* Logo Section */}
-              <div className="flex items-center gap-6">
-                <Avatar className="h-24 w-24">
-                  <AvatarImage src={schoolData.logo} />
-                  <AvatarFallback className="text-2xl">
+              <div className="flex items-start gap-6 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border-2 border-dashed">
+                <Avatar className="h-28 w-28 border-4 border-white shadow-lg">
+                  <AvatarImage src={logoPreview || schoolData.logo} />
+                  <AvatarFallback className="text-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
                     {schoolData.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
                   </AvatarFallback>
                 </Avatar>
-                {isEditingSchool && (
-                  <div>
-                    <Button variant="outline" size="sm">
-                      <Camera className="h-4 w-4 mr-2" />
-                      Upload Logo
-                    </Button>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Recommended: 200x200px, PNG or JPG
-                    </p>
-                  </div>
-                )}
+                <div className="flex-1">
+                  <h4 className="font-semibold text-lg mb-2">School Logo</h4>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Upload your school&apos;s logo. This will appear on documents, reports, and your school profile.
+                  </p>
+                  {isEditingSchool && (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        id="logo-upload"
+                        accept="image/*"
+                        onChange={handleLogoUpload}
+                        className="hidden"
+                        aria-label="Upload school logo"
+                      />
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => document.getElementById('logo-upload')?.click()}
+                        disabled={uploadingLogo}
+                      >
+                        {uploadingLogo ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Camera className="h-4 w-4 mr-2" />
+                            Upload Logo
+                          </>
+                        )}
+                      </Button>
+                      <span className="text-xs text-muted-foreground">
+                        PNG, JPG (max 2MB, 200x200px recommended)
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Basic Information */}
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="text-sm font-medium">School Name</label>
-                  <Input
-                    value={schoolData.name}
-                    disabled={!isEditingSchool}
-                    onChange={(e) => setSchoolData({...schoolData, name: e.target.value})}
-                  />
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Building className="h-5 w-5 text-primary" />
+                  <h3 className="text-lg font-semibold">Basic Information</h3>
                 </div>
-                <div>
-                  <label className="text-sm font-medium">Country</label>
-                  <Input
-                    value={schoolData.country}
-                    disabled={!isEditingSchool}
-                    onChange={(e) => setSchoolData({...schoolData, country: e.target.value})}
-                  />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      School Name *
+                    </label>
+                    <Input
+                      value={schoolData.name}
+                      disabled={!isEditingSchool}
+                      onChange={(e) => setSchoolData({...schoolData, name: e.target.value})}
+                      className="font-medium"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Country</label>
+                    <Input
+                      value={schoolData.country}
+                      disabled={!isEditingSchool}
+                      onChange={(e) => setSchoolData({...schoolData, country: e.target.value})}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -424,89 +585,132 @@ export default function PrincipalSettingsPage() {
                   Address Information
                 </h3>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <div className="md:col-span-2">
+                  <div className="md:col-span-2 space-y-2">
                     <label className="text-sm font-medium">Street Address</label>
                     <Input
                       value={schoolData.address}
                       disabled={!isEditingSchool}
-                      placeholder="Enter street address"
+                      placeholder={schoolData.address || "Enter street address"}
                       onChange={(e) => setSchoolData({...schoolData, address: e.target.value})}
                     />
+                    {isEditingSchool && profile.school?.address && (
+                      <p className="text-xs text-muted-foreground">Current: {profile.school.address}</p>
+                    )}
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <label className="text-sm font-medium">City</label>
                     <Input
                       value={schoolData.city}
                       disabled={!isEditingSchool}
-                      placeholder="Enter city"
+                      placeholder={schoolData.city || "Enter city"}
                       onChange={(e) => setSchoolData({...schoolData, city: e.target.value})}
                     />
+                    {isEditingSchool && profile.school?.city && (
+                      <p className="text-xs text-muted-foreground">Current: {profile.school.city}</p>
+                    )}
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <label className="text-sm font-medium">State/Province</label>
                     <Input
                       value={schoolData.state}
                       disabled={!isEditingSchool}
-                      placeholder="Enter state"
+                      placeholder={schoolData.state || "Enter state"}
                       onChange={(e) => setSchoolData({...schoolData, state: e.target.value})}
                     />
+                    {isEditingSchool && profile.school?.state && (
+                      <p className="text-xs text-muted-foreground">Current: {profile.school.state}</p>
+                    )}
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <label className="text-sm font-medium">ZIP/Postal Code</label>
                     <Input
                       value={schoolData.zipCode}
                       disabled={!isEditingSchool}
-                      placeholder="Enter ZIP code"
+                      placeholder={schoolData.zipCode || "Enter ZIP code"}
                       onChange={(e) => setSchoolData({...schoolData, zipCode: e.target.value})}
                     />
+                    {isEditingSchool && profile.school?.zipCode && (
+                      <p className="text-xs text-muted-foreground">Current: {profile.school.zipCode}</p>
+                    )}
                   </div>
                 </div>
               </div>
 
               {/* Contact Information */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <Phone className="h-5 w-5" />
-                  Contact Information
-                </h3>
+                <div className="flex items-center gap-2 mb-2">
+                  <Phone className="h-5 w-5 text-primary" />
+                  <h3 className="text-lg font-semibold">Contact Information</h3>
+                </div>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="text-sm font-medium">Phone Number</label>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      Phone Number
+                    </label>
                     <Input
                       value={schoolData.phone}
                       disabled={!isEditingSchool}
-                      placeholder="Enter phone number"
+                      placeholder={schoolData.phone || "+1 (555) 123-4567"}
                       onChange={(e) => setSchoolData({...schoolData, phone: e.target.value})}
                     />
+                    {isEditingSchool && profile.school?.phone && (
+                      <p className="text-xs text-muted-foreground">Current: {profile.school.phone}</p>
+                    )}
                   </div>
-                  <div>
-                    <label className="text-sm font-medium">Email Address</label>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
+                      Email Address
+                    </label>
                     <Input
                       value={schoolData.email}
                       disabled={!isEditingSchool}
-                      placeholder="Enter email address"
+                      placeholder={schoolData.email || "contact@school.edu"}
                       type="email"
                       onChange={(e) => setSchoolData({...schoolData, email: e.target.value})}
                     />
+                    {isEditingSchool && profile.school?.email && (
+                      <p className="text-xs text-muted-foreground">Current: {profile.school.email}</p>
+                    )}
                   </div>
-                  <div className="md:col-span-2">
-                    <label className="text-sm font-medium">Website</label>
+                  <div className="md:col-span-2 space-y-2">
+                    <label className="text-sm font-medium flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-muted-foreground" />
+                      Website
+                    </label>
                     <Input
                       value={schoolData.website}
                       disabled={!isEditingSchool}
-                      placeholder="https://school-website.com"
+                      placeholder={schoolData.website || "https://school-website.com"}
                       onChange={(e) => setSchoolData({...schoolData, website: e.target.value})}
                     />
+                    {isEditingSchool && profile.school?.website && (
+                      <p className="text-xs text-muted-foreground">Current: {profile.school.website}</p>
+                    )}
                   </div>
                 </div>
               </div>
 
               {isEditingSchool && (
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setIsEditingSchool(false)}>
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsEditingSchool(false)
+                      setLogoPreview(null)
+                      fetchProfile() // Reset to original data
+                    }}
+                    disabled={isSavingSchool}
+                  >
+                    <X className="h-4 w-4 mr-2" />
                     Cancel
                   </Button>
-                  <Button onClick={handleSaveSchool} disabled={isSavingSchool}>
+                  <Button 
+                    onClick={handleSaveSchool} 
+                    disabled={isSavingSchool}
+                    className="min-w-[140px]"
+                  >
                     {isSavingSchool ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -823,7 +1027,19 @@ export default function PrincipalSettingsPage() {
               ]}
               onSave={handleProfileSave}
               isSaving={isSavingProfile}
-              onAvatarUpload={() => toast.info('Avatar upload coming soon')}
+              onAvatarUpload={() => document.getElementById('avatar-upload')?.click()}
+              avatarUploadElement={
+                <input
+                  type="file"
+                  id="avatar-upload"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                  aria-label="Upload avatar"
+                />
+              }
+              uploadingAvatar={uploadingAvatar}
+              avatarPreview={avatarPreview}
             />
           )
         },
