@@ -173,7 +173,7 @@ async function seedAdditionalData() {
         for (const enrollment of enrollments) {
           await prisma.grade.create({
             data: {
-              points: faker.number.float({ min: 60, max: gradeItem.maxPoints, fractionDigits: 1 }),
+              points: faker.number.float({ min: Math.min(60, gradeItem.maxPoints * 0.6), max: gradeItem.maxPoints, fractionDigits: 1 }),
               feedback: faker.helpers.arrayElement([
                 'Excellent work!',
                 'Good effort',
