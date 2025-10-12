@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useUser, useClerk } from "@clerk/nextjs"
 import type { PageType } from "@/types/dashboard"
@@ -154,10 +154,12 @@ interface DatabaseUser {
   email: string
   firstName: string
   lastName: string
-  fullName: string
-  role: 'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL' | 'CLERK' | 'ADMIN'
+  role: string
+  schoolId: string
   avatar?: string
   isActive: boolean
+  createdAt?: string
+  updatedAt?: string
   school: {
     id: string
     name: string
@@ -192,68 +194,150 @@ function DashboardContent() {
     message: string
     actionLabel?: string
     actionUrl?: string
+    alertId?: string // Unique identifier for the alert
+    timestamp?: number // When the alert was created
   } | null>(null)
   const { user: clerkUser, isLoaded } = useUser()
   const { signOut } = useClerk()
   const router = useRouter()
 
+  // Helper function to check if an alert was dismissed
+  const isAlertDismissed = useCallback((alertId: string, timestamp: number): boolean => {
+    try {
+      const dismissedAlerts = JSON.parse(localStorage.getItem('dismissedAlerts') || '{}')
+      const dismissedTimestamp = dismissedAlerts[alertId]
+      
+      console.log('Checking alert dismissal:', {
+        alertId,
+        alertTimestamp: timestamp,
+        dismissedTimestamp,
+        isDismissed: dismissedTimestamp && dismissedTimestamp >= timestamp
+      })
+      
+      // If alert was dismissed and the timestamp matches or is older, keep it dismissed
+      if (dismissedTimestamp && dismissedTimestamp >= timestamp) {
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('Error checking dismissed alerts:', error)
+      return false
+    }
+  }, [])
+
+  // Helper function to dismiss an alert
+  const dismissAlert = useCallback((alertId: string, timestamp: number) => {
+    try {
+      const dismissedAlerts = JSON.parse(localStorage.getItem('dismissedAlerts') || '{}')
+      dismissedAlerts[alertId] = timestamp
+      localStorage.setItem('dismissedAlerts', JSON.stringify(dismissedAlerts))
+      
+      console.log('Alert dismissed:', {
+        alertId,
+        timestamp,
+        allDismissedAlerts: dismissedAlerts
+      })
+      
+      setRoleAlert(null)
+      
+      // Add toast notification
+      toast.success('Alert dismissed', {
+        description: 'This alert will not appear again unless there are new updates.',
+        duration: 3000,
+      })
+    } catch (error) {
+      console.error('Error dismissing alert:', error)
+      setRoleAlert(null)
+    }
+  }, [])
+
   // Function to check for role-specific alerts
-  const checkRoleAlerts = (user: DatabaseUser) => {
+  const checkRoleAlerts = useCallback((user: DatabaseUser) => {
+    const currentTimestamp = Date.now()
+    
     switch (user.role) {
       case 'TEACHER':
         // Check if teacher profile is incomplete
         if (!user.teacherProfile?.department || !user.teacherProfile?.employeeId) {
-          setRoleAlert({
-            show: true,
-            type: 'warning',
-            title: 'Profile Incomplete',
-            message: 'Please complete your teacher profile to access all features.',
-            actionLabel: 'Complete Profile',
-            actionUrl: '/dashboard/profile'
-          })
+          const alertId = `teacher-profile-incomplete-${user.id}`
+          const alertTimestamp = user.updatedAt ? new Date(user.updatedAt).getTime() : currentTimestamp
+          
+          if (!isAlertDismissed(alertId, alertTimestamp)) {
+            setRoleAlert({
+              show: true,
+              type: 'warning',
+              title: 'Profile Incomplete',
+              message: 'Please complete your teacher profile to access all features.',
+              actionLabel: 'Complete Profile',
+              actionUrl: '/dashboard/profile',
+              alertId,
+              timestamp: alertTimestamp
+            })
+          }
         }
         break
       
       case 'STUDENT':
         // Check if student has pending assignments or low grades
-        setRoleAlert({
-          show: true,
-          type: 'info',
-          title: 'Welcome Back!',
-          message: 'You have new assignments and upcoming exams this week.',
-          actionLabel: 'View Assignments',
-          actionUrl: '/dashboard/assignments'
-        })
+        const studentAlertId = `student-welcome-${user.id}`
+        const studentTimestamp = currentTimestamp
+        
+        if (!isAlertDismissed(studentAlertId, studentTimestamp)) {
+          setRoleAlert({
+            show: true,
+            type: 'info',
+            title: 'Welcome Back!',
+            message: 'You have new assignments and upcoming exams this week.',
+            actionLabel: 'View Assignments',
+            actionUrl: '/dashboard/assignments',
+            alertId: studentAlertId,
+            timestamp: studentTimestamp
+          })
+        }
         break
       
       case 'PRINCIPAL':
         // Check for important school metrics or pending approvals
-        setRoleAlert({
-          show: true,
-          type: 'info',
-          title: 'School Overview',
-          message: 'Your school dashboard is ready. Monitor key metrics and manage operations.',
-          actionLabel: 'View Reports',
-          actionUrl: '/dashboard/operations'
-        })
+        const principalAlertId = `principal-overview-${user.id}`
+        const principalTimestamp = currentTimestamp
+        
+        if (!isAlertDismissed(principalAlertId, principalTimestamp)) {
+          setRoleAlert({
+            show: true,
+            type: 'info',
+            title: 'School Overview',
+            message: 'Your school dashboard is ready. Monitor key metrics and manage operations.',
+            actionLabel: 'View Reports',
+            actionUrl: '/dashboard/operations',
+            alertId: principalAlertId,
+            timestamp: principalTimestamp
+          })
+        }
         break
       
       case 'PARENT':
         // Check for student updates or messages
-        setRoleAlert({
-          show: true,
-          type: 'info',
-          title: 'Student Updates',
-          message: 'Stay informed about your child\'s academic progress and school activities.',
-          actionLabel: 'View Reports',
-          actionUrl: '/dashboard/reports'
-        })
+        const parentAlertId = `parent-updates-${user.id}`
+        const parentTimestamp = currentTimestamp
+        
+        if (!isAlertDismissed(parentAlertId, parentTimestamp)) {
+          setRoleAlert({
+            show: true,
+            type: 'info',
+            title: 'Student Updates',
+            message: 'Stay informed about your child\'s academic progress and school activities.',
+            actionLabel: 'View Reports',
+            actionUrl: '/dashboard/reports',
+            alertId: parentAlertId,
+            timestamp: parentTimestamp
+          })
+        }
         break
       
       default:
         setRoleAlert(null)
     }
-  }
+  }, [isAlertDismissed])
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -310,9 +394,10 @@ function DashboardContent() {
       }
     }
 
-    if (clerkUser) {
+    if (clerkUser && !dbUser) {
       fetchUserData()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clerkUser, router])
 
   // Load page components based on user role
@@ -725,15 +810,20 @@ function DashboardContent() {
         } 
       />
       <SidebarInset className="bg-zinc-100 h-full w-full">
-        <header className="flex h-25 shrink-0 bg-white rounded-4xl shadow-none mx-4 mt-7 mb-0 items-center px-6 pr-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-16 font-sans">
+        <header className="flex h-15 shrink-0 bg-white rounded-4xl shadow-none mx-4 mt-7 mb-0 items-center px-6 pr-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-16 font-sans">
           {/* Left section - Sidebar trigger */}
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4 bg-gray-200" />
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-primary capitalize">{dbUser.role.toLowerCase()} Dashboard</span>
-              <span className="text-sm text-muted-foreground">
-                Welcome back, {dbUser.firstName} {dbUser.lastName}
+              <span className="text-md font-semibold text-primary capitalize">{dbUser.role.toLowerCase()} Dashboard</span>
+              <span className="text-md text-black gap-2 flex flex-row ">
+                <p className="font-medium text-md">
+                  Welcome back,
+                </p>
+                <p className="font-semibold text-primary text-md">
+                  {dbUser.firstName} {dbUser.lastName}
+                </p>
               </span>
             </div>
           </div>
@@ -751,7 +841,7 @@ function DashboardContent() {
           </div>
 
           {/* Right section - User menu */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-row items-center justify-center gap-2">
             <AlertsDropdown role={dbUser.role} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -852,7 +942,7 @@ function DashboardContent() {
                         ? 'text-amber-900'
                         : roleAlert.type === 'error'
                         ? 'text-red-900'
-                        : 'text-primary'
+                        : 'text-black'
                     }`}>
                       {roleAlert.title}
                     </h4>
@@ -880,7 +970,13 @@ function DashboardContent() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setRoleAlert(null)}
+                      onClick={() => {
+                        if (roleAlert.alertId && roleAlert.timestamp) {
+                          dismissAlert(roleAlert.alertId, roleAlert.timestamp)
+                        } else {
+                          setRoleAlert(null)
+                        }
+                      }}
                       className={`flex-shrink-0 h-8 w-8 p-0 rounded-full hover:bg-white/50 ${
                         roleAlert.type === 'warning'
                           ? 'text-amber-600 hover:text-amber-700'
@@ -889,7 +985,7 @@ function DashboardContent() {
                           : 'text-primary hover:text-primary'
                       }`}
                     >
-                      <X className="h-4 w-4" strokeWidth={2.5} />
+                      <X className="h-7 w-7" strokeWidth={3} />
                     </Button>
                   </div>
                 </div>
@@ -901,7 +997,7 @@ function DashboardContent() {
                       ? 'text-amber-800'
                       : roleAlert.type === 'error'
                       ? 'text-red-800'
-                      : 'text-primary'
+                      : 'text-black'
                   }`}>
                     {roleAlert.message}
                   </AlertDescription>
