@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useUser, useClerk } from "@clerk/nextjs"
 import type { PageType } from "@/types/dashboard"
 import { AppSidebar } from "@/components/app-sidebar"
+import { AlertsDropdown } from "@/components/alerts-dropdown"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
@@ -675,9 +676,7 @@ function DashboardContent() {
 
           {/* Right section - User menu */}
           <div className="flex items-center gap-2">
-            <button className="rounded-full p-2 hover:bg-accent" aria-label="Notifications">
-              <Bell className="h-4 w-4" />
-            </button>
+            <AlertsDropdown role={dbUser.role} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="rounded-full p-2 hover:bg-accent" aria-label="User menu">

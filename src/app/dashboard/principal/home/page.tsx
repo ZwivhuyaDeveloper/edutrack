@@ -42,14 +42,6 @@ interface RecentActivity {
   user?: string
 }
 
-interface Alert {
-  id: string
-  type: 'warning' | 'info' | 'error'
-  title: string
-  message: string
-  priority: 'high' | 'medium' | 'low'
-}
-
 export default function PrincipalHomePage() {
   const [stats, setStats] = useState<DashboardStats>({
     totalStudents: 0,
@@ -62,7 +54,6 @@ export default function PrincipalHomePage() {
     unreadMessages: 0
   })
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
-  const [alerts, setAlerts] = useState<Alert[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
@@ -78,15 +69,13 @@ export default function PrincipalHomePage() {
       setError(null)
       setHasPartialData(false)
       
-      const [statsRes, activityRes, alertsRes] = await Promise.all([
+      const [statsRes, activityRes] = await Promise.all([
         fetch('/api/dashboard/principal/stats'),
-        fetch('/api/dashboard/principal/activity'),
-        fetch('/api/dashboard/principal/alerts')
+        fetch('/api/dashboard/principal/activity')
       ])
 
       let statsLoaded = false
       let activityLoaded = false
-      let alertsLoaded = false
 
       // Handle stats response
       if (statsRes.ok) {
@@ -129,21 +118,8 @@ export default function PrincipalHomePage() {
         }
       }
 
-      // Handle alerts response
-      if (alertsRes.ok) {
-        const alertsData = await alertsRes.json()
-        setAlerts(alertsData.alerts || [])
-        alertsLoaded = true
-      } else {
-        console.error('Failed to fetch alerts:', alertsRes.status)
-        if (statsLoaded) {
-          setHasPartialData(true)
-          toast.warning('Some dashboard data could not be loaded')
-        }
-      }
-
-      // If stats failed but other data loaded, show partial data
-      if (!statsLoaded && (activityLoaded || alertsLoaded)) {
+      // If stats failed but activity loaded, show partial data
+      if (!statsLoaded && activityLoaded) {
         setHasPartialData(true)
       }
     } catch (error) {
@@ -215,14 +191,6 @@ export default function PrincipalHomePage() {
         return { bg: 'bg-pink-100 dark:bg-pink-900/20', text: 'text-pink-600 dark:text-pink-400' }
       default: 
         return { bg: 'bg-gray-100 dark:bg-gray-900/20', text: 'text-gray-600 dark:text-gray-400' }
-    }
-  }
-
-  const getAlertColor = (type: string) => {
-    switch (type) {
-      case 'error': return 'destructive'
-      case 'warning': return 'secondary'
-      default: return 'default'
     }
   }
 
@@ -325,31 +293,6 @@ export default function PrincipalHomePage() {
           </p>
         </div>
       </div>
-
-      {/* Alerts */}
-        <Card className='p-5 px-6 justify-center w-full'>
-          <CardHeader>
-            <CardTitle className='text-lg font-semibold'>Alerts</CardTitle>
-          </CardHeader>
-          <CardContent className='w-full'>
-            <div className="space-y-2 w-full flex flex-col mx-auto">
-              {alerts.slice(0, 3).map((alert) => (
-                <div key={alert.id} className="flex items-center gap-2 p-3 w-full rounded-lg border border-orange-200 bg-orange-50">
-                  <AlertTriangle className="h-4 w-4 text-orange-600" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-orange-800">{alert.title}</p>
-                    <p className="text-xs text-orange-600">{alert.message}</p>
-                  </div>
-                  <Badge variant={getAlertColor(alert.type)} className="text-xs">
-                    {alert.priority}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
