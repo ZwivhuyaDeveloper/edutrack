@@ -649,7 +649,7 @@ function DashboardContent() {
         } 
       />
       <SidebarInset className="bg-zinc-100">
-        <header className="flex h-16 shrink-0 bg-white rounded-4xl shadow-none mx-4 mt-5 mb-1 items-center px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 font-sans">
+        <header className="flex h-16 shrink-0 bg-white rounded-4xl shadow-none mx-4 mt-7 mb-0 items-center px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 font-sans">
           {/* Left section - Sidebar trigger */}
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
@@ -739,7 +739,7 @@ function DashboardContent() {
         </header>
 
         {/* Main content area */}
-        <div className="flex flex-1 bg-zinc-100 flex-col gap-4 p-4 pt-0 font-sans">
+        <div className="flex flex-1 bg-zinc-100 flex-col gap-4 px-4 pb-4 pt-0 font-sans">
           {/* Profile incomplete alert for teachers */}
           {profileIncomplete && dbUser.role === 'TEACHER' && (
             <Alert className="border-amber-200 bg-amber-50">
@@ -769,5 +769,11 @@ function DashboardContent() {
 }
 
 export default function DashboardPage() {
-  return <DashboardContent />
+  return (
+    <>
+    <div>
+      <DashboardContent />
+    </div>
+    </>
+  )
 }

@@ -18,9 +18,17 @@ import {
   Clock,
   UserPlus,
   CalendarPlus,
-  RefreshCw
+  RefreshCw,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
-import { ChartAreaInteractive } from '@/components/chart-area-interactive'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { toast } from 'sonner'
 
 interface DashboardStats {
@@ -58,6 +66,11 @@ export default function PrincipalHomePage() {
   const [error, setError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
   const [hasPartialData, setHasPartialData] = useState(false)
+  
+  // Activity pagination and filtering
+  const [activityPeriod, setActivityPeriod] = useState<string>('7')
+  const [activityPage, setActivityPage] = useState(1)
+  const activitiesPerPage = 6
 
   useEffect(() => {
     fetchDashboardData()
@@ -163,6 +176,43 @@ export default function PrincipalHomePage() {
     }
   ]
 
+  // Pagination helpers
+  const getPeriodLabel = (days: string) => {
+    switch (days) {
+      case '1': return 'Today'
+      case '7': return 'Last 7 days'
+      case '14': return 'Last 14 days'
+      case '30': return 'Last 30 days'
+      default: return 'Last 7 days'
+    }
+  }
+
+  const filteredActivities = recentActivity
+  const totalPages = Math.ceil(filteredActivities.length / activitiesPerPage)
+  const paginatedActivities = filteredActivities.slice(
+    (activityPage - 1) * activitiesPerPage,
+    activityPage * activitiesPerPage
+  )
+
+  const handlePeriodChange = (value: string) => {
+    setActivityPeriod(value)
+    setActivityPage(1) // Reset to first page when period changes
+    // In a real implementation, you would refetch data with the new period
+    toast.info(`Showing activities from ${getPeriodLabel(value).toLowerCase()}`)
+  }
+
+  const handlePreviousPage = () => {
+    if (activityPage > 1) {
+      setActivityPage(activityPage - 1)
+    }
+  }
+
+  const handleNextPage = () => {
+    if (activityPage < totalPages) {
+      setActivityPage(activityPage + 1)
+    }
+  }
+
   const getActivityIcon = (type: string) => {
     switch (type) {
       case 'enrollment': return Users
@@ -260,22 +310,22 @@ export default function PrincipalHomePage() {
   }
 
   return (
-    <div className="space-y-6 pt-7">
+    <div className="space-y-4 pt-4">
       {/* Partial Data Warning Banner */}
       {hasPartialData && (
-        <Card className="border-orange-200 bg-orange-50">
+        <Card className="border-primary bg-primary">
           <CardContent className="pt-4">
             <div className="flex items-center gap-3">
-              <AlertTriangle className="h-5 w-5 text-orange-600 flex-shrink-0" />
+              <AlertTriangle className="h-5 w-5 text-primary flex-shrink-0" />
               <div className="flex-1">
-                <p className="text-sm font-medium text-orange-800">
+                <p className="text-sm font-medium text-primary">
                   Some dashboard data could not be loaded
                 </p>
-                <p className="text-xs text-orange-600 mt-1">
+                <p className="text-xs text-primary mt-1">
                   The dashboard is showing partial information. Try refreshing to load all data.
                 </p>
               </div>
-              <Button onClick={handleRetry} size="sm" variant="outline" className="border-orange-300">
+              <Button onClick={handleRetry} size="sm" variant="outline" className="border-primary">
                 <RefreshCw className="mr-2 h-3 w-3" />
                 Refresh
               </Button>
@@ -285,7 +335,7 @@ export default function PrincipalHomePage() {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="items-center hidden justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl text-primary font-bold tracking-tight">Principal Dashboard</h1>
           <p className="text-muted-foreground">
@@ -294,12 +344,21 @@ export default function PrincipalHomePage() {
         </div>
       </div>
 
+      {/* Content Container */}
+
+      <div className="grid space-y-4 bg-white p-5 rounded-3xl lg:grid-cols-1">
+
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="border-none shadow-none bg-zinc-100">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <div className="flex flex-row items-center gap-2">
+              <Users strokeWidth={3} className="h-5 w-5 text-primary" />
+              <CardTitle className="text-md font-semibold text-primary">Total Students</CardTitle>
+            </div>
+            <Button variant="default" size="sm" className="border-primary">
+              See All
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalStudents}</div>
@@ -309,10 +368,15 @@ export default function PrincipalHomePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-none shadow-none bg-zinc-100">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Teachers</CardTitle>
-            <GraduationCap className="h-4 w-4 text-muted-foreground" />
+            <div className="flex flex-row items-center gap-2">
+              <GraduationCap strokeWidth={3} className="h-5 w-5 text-primary" />
+              <CardTitle className="text-md font-semibold text-primary">Teachers</CardTitle>
+            </div>
+            <Button variant="default" size="sm" className="border-primary">
+              See All
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalTeachers}</div>
@@ -322,10 +386,15 @@ export default function PrincipalHomePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-none shadow-none bg-zinc-100">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Attendance Rate</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <div className="flex flex-row items-center gap-2">
+              <TrendingUp strokeWidth={3} className="h-5 w-5 text-primary" />
+              <CardTitle className="text-md font-semibold text-primary">Attendance Rate</CardTitle>
+            </div>
+            <Button variant="default" size="sm" className="border-primary">
+              See All
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.attendanceRate}%</div>
@@ -335,10 +404,15 @@ export default function PrincipalHomePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-none shadow-none bg-zinc-100">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Fees</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <div className="flex flex-row items-center gap-2">
+              <DollarSign strokeWidth={3} className="h-5 w-5 text-primary" />
+              <CardTitle className="text-md font-semibold text-primary">Pending Fees</CardTitle>
+            </div>
+            <Button variant="default" size="sm" className="border-primary">
+              See All
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${stats.pendingFees}</div>
@@ -351,10 +425,15 @@ export default function PrincipalHomePage() {
 
             {/* Additional Stats */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+        <Card className="border-none shadow-none bg-zinc-100">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Classes</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
+            <div className="flex flex-row items-center gap-2">
+              <BookOpen strokeWidth={3} className="h-5 w-5 text-primary" />
+              <CardTitle className="text-md font-semibold text-primary">Classes</CardTitle>
+            </div>
+            <Button variant="default" size="sm" className="border-primary">
+              See All
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalClasses}</div>
@@ -364,10 +443,15 @@ export default function PrincipalHomePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-none shadow-none bg-zinc-100">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Upcoming Events</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <div className="flex flex-row items-center gap-2">
+              <Calendar strokeWidth={3} className="h-5 w-5 text-primary" />
+              <CardTitle className="text-md font-semibold text-primary">Upcoming Events</CardTitle>
+            </div>
+            <Button variant="default" size="sm" className="border-primary">
+              See All
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.upcomingEvents}</div>
@@ -377,10 +461,15 @@ export default function PrincipalHomePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-none shadow-none bg-zinc-100">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Messages</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            <div className="flex flex-row items-center gap-2">
+              <MessageSquare strokeWidth={3} className="h-5 w-5 text-primary" />
+              <CardTitle className="text-md font-semibold text-primary">Messages</CardTitle>
+            </div>
+            <Button variant="default" size="sm" className="border-primary">
+              See All
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.unreadMessages}</div>
@@ -392,9 +481,9 @@ export default function PrincipalHomePage() {
       </div>
 
       {/* Quick Actions */}
-      <Card>
+      <Card className="border-none shadow-none bg-zinc-100">
         <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
+          <CardTitle className="text-md font-semibold text-primary">Quick Actions</CardTitle>
           <CardDescription>
             Frequently used actions for school management
           </CardDescription>
@@ -408,7 +497,7 @@ export default function PrincipalHomePage() {
                 className="h-20 flex flex-col items-center justify-center gap-2"
                 onClick={() => window.location.href = action.href}
               >
-                <action.icon className="h-5 w-5" />
+                <action.icon strokeWidth={3} className="h-5 w-5" />
                 <span className="text-sm">{action.label}</span>
               </Button>
             ))}
@@ -420,36 +509,50 @@ export default function PrincipalHomePage() {
       <div className="grid gap-6 lg:grid-cols-1">
 
         {/* Recent Activity */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-            <div>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>
-                Latest updates from your school (Last 7 days)
-              </CardDescription>
+        <Card className="border-none shadow-none bg-zinc-100">
+          <CardHeader className="space-y-4 pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex flex-col">
+                <CardTitle className="text-lg font-semibold text-primary">Recent Activity</CardTitle>
+                <CardDescription>
+                  Latest updates from your school
+                </CardDescription>
+              </div>
+              
+              {/* Period Filter */}
+              <div className="flex items-center gap-2">
+                <span className="text-md text-muted-foreground">Period:</span>
+                <Select value={activityPeriod} onValueChange={handlePeriodChange}>
+                  <SelectTrigger className="w-fit gap-2 h-9 text-sm bg-primary text-white border-primary [&>svg]:text-white">
+                    <SelectValue placeholder="Select period" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">Today</SelectItem>
+                    <SelectItem value="7">Last 7 days</SelectItem>
+                    <SelectItem value="14">Last 14 days</SelectItem>
+                    <SelectItem value="30">Last 30 days</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            {recentActivity.length > 0 && (
-              <Button variant="ghost" size="sm" className="text-xs">
-                View All
-              </Button>
-            )}
           </CardHeader>
+          
           <CardContent>
             <div className="space-y-3">
-              {recentActivity.length > 0 ? (
-                recentActivity.slice(0, 6).map((activity) => {
+              {paginatedActivities.length > 0 ? (
+                paginatedActivities.map((activity) => {
                   const Icon = getActivityIcon(activity.type)
                   const activityColor = getActivityColor(activity.type)
                   return (
                     <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
                       <div className={`flex h-9 w-9 items-center justify-center rounded-full ${activityColor.bg}`}>
-                        <Icon className={`h-4 w-4 ${activityColor.text}`} />
+                        <Icon strokeWidth={3} className={`h-5 w-5 ${activityColor.text}`} />
                       </div>
                       <div className="flex-1 space-y-1 min-w-0">
                         <p className="text-sm font-medium leading-tight">{activity.message}</p>
                         <div className="flex items-center gap-2 flex-wrap">
                           <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3 text-muted-foreground" />
+                            <Clock strokeWidth={3} className="h-3 w-3 text-muted-foreground" />
                             <p className="text-xs text-muted-foreground">{activity.timestamp}</p>
                           </div>
                           {activity.user && (
@@ -465,17 +568,60 @@ export default function PrincipalHomePage() {
               ) : (
                 <div className="text-center py-8">
                   <div className="rounded-full bg-muted p-3 w-fit mx-auto mb-3">
-                    <Clock className="h-8 w-8 text-muted-foreground" />
+                    <Clock strokeWidth={3} className="h-8 w-8 text-muted-foreground" />
                   </div>
                   <p className="text-sm font-medium mb-1">No recent activity</p>
                   <p className="text-xs text-muted-foreground">
-                    Activity from the last 7 days will appear here
+                    Activity from {getPeriodLabel(activityPeriod).toLowerCase()} will appear here
                   </p>
                 </div>
               )}
             </div>
+
+            {/* Pagination Controls */}
+            {filteredActivities.length > activitiesPerPage && (
+              <div className="flex items-center justify-between mt-6 pt-4 border-t">
+                <div className="text-xs text-muted-foreground">
+                  Showing {Math.min((activityPage - 1) * activitiesPerPage + 1, filteredActivities.length)} - {Math.min(activityPage * activitiesPerPage, filteredActivities.length)} of {filteredActivities.length} activities
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handlePreviousPage}
+                    disabled={activityPage === 1}
+                    className="h-8 w-8 p-0 border-primary border-3 bg-transparent text-primary"
+                  >
+                    <ChevronLeft strokeWidth={3} className="h-4 w-4" />
+                  </Button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <Button
+                        key={page}
+                        variant={page === activityPage ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setActivityPage(page)}
+                        className="h-8 w-8 p-0 bg-primary border-primary border-3 text-primary-foreground"
+                      >
+                        {page}
+                      </Button>
+                    ))}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleNextPage}
+                    disabled={activityPage === totalPages}
+                    className="h-8 w-8 p-0 border-primary border-3 bg-transparent text-primary"
+                  >
+                    <ChevronRight strokeWidth={3} className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   )
