@@ -223,25 +223,30 @@ export default function Page() {
         }
         
         // Create a temporary principal profile record with minimal school data
+        // Note: cleanProfileData is defined later in the component, so we'll clean manually here
+        const cleanPrincipalProfile = (profile: typeof profileData.principal) => {
+          return {
+            employeeId: profile.employeeId?.trim() || undefined,
+            hireDate: profile.hireDate?.trim() || undefined,
+            phone: profile.phone?.trim() || undefined,
+            address: profile.address?.trim() || undefined,
+            emergencyContact: profile.emergencyContact?.trim() || undefined,
+            qualifications: profile.qualifications?.trim() || undefined,
+            yearsOfExperience: profile.yearsOfExperience?.trim() ? parseInt(profile.yearsOfExperience.trim()) : undefined,
+            previousSchool: profile.previousSchool?.trim() || undefined,
+            educationBackground: profile.educationBackground?.trim() || undefined,
+            salary: profile.salary?.trim() ? parseFloat(profile.salary.trim()) : undefined,
+            administrativeArea: profile.administrativeArea?.trim() || undefined,
+          }
+        }
+        
         const principalData = {
           role: 'PRINCIPAL',
           schoolId: 'temp', // Will be updated when school is created
           firstName: firstName.trim(),
           lastName: lastName.trim(),
           email: email.trim(),
-          principalProfile: {
-            employeeId: profileData.principal.employeeId?.trim() || undefined,
-            hireDate: profileData.principal.hireDate?.trim() || undefined,
-            phone: profileData.principal.phone?.trim() || undefined,
-            address: profileData.principal.address?.trim() || undefined,
-            emergencyContact: profileData.principal.emergencyContact?.trim() || undefined,
-            qualifications: profileData.principal.qualifications?.trim() || undefined,
-            yearsOfExperience: profileData.principal.yearsOfExperience?.trim() ? parseInt(profileData.principal.yearsOfExperience.trim()) : undefined,
-            previousSchool: profileData.principal.previousSchool?.trim() || undefined,
-            educationBackground: profileData.principal.educationBackground?.trim() || undefined,
-            salary: profileData.principal.salary?.trim() ? parseFloat(profileData.principal.salary.trim()) : undefined,
-            administrativeArea: profileData.principal.administrativeArea?.trim() || undefined,
-          }
+          principalProfile: cleanPrincipalProfile(profileData.principal)
         }
         
         // Store the profile data for school setup page
@@ -326,6 +331,23 @@ export default function Page() {
     }
   }
 
+  // Helper function to clean profile data - convert empty strings to undefined
+  const cleanProfileData = <T extends Record<string, unknown>>(data: T): Partial<T> => {
+    const cleaned: Record<string, unknown> = {}
+    for (const key in data) {
+      const value = data[key]
+      if (typeof value === 'string') {
+        const trimmed = value.trim()
+        cleaned[key] = trimmed === '' ? undefined : trimmed
+      } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        cleaned[key] = cleanProfileData(value as Record<string, unknown>)
+      } else {
+        cleaned[key] = value
+      }
+    }
+    return cleaned as Partial<T>
+  }
+
   const completeUserRegistration = async () => {
     if (!selectedSchool) {
       toast.error('Please select a school')
@@ -365,53 +387,53 @@ export default function Page() {
         return
       }
 
-      // Prepare user data for creation
+      // Prepare user data for creation with cleaned profile data
       const userData = {
         role: selectedRole,
         schoolId: selectedSchool.id,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.trim(),
-        // Include role-specific profile data
+        // Include role-specific profile data - cleaned to remove empty strings
         ...(selectedRole === 'STUDENT' && {
-          grade: profileData.student.grade,
-          studentProfile: {
+          grade: profileData.student.grade?.trim() || undefined,
+          studentProfile: cleanProfileData({
             dateOfBirth: profileData.student.dateOfBirth,
             studentIdNumber: profileData.student.studentIdNumber,
             emergencyContact: profileData.student.emergencyContact,
             medicalInfo: profileData.student.medicalInfo,
             address: profileData.student.address,
-          }
+          })
         }),
         ...(selectedRole === 'TEACHER' && {
-          department: profileData.teacher.department,
-          teacherProfile: {
+          department: profileData.teacher.department?.trim() || undefined,
+          teacherProfile: cleanProfileData({
             employeeId: profileData.teacher.employeeId,
             hireDate: profileData.teacher.hireDate,
             qualifications: profileData.teacher.qualifications,
-          }
+          })
         }),
         ...(selectedRole === 'PARENT' && {
-          parentProfile: {
+          parentProfile: cleanProfileData({
             phone: profileData.parent.phone,
             address: profileData.parent.address,
             emergencyContact: profileData.parent.emergencyContact,
-          }
+          })
         }),
         ...(selectedRole === 'PRINCIPAL' && {
-          principalProfile: {
-            employeeId: profileData.principal.employeeId?.trim() || undefined,
-            hireDate: profileData.principal.hireDate?.trim() || undefined,
-            phone: profileData.principal.phone?.trim() || undefined,
-            address: profileData.principal.address?.trim() || undefined,
-            emergencyContact: profileData.principal.emergencyContact?.trim() || undefined,
-            qualifications: profileData.principal.qualifications?.trim() || undefined,
-            yearsOfExperience: profileData.principal.yearsOfExperience?.trim() ? parseInt(profileData.principal.yearsOfExperience.trim()) : undefined,
-            previousSchool: profileData.principal.previousSchool?.trim() || undefined,
-            educationBackground: profileData.principal.educationBackground?.trim() || undefined,
-            salary: profileData.principal.salary?.trim() ? parseFloat(profileData.principal.salary.trim()) : undefined,
-            administrativeArea: profileData.principal.administrativeArea?.trim() || undefined,
-          }
+          principalProfile: cleanProfileData({
+            employeeId: profileData.principal.employeeId,
+            hireDate: profileData.principal.hireDate,
+            phone: profileData.principal.phone,
+            address: profileData.principal.address,
+            emergencyContact: profileData.principal.emergencyContact,
+            qualifications: profileData.principal.qualifications,
+            yearsOfExperience: profileData.principal.yearsOfExperience ? parseInt(profileData.principal.yearsOfExperience) : undefined,
+            previousSchool: profileData.principal.previousSchool,
+            educationBackground: profileData.principal.educationBackground,
+            salary: profileData.principal.salary ? parseFloat(profileData.principal.salary) : undefined,
+            administrativeArea: profileData.principal.administrativeArea,
+          })
         }),
         // Include relationship data if selected
         ...(relationshipData.selectedRelationship && {
