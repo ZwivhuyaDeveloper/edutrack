@@ -65,6 +65,7 @@ async function main() {
   const schools = await Promise.all([
     prisma.school.create({
       data: {
+        id: 'cmgov9w5m00002mfqfu13jqqz', // Fixed school ID
         name: 'Greenwood High School',
         address: '123 Education Street',
         city: 'Springfield',
@@ -262,6 +263,11 @@ async function main() {
   users.push(clerk)
 
   console.log('👥 Created users and profiles')
+
+  // Get clerk profile for fee records
+  const clerkProfile = await prisma.clerkProfile.findUnique({
+    where: { clerkId: clerk.id },
+  })
 
   // Get users by role for easier reference
   const students = users.filter(u => u.role === 'STUDENT')
@@ -508,6 +514,250 @@ async function main() {
 
   console.log('⏰ Created periods')
 
+  // 11. Create Attendance Sessions and Records
+  const attendanceSessions = []
+  for (let i = 0; i < 10; i++) {
+    const classSubject = faker.helpers.arrayElement(classSubjects)
+    const sessionDate = randomDate(new Date('2024-09-01'), new Date('2024-10-13'))
+    
+    const session = await prisma.attendanceSession.create({
+      data: {
+        date: sessionDate,
+        notes: faker.helpers.arrayElement(['Regular class', 'Quiz day', 'Lab session', null]),
+        classSubjectId: classSubject.id,
+        createdById: classSubject.teacherId,
+      },
+    })
+    attendanceSessions.push(session)
+
+    // Create attendance records for students in this class
+    const classEnrollments = await prisma.enrollment.findMany({
+      where: { classId: classSubject.classId },
+    })
+
+    for (const enrollment of classEnrollments) {
+      await prisma.attendance.create({
+        data: {
+          sessionId: session.id,
+          studentId: enrollment.studentId,
+          status: faker.helpers.arrayElement(['PRESENT', 'PRESENT', 'PRESENT', 'PRESENT', 'ABSENT', 'LATE', 'EXCUSED']),
+          notes: faker.helpers.arrayElement([null, null, null, 'Doctor appointment', 'Family emergency']),
+        },
+      })
+    }
+  }
+
+  console.log('📊 Created attendance sessions and records')
+
+  // 12. Create Pending Fees
+  const feeRecords = []
+  for (let i = 0; i < 30; i++) {
+    const student = faker.helpers.arrayElement(students)
+    const isPaid = faker.datatype.boolean()
+    const dueDate = randomDate(new Date('2024-09-01'), new Date('2024-12-31'))
+    
+    const feeRecord = await prisma.fee_records.create({
+      data: {
+        id: faker.string.uuid(),
+        description: faker.helpers.arrayElement([
+          'Tuition Fee - Fall 2024',
+          'Library Fee',
+          'Lab Fee',
+          'Sports Fee',
+          'Activity Fee',
+          'Transportation Fee',
+          'Exam Fee',
+        ]),
+        amount: faker.number.float({ min: 50, max: 500, fractionDigits: 2 }),
+        dueDate: dueDate,
+        paid: isPaid,
+        paidAt: isPaid ? randomDate(dueDate, new Date()) : null,
+        studentId: student.id,
+        clerkId: isPaid && clerkProfile ? clerkProfile.id : null,
+        updatedAt: new Date(),
+      },
+    })
+    feeRecords.push(feeRecord)
+  }
+
+  console.log('💰 Created fee records')
+
+  // 13. Create Upcoming Events
+  const events = []
+  
+  for (let i = 0; i < 15; i++) {
+    const startDate = randomDate(new Date('2024-10-14'), new Date('2024-12-31'))
+    const endDate = new Date(startDate)
+    endDate.setHours(endDate.getHours() + faker.number.int({ min: 1, max: 4 }))
+    
+    const event = await prisma.event.create({
+      data: {
+        title: faker.helpers.arrayElement([
+          'Annual Sports Day',
+          'Parent-Teacher Meeting',
+          'Science Fair',
+          'Mid-term Exams',
+          'Cultural Festival',
+          'Thanksgiving Holiday',
+          'Winter Break',
+          'Math Competition',
+          'School Assembly',
+          'Career Day',
+          'Art Exhibition',
+          'Music Concert',
+          'Debate Competition',
+          'Field Trip',
+          'Graduation Ceremony',
+        ]),
+        description: faker.lorem.sentence(),
+        startDate: startDate,
+        endDate: endDate,
+        location: faker.helpers.arrayElement(['Main Hall', 'Auditorium', 'Sports Ground', 'Cafeteria', 'Library', 'Classroom 101']),
+        type: faker.helpers.arrayElement(['HOLIDAY', 'EXAM', 'MEETING', 'SPORTS', 'CULTURAL', 'PARENT_TEACHER', 'OTHER']),
+        isAllDay: faker.datatype.boolean(),
+        schoolId: schools[0].id,
+        createdById: principal.id,
+      },
+    })
+    events.push(event)
+
+    // Create event audiences
+    const scope = faker.helpers.arrayElement(['SCHOOL', 'CLASS', 'SUBJECT'])
+    if (scope === 'SCHOOL') {
+      await prisma.eventAudience.create({
+        data: {
+          eventId: event.id,
+          scope: 'SCHOOL',
+        },
+      })
+    } else if (scope === 'CLASS') {
+      await prisma.eventAudience.create({
+        data: {
+          eventId: event.id,
+          scope: 'CLASS',
+          classId: faker.helpers.arrayElement(classes).id,
+        },
+      })
+    } else if (scope === 'SUBJECT') {
+      await prisma.eventAudience.create({
+        data: {
+          eventId: event.id,
+          scope: 'SUBJECT',
+          subjectId: faker.helpers.arrayElement(subjects).id,
+        },
+      })
+    }
+  }
+
+  console.log('📅 Created events')
+
+  // 14. Create Conversations and Messages
+  const conversations = []
+  
+  // Create group conversations
+  for (let i = 0; i < 5; i++) {
+    const conversation = await prisma.conversation.create({
+      data: {
+        title: faker.helpers.arrayElement([
+          'Grade 9A - Class Discussion',
+          'Teachers Group',
+          'Parent Committee',
+          'Sports Team',
+          'Science Club',
+        ]),
+        isGroup: true,
+        schoolId: schools[0].id,
+      },
+    })
+    conversations.push(conversation)
+
+    // Add participants
+    const participantCount = faker.number.int({ min: 3, max: 8 })
+    const selectedUsers = faker.helpers.arrayElements(users, participantCount)
+    
+    for (const user of selectedUsers) {
+      await prisma.conversationParticipant.create({
+        data: {
+          conversationId: conversation.id,
+          userId: user.id,
+          lastReadAt: faker.datatype.boolean() ? randomDate(new Date('2024-10-01'), new Date('2024-10-12')) : null,
+        },
+      })
+    }
+
+    // Create messages in this conversation
+    const messageCount = faker.number.int({ min: 5, max: 15 })
+    for (let j = 0; j < messageCount; j++) {
+      const sender = faker.helpers.arrayElement(selectedUsers)
+      const isRead = faker.datatype.boolean()
+      
+      await prisma.message.create({
+        data: {
+          content: faker.lorem.sentences(faker.number.int({ min: 1, max: 3 })),
+          status: isRead ? faker.helpers.arrayElement(['DELIVERED', 'READ']) : 'SENT',
+          conversationId: conversation.id,
+          senderId: sender.id,
+          sentAt: randomDate(new Date('2024-10-01'), new Date('2024-10-13')),
+        },
+      })
+    }
+  }
+
+  // Create direct conversations
+  for (let i = 0; i < 20; i++) {
+    const user1 = faker.helpers.arrayElement(users)
+    let user2 = faker.helpers.arrayElement(users)
+    while (user2.id === user1.id) {
+      user2 = faker.helpers.arrayElement(users)
+    }
+
+    const conversation = await prisma.conversation.create({
+      data: {
+        isGroup: false,
+        schoolId: schools[0].id,
+      },
+    })
+    conversations.push(conversation)
+
+    // Add two participants
+    await prisma.conversationParticipant.create({
+      data: {
+        conversationId: conversation.id,
+        userId: user1.id,
+        lastReadAt: faker.datatype.boolean() ? randomDate(new Date('2024-10-01'), new Date('2024-10-12')) : null,
+      },
+    })
+
+    await prisma.conversationParticipant.create({
+      data: {
+        conversationId: conversation.id,
+        userId: user2.id,
+        lastReadAt: faker.datatype.boolean() ? randomDate(new Date('2024-10-01'), new Date('2024-10-12')) : null,
+      },
+    })
+
+    // Create messages
+    const messageCount = faker.number.int({ min: 2, max: 10 })
+    for (let j = 0; j < messageCount; j++) {
+      const sender = faker.helpers.arrayElement([user1, user2])
+      const recipient = sender.id === user1.id ? user2 : user1
+      const isRead = faker.datatype.boolean()
+      
+      await prisma.message.create({
+        data: {
+          content: faker.lorem.sentences(faker.number.int({ min: 1, max: 2 })),
+          status: isRead ? faker.helpers.arrayElement(['DELIVERED', 'READ']) : 'SENT',
+          conversationId: conversation.id,
+          senderId: sender.id,
+          recipientId: recipient.id,
+          sentAt: randomDate(new Date('2024-10-01'), new Date('2024-10-13')),
+        },
+      })
+    }
+  }
+
+  console.log('💬 Created conversations and messages')
+
   console.log('✅ Database seeding completed successfully!')
   console.log(`Created:
   - ${schools.length} schools
@@ -518,7 +768,11 @@ async function main() {
   - ${students.length} student enrollments
   - ${terms.length} terms
   - ${rooms.length} rooms
-  - ${periods.length} periods`)
+  - ${periods.length} periods
+  - ${attendanceSessions.length} attendance sessions
+  - ${feeRecords.length} fee records
+  - ${events.length} events
+  - ${conversations.length} conversations`)
 }
 
 main()
