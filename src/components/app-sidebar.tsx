@@ -36,7 +36,7 @@ import Image from "next/image"
 import logo from "@/assets/Standalone_Logo.png"
 
 // Role-based navigation data
-const getRoleBasedNavigation = (userRole: string) => {
+export const getRoleBasedNavigation = (userRole: string) => {
   switch (userRole) {
     case "student":
       return [

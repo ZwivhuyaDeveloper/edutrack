@@ -339,41 +339,41 @@ export default function PrincipalHomePage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4 pt-4">
-        <div className="grid space-y-4 bg-white p-5 rounded-3xl lg:grid-cols-1">
+      <div className="space-y-3 sm:space-y-4 pt-2 sm:pt-4 px-2 sm:px-0">
+        <div className="grid space-y-3 sm:space-y-4 bg-white p-3 sm:p-5 rounded-2xl sm:rounded-3xl lg:grid-cols-1">
           {/* Stats Cards Skeleton */}
-          <div className="grid gap-4 grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
             {[...Array(4)].map((_, i) => (
               <Card key={i} className="border-none shadow-none bg-zinc-100 overflow-hidden">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <div className="flex flex-row items-center gap-2">
-                    <div className="h-5 w-5 bg-zinc-300 animate-pulse rounded" />
-                    <div className="h-4 w-24 bg-zinc-300 animate-pulse rounded" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+                  <div className="flex flex-row items-center gap-1.5 sm:gap-2">
+                    <div className="h-4 w-4 sm:h-5 sm:w-5 bg-zinc-300 animate-pulse rounded" />
+                    <div className="h-3 w-20 sm:h-4 sm:w-24 bg-zinc-300 animate-pulse rounded" />
                   </div>
-                  <div className="h-7 w-16 bg-zinc-300 animate-pulse rounded" />
+                  <div className="h-7 w-14 sm:w-16 bg-zinc-300 animate-pulse rounded" />
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="h-8 w-20 bg-zinc-300 animate-pulse rounded" />
-                  <div className="h-3 w-32 bg-zinc-300 animate-pulse rounded" />
+                <CardContent className="space-y-1 sm:space-y-2 p-3 sm:p-6 pt-0">
+                  <div className="h-6 w-16 sm:h-8 sm:w-20 bg-zinc-300 animate-pulse rounded" />
+                  <div className="h-3 w-28 sm:w-32 bg-zinc-300 animate-pulse rounded" />
                 </CardContent>
               </Card>
             ))}
           </div>
 
           {/* Additional Stats Skeleton */}
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-3 lg:grid-cols-3">
+          <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-1 md:grid-cols-3">
             {[...Array(3)].map((_, i) => (
               <Card key={i} className="border-none shadow-none bg-zinc-100">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <div className="flex flex-row items-center gap-2">
-                    <div className="h-5 w-5 bg-zinc-300 animate-pulse rounded" />
-                    <div className="h-4 w-20 bg-zinc-300 animate-pulse rounded" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+                  <div className="flex flex-row items-center gap-1.5 sm:gap-2">
+                    <div className="h-4 w-4 sm:h-5 sm:w-5 bg-zinc-300 animate-pulse rounded" />
+                    <div className="h-3 w-16 sm:h-4 sm:w-20 bg-zinc-300 animate-pulse rounded" />
                   </div>
-                  <div className="h-7 w-16 bg-zinc-300 animate-pulse rounded" />
+                  <div className="h-7 w-14 sm:w-16 bg-zinc-300 animate-pulse rounded" />
                 </CardHeader>
-                <CardContent>
-                  <div className="h-8 w-16 bg-zinc-300 animate-pulse rounded mb-2" />
-                  <div className="h-3 w-28 bg-zinc-300 animate-pulse rounded" />
+                <CardContent className="p-3 sm:p-6 pt-0">
+                  <div className="h-6 w-14 sm:h-8 sm:w-16 bg-zinc-300 animate-pulse rounded mb-2" />
+                  <div className="h-3 w-24 sm:w-28 bg-zinc-300 animate-pulse rounded" />
                 </CardContent>
               </Card>
             ))}
@@ -381,14 +381,14 @@ export default function PrincipalHomePage() {
 
           {/* Quick Actions Skeleton */}
           <Card className="border-none shadow-none bg-zinc-100">
-            <CardHeader>
-              <div className="h-6 w-40 bg-zinc-300 animate-pulse rounded mb-2" />
-              <div className="h-4 w-64 bg-zinc-300 animate-pulse rounded" />
+            <CardHeader className="p-3 sm:p-6">
+              <div className="h-5 w-32 sm:h-6 sm:w-40 bg-zinc-300 animate-pulse rounded mb-2" />
+              <div className="h-3 w-48 sm:h-4 sm:w-64 bg-zinc-300 animate-pulse rounded" />
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <CardContent className="p-3 sm:p-6 pt-0">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-20 bg-zinc-300 animate-pulse rounded-lg" />
+                  <div key={i} className="h-16 sm:h-20 bg-zinc-300 animate-pulse rounded-lg" />
                 ))}
               </div>
             </CardContent>
@@ -396,20 +396,20 @@ export default function PrincipalHomePage() {
 
           {/* Recent Activity Skeleton */}
           <Card className="border-none shadow-none bg-zinc-100">
-            <CardHeader className="space-y-4 pb-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div className="flex flex-col gap-2">
-                  <div className="h-6 w-48 bg-zinc-300 animate-pulse rounded" />
-                  <div className="h-4 w-56 bg-zinc-300 animate-pulse rounded" />
+            <CardHeader className="space-y-3 sm:space-y-4 pb-3 sm:pb-4 p-3 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+                <div className="flex flex-col gap-1 sm:gap-2">
+                  <div className="h-5 w-40 sm:h-6 sm:w-48 bg-zinc-300 animate-pulse rounded" />
+                  <div className="h-3 w-48 sm:h-4 sm:w-56 bg-zinc-300 animate-pulse rounded" />
                 </div>
-                <div className="h-9 w-32 bg-zinc-300 animate-pulse rounded" />
+                <div className="h-8 w-full sm:h-9 sm:w-32 bg-zinc-300 animate-pulse rounded" />
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
+            <CardContent className="p-3 sm:p-6 pt-0">
+              <div className="space-y-2 sm:space-y-3">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="flex items-start gap-3 p-3 bg-white rounded-lg">
-                    <div className="h-9 w-9 bg-zinc-300 animate-pulse rounded-full" />
+                  <div key={i} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-lg">
+                    <div className="h-8 w-8 sm:h-9 sm:w-9 bg-zinc-300 animate-pulse rounded-full flex-shrink-0" />
                     <div className="flex-1 space-y-2">
                       <div className="h-4 w-3/4 bg-zinc-300 animate-pulse rounded" />
                       <div className="h-3 w-1/2 bg-zinc-300 animate-pulse rounded" />
@@ -425,12 +425,12 @@ export default function PrincipalHomePage() {
   }
 
   return (
-    <div className="space-y-4 pt-4">
+    <div className="space-y-3 sm:space-y-4 pt-2 sm:pt-4 lg:px-2 px-0 sm:px-1">
       {/* Partial Data Warning Banner */}
       {hasPartialData && (
         <Card className="border-primary bg-primary">
           <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
               <AlertTriangle className="h-5 w-5 text-primary flex-shrink-0" />
               <div className="flex-1">
                 <p className="text-sm font-medium text-primary">
@@ -440,7 +440,7 @@ export default function PrincipalHomePage() {
                   The dashboard is showing partial information. Try refreshing to load all data.
                 </p>
               </div>
-              <Button onClick={handleRetry} size="sm" variant="outline" className="border-primary">
+              <Button onClick={handleRetry} size="sm" variant="outline" className="border-primary w-full sm:w-auto">
                 <RefreshCw className="mr-2 h-3 w-3" />
                 Refresh
               </Button>
@@ -461,23 +461,23 @@ export default function PrincipalHomePage() {
 
       {/* Content Container */}
 
-      <div className="grid space-y-4 bg-white p-5 rounded-3xl lg:grid-cols-1">
+      <div className="grid space-y-3 sm:space-y-4 bg-white p-3 sm:p-5 rounded-2xl sm:rounded-3xl lg:grid-cols-1">
 
       {/* Stats Cards */}
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-none shadow-none bg-zinc-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="flex flex-row items-center gap-2">
-              <Users strokeWidth={3} className="h-5 w-5 text-primary" />
-              <CardTitle className="text-md font-semibold text-primary">Total Students</CardTitle>
+      <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="border-none shadow-none pt-0 bg-zinc-100">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+            <div className="flex flex-row items-center gap-1.5 sm:gap-2">
+              <Users strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Total Students</CardTitle>
             </div>
-            <Button variant="default" size="sm" className="border-primary text-xs">
+            <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
               See All
             </Button>
           </CardHeader>
-          <CardContent className="space-y-2 lg:text-md text-sm">
-            <div className="text-2xl font-bold">{stats.totalStudents}</div>
-            <p className="text-sm font-medium text-muted-foreground">
+          <CardContent className="space-y-1 sm:space-y-2 p-3 sm:p-6 pt-0">
+            <div className="text-xl sm:text-2xl font-bold">{stats.totalStudents}</div>
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
               Active enrollments
             </p>
             {/* Student Enrollment Trend Chart */}
@@ -508,55 +508,55 @@ export default function PrincipalHomePage() {
             </CardContent>
         </Card>
 
-        <Card className="border-none shadow-none bg-zinc-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="flex flex-row items-center gap-2">
-              <GraduationCap strokeWidth={3} className="h-5 w-5 text-primary" />
-              <CardTitle className="text-md font-semibold text-primary">Teachers</CardTitle>
+        <Card className="border-none shadow-none pt-0  bg-zinc-100">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+            <div className="flex flex-row items-center gap-1.5 sm:gap-2">
+              <GraduationCap strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Teachers</CardTitle>
             </div>
-            <Button variant="default" size="sm" className="border-primary text-xs">
+            <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
               See All
             </Button>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalTeachers}</div>
-            <p className="text-sm font-medium text-muted-foreground">
+          <CardContent className="p-3 sm:p-6 pt-0">
+            <div className="text-xl sm:text-2xl font-bold">{stats.totalTeachers}</div>
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
               Active faculty members
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-none bg-zinc-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="flex flex-row items-center gap-2">
-              <TrendingUp strokeWidth={3} className="h-5 w-5 text-primary" />
-              <CardTitle className="text-md font-semibold text-primary">Attendance Rate</CardTitle>
+        <Card className="border-none shadow-none pt-0 bg-zinc-100">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+            <div className="flex flex-row items-center gap-1.5 sm:gap-2">
+              <TrendingUp strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Attendance</CardTitle>
             </div>
-            <Button variant="default" size="sm" className="border-primary text-xs ">
+            <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
               View All
             </Button>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.attendanceRate}%</div>
-            <p className="text-sm font-medium text-muted-foreground">
+          <CardContent className="p-3 sm:p-6 pt-0">
+            <div className="text-xl sm:text-2xl font-bold">{stats.attendanceRate}%</div>
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
               This week average
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-none bg-zinc-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="flex flex-row items-center gap-2">
-              <DollarSign strokeWidth={3} className="h-5 w-5 text-primary" />
-              <CardTitle className="text-md font-semibold text-primary">Pending Fees</CardTitle>
+        <Card className="border-none shadow-none pt-0 bg-zinc-100">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+            <div className="flex flex-row items-center gap-1.5 sm:gap-2">
+              <DollarSign strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Pending Fees</CardTitle>
             </div>
-            <Button variant="default" size="sm" className="border-primary text-xs">
+            <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
               Transactions
             </Button>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${stats.pendingFees}</div>
-            <p className="text-sm font-medium text-muted-foreground">
+          <CardContent className="p-3 sm:p-6 pt-0">
+            <div className="text-xl sm:text-2xl font-bold">${stats.pendingFees}</div>
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
               Outstanding amount
             </p>
           </CardContent>
@@ -564,56 +564,56 @@ export default function PrincipalHomePage() {
       </div>
 
             {/* Additional Stats */}
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-3 lg:grid-cols-3">
-        <Card className="border-none shadow-none bg-zinc-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="flex flex-row items-center gap-2">
-              <BookOpen strokeWidth={3} className="h-5 w-5 text-primary" />
-              <CardTitle className="text-md font-semibold text-primary">Classes</CardTitle>
+      <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-1 md:grid-cols-3">
+        <Card className="border-none shadow-none pt-0 bg-zinc-100">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+            <div className="flex flex-row items-center gap-1.5 sm:gap-2">
+              <BookOpen strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Classes</CardTitle>
             </div>
-            <Button variant="default" size="sm" className="border-primary text-xs">
+            <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
               See All
             </Button>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalClasses}</div>
-            <p className="text-sm font-medium text-muted-foreground">
+          <CardContent className="p-3 sm:p-6 pt-0">
+            <div className="text-xl sm:text-2xl font-bold">{stats.totalClasses}</div>
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
               {stats.totalSubjects} subjects total
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-none bg-zinc-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="flex flex-row items-center gap-2">
-              <Calendar strokeWidth={3} className="h-5 w-5 text-primary" />
-              <CardTitle className="text-md font-semibold text-primary">Upcoming Events</CardTitle>
+        <Card className="border-none shadow-none pt-0 bg-zinc-100">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+            <div className="flex flex-row items-center gap-1.5 sm:gap-2">
+              <Calendar strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Events</CardTitle>
             </div>
-            <Button variant="default" size="sm" className="border-primary text-xs">
+            <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
               See All
             </Button>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.upcomingEvents}</div>
-            <p className="text-sm font-medium text-muted-foreground">
+          <CardContent className="p-3 sm:p-6 pt-0">
+            <div className="text-xl sm:text-2xl font-bold">{stats.upcomingEvents}</div>
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
               Next 7 days
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-none bg-zinc-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div className="flex flex-row items-center gap-2">
-              <MessageSquare strokeWidth={3} className="h-5 w-5 text-primary" />
-              <CardTitle className="text-md font-semibold text-primary">Messages</CardTitle>
+        <Card className="border-none shadow-none pt-0 bg-zinc-100">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+            <div className="flex flex-row items-center gap-1.5 sm:gap-2">
+              <MessageSquare strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Messages</CardTitle>
             </div>
-            <Button variant="default" size="sm" className="border-primary text-xs">
+            <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
               See All
             </Button>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.unreadMessages}</div>
-            <p className="text-sm font-medium text-muted-foreground">
+          <CardContent className="p-3 sm:p-6 pt-0">
+            <div className="text-xl sm:text-2xl font-bold">{stats.unreadMessages}</div>
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
               Unread messages
             </p>
           </CardContent>
@@ -622,25 +622,25 @@ export default function PrincipalHomePage() {
 
       {/* Quick Actions */}
       <Card className="border-none shadow-none bg-zinc-100">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold flex flex-row items-center gap-2 text-primary">
-            <MouseIcon strokeWidth={3} className="h-5 w-5 text-primary" />
+        <CardHeader className="p-3 sm:p-6">
+          <CardTitle className="text-base sm:text-lg font-semibold flex flex-row items-center gap-2 text-primary">
+            <MouseIcon strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             Quick Actions</CardTitle>
-          <CardDescription className="text-md font-medium text-muted-foreground">
-            Frequently used actions for school management
+          <CardDescription className="text-sm sm:text-md font-medium text-muted-foreground">
+            Frequently used actions
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <CardContent className="p-3 sm:p-6 pt-0">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
             {quickActions.map((action, index) => (
               <Button
                 key={index}
                 variant={action.variant}
-                className="h-20 flex flex-col  border-none shadow-none items-center justify-center gap-2"
+                className="h-16 sm:h-20 flex flex-col border-none shadow-none items-center justify-center gap-1 sm:gap-2"
                 onClick={() => window.location.href = action.href}
               >
-                <action.icon strokeWidth={3} className="h-5 w-5" />
-                <span className="text-sm">{action.label}</span>
+                <action.icon strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="text-xs sm:text-sm">{action.label}</span>
               </Button>
             ))}
           </div>
@@ -652,20 +652,23 @@ export default function PrincipalHomePage() {
 
         {/* Recent Activity */}
         <Card className="border-none shadow-none bg-zinc-100">
-          <CardHeader className="space-y-4 pb-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex flex-col gap-2">
-                <CardTitle className="text-lg font-bold flex flex-row items-center gap-2 text-primary"><ActivityIcon strokeWidth={3} className="h-5 w-5 text-primary" />Recent Activity</CardTitle>
-                <CardDescription className="text-md font-medium text-muted-foreground">
+          <CardHeader className="space-y-3 sm:space-y-4 pb-3 sm:pb-4 p-3 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+              <div className="flex flex-col gap-1 sm:gap-2">
+                <CardTitle className="text-base sm:text-lg font-bold flex flex-row items-center gap-2 text-primary">
+                  <ActivityIcon strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                  Recent Activity
+                </CardTitle>
+                <CardDescription className="text-sm sm:text-md font-medium text-muted-foreground">
                   Latest updates from your school
                 </CardDescription>
               </div>
               
               {/* Period Filter */}
               <div className="flex items-center gap-2">
-                <span className="text-md text-muted-foreground">Period:</span>
+                <span className="text-sm sm:text-md text-muted-foreground hidden sm:inline">Period:</span>
                 <Select value={activityPeriod} onValueChange={handlePeriodChange}>
-                  <SelectTrigger className="w-fit gap-2 h-9 text-sm bg-primary text-white border-primary [&>svg]:text-white">
+                  <SelectTrigger className="w-full sm:w-fit gap-2 h-8 sm:h-9 text-xs sm:text-sm bg-primary text-white border-primary [&>svg]:text-white">
                     <SelectValue placeholder="Select period" />
                   </SelectTrigger>
                   <SelectContent>
@@ -679,19 +682,19 @@ export default function PrincipalHomePage() {
             </div>
           </CardHeader>
           
-          <CardContent>
-            <div className="space-y-3">
+          <CardContent className="p-3 sm:p-6 pt-0">
+            <div className="space-y-2 sm:space-y-3">
               {paginatedActivities.length > 0 ? (
                 paginatedActivities.map((activity) => {
                   const Icon = getActivityIcon(activity.type)
                   const activityColor = getActivityColor(activity.type)
                   return (
-                    <div key={activity.id} className="flex items-start gap-3 p-3 bg-white rounded-lg hover:bg-white transition-colors">
-                      <div className={`flex h-9 w-9 items-center justify-center rounded-full ${activityColor.bg}`}>
-                        <Icon strokeWidth={3} className={`h-5 w-5 ${activityColor.text}`} />
+                    <div key={activity.id} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-lg hover:bg-white transition-colors">
+                      <div className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full flex-shrink-0 ${activityColor.bg}`}>
+                        <Icon strokeWidth={3} className={`h-4 w-4 sm:h-5 sm:w-5 ${activityColor.text}`} />
                       </div>
                       <div className="flex-1 space-y-1 min-w-0">
-                        <p className="text-ld font-semibold leading-tight">{activity.message}</p>
+                        <p className="text-sm sm:text-base font-semibold leading-tight">{activity.message}</p>
                         <div className="flex items-center gap-2 flex-wrap">
                           <div className="flex items-center gap-1">
                             <Clock strokeWidth={3} className="h-3 w-3 text-muted-foreground" />
@@ -708,9 +711,9 @@ export default function PrincipalHomePage() {
                   )
                 })
               ) : (
-                <div className="text-center py-8">
-                  <div className="rounded-full bg-muted p-3 w-fit mx-auto mb-3">
-                    <Clock strokeWidth={3} className="h-8 w-8 text-primary" />
+                <div className="text-center py-6 sm:py-8">
+                  <div className="rounded-full bg-muted p-2 sm:p-3 w-fit mx-auto mb-2 sm:mb-3">
+                    <Clock strokeWidth={3} className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
                   </div>
                   <p className="text-sm font-medium mb-1">No recent activity</p>
                   <p className="text-xs text-muted-foreground">
@@ -722,19 +725,19 @@ export default function PrincipalHomePage() {
 
             {/* Pagination Controls */}
             {filteredActivities.length > activitiesPerPage && (
-              <div className="flex items-center justify-between mt-6 pt-4 border-t">
-                <div className="text-xs text-muted-foreground">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t">
+                <div className="text-xs text-muted-foreground text-center sm:text-left">
                   Showing {Math.min((activityPage - 1) * activitiesPerPage + 1, filteredActivities.length)} - {Math.min(activityPage * activitiesPerPage, filteredActivities.length)} of {filteredActivities.length} activities
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handlePreviousPage}
                     disabled={activityPage === 1}
-                    className="h-8 w-8 p-0 border-primary border-3 bg-transparent text-primary"
+                    className="h-7 w-7 sm:h-8 sm:w-8 p-0 border-primary border-3 bg-transparent text-primary"
                   >
-                    <ChevronLeft strokeWidth={3} className="h-4 w-4" />
+                    <ChevronLeft strokeWidth={3} className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                   <div className="flex items-center gap-1">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -743,7 +746,7 @@ export default function PrincipalHomePage() {
                         variant={page === activityPage ? "default" : "outline"}
                         size="sm"
                         onClick={() => setActivityPage(page)}
-                        className="h-8 w-8 p-0 bg-primary border-primary border-3 text-primary-foreground"
+                        className="h-7 w-7 sm:h-8 sm:w-8 p-0 bg-primary border-primary border-3 text-primary-foreground text-xs sm:text-sm"
                       >
                         {page}
                       </Button>
@@ -754,9 +757,9 @@ export default function PrincipalHomePage() {
                     size="sm"
                     onClick={handleNextPage}
                     disabled={activityPage === totalPages}
-                    className="h-8 w-8 p-0 border-primary border-3 bg-transparent text-primary"
+                    className="h-7 w-7 sm:h-8 sm:w-8 p-0 border-primary border-3 bg-transparent text-primary"
                   >
-                    <ChevronRight strokeWidth={3} className="h-4 w-4" />
+                    <ChevronRight strokeWidth={3} className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                 </div>
               </div>

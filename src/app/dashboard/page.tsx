@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useUser, useClerk } from "@clerk/nextjs"
 import type { PageType } from "@/types/dashboard"
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppSidebar, getRoleBasedNavigation } from "@/components/app-sidebar"
+import { MobileBottomNav } from "@/components/mobile-bottom-nav"
 import { AlertsDropdown } from "@/components/alerts-dropdown"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
@@ -764,6 +765,10 @@ function DashboardContent() {
     return [...baseItems, ...roleSpecificItems]
   }
 
+  // Get navigation items for mobile bottom nav (must be before early returns)
+  const userRole = dbUser?.role === 'PRINCIPAL' ? 'admin' : (dbUser?.role.toLowerCase() as 'student' | 'teacher' | 'parent' | undefined) || 'student'
+  const navItems = useMemo(() => getRoleBasedNavigation(userRole), [userRole])
+
   if (!isLoaded || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -801,27 +806,30 @@ function DashboardContent() {
 
   return (
     <SidebarProvider>
-      <AppSidebar 
-        onNavigate={setActivePage} 
-        activePage={activePage} 
-        userRole={
-          dbUser.role === 'PRINCIPAL' ? 'admin' : 
-          dbUser.role.toLowerCase() as 'student' | 'teacher' | 'parent'
-        } 
-      />
-      <SidebarInset className="bg-zinc-100 h-full w-full">
-        <header className="flex h-15 shrink-0 bg-white rounded-4xl shadow-none mx-4 mt-7 mb-0 items-center px-6 pr-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-16 font-sans">
+      {/* Desktop Sidebar - Hidden on mobile */}
+      <div className="hidden md:block">
+        <AppSidebar 
+          onNavigate={setActivePage} 
+          activePage={activePage} 
+          userRole={userRole} 
+        />
+      </div>
+      
+      <SidebarInset className="bg-zinc-100 h-full w-full pb-16 md:pb-0">
+        <header className="flex h-auto sm:h-15 shrink-0 bg-white rounded-2xl sm:rounded-4xl shadow-none mx-2 sm:mx-4 mt-3 sm:mt-7 mb-0 items-center px-3 sm:px-6 py-3 sm:py-0 pr-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-16 font-sans">
           {/* Left section - Sidebar trigger */}
-          <div className="flex items-center gap-2">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4 bg-gray-200" />
-            <div className="flex items-center gap-2">
-              <span className="lg:text-md text-sm font-semibold text-primary capitalize">{dbUser.role.toLowerCase()} Dashboard</span>
-              <span className="text-md text-black gap-2 flex flex-row ">
-                <p className="font-medium lg:text-md text-sm">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-1 sm:flex-initial">
+            <SidebarTrigger className="-ml-1 hidden md:block" />
+            <Separator orientation="vertical" className="mr-1 sm:mr-2 h-4 bg-gray-200 hidden md:block" />
+            <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2">
+              <span className="text-xs sm:text-sm lg:text-md font-semibold text-primary capitalize whitespace-nowrap">
+                {dbUser.role.toLowerCase()} Dashboard
+              </span>
+              <span className="text-xs sm:text-sm lg:text-md text-black gap-1 sm:gap-2 flex flex-row">
+                <p className="font-medium hidden sm:inline">
                   Welcome back,
                 </p>
-                <p className="font-semibold text-primary lg:text-md text-sm">
+                <p className="font-semibold text-primary truncate max-w-[120px] sm:max-w-none">
                   {dbUser.firstName} {dbUser.lastName}
                 </p>
               </span>
@@ -829,7 +837,7 @@ function DashboardContent() {
           </div>
 
           {/* Center section - Search input */}
-          <div className="flex-1 flex justify-center">
+          <div className="hidden md:flex flex-1 justify-center">
             <div className="relative">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
@@ -841,15 +849,15 @@ function DashboardContent() {
           </div>
 
           {/* Right section - User menu */}
-          <div className="flex flex-row items-center justify-center gap-2">
+          <div className="flex flex-row items-center justify-center gap-1 sm:gap-2">
             <AlertsDropdown role={dbUser.role} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="rounded-full p-2 hover:bg-accent" aria-label="User menu">
-                  <Avatar className="h-8 w-8">
+                <button className="rounded-full p-1.5 sm:p-2 hover:bg-accent" aria-label="User menu">
+                  <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                     <AvatarImage src={clerkUser.imageUrl} alt={`${dbUser.firstName} ${dbUser.lastName}`} />
                     <AvatarFallback>
-                      <User className="h-4 w-4" />
+                      <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </AvatarFallback>
                   </Avatar>
                 </button>
@@ -905,7 +913,7 @@ function DashboardContent() {
         </header>
 
         {/* Main content area */}
-        <div className="flex flex-1 bg-zinc-100 flex-col gap-4 px-4 pb-4 pt-0 font-sans">
+        <div className="flex flex-1 bg-zinc-100 flex-col gap-4 px-2 sm:px-4 pb-4 md:pb-4 pt-0 font-sans">
           {/* Role-specific alert banner */}
           {roleAlert?.show && (
             <div className="pt-4">
@@ -1008,6 +1016,14 @@ function DashboardContent() {
           {renderPageContent()}
         </div>
       </SidebarInset>
+      
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav 
+        items={navItems}
+        onNavigate={setActivePage}
+        activePage={activePage}
+        maxItems={5}
+      />
     </SidebarProvider>
   )
 }
