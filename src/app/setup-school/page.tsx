@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, ArrowLeft, CheckCircle, School, User, Building2, Phone, Globe, UserCheck } from 'lucide-react'
+import { Loader2, ArrowLeft, CheckCircle, School, User, Building2, Phone, Globe, UserCheck, Upload, X, Image as ImageIcon } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface PrincipalProfileData {
@@ -34,6 +35,7 @@ interface SchoolFormData {
   phone: string
   email: string
   website: string
+  logo: string | null
 }
 
 export default function SchoolSetupPage() {
@@ -46,8 +48,11 @@ export default function SchoolSetupPage() {
     country: 'US',
     phone: '',
     email: '',
-    website: ''
+    website: '',
+    logo: null
   })
+  const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [logoFile, setLogoFile] = useState<File | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [loadingStep, setLoadingStep] = useState('')
@@ -131,11 +136,72 @@ export default function SchoolSetupPage() {
     }
   }, [showSuccess, redirectCountdown])
 
+  // Cleanup preview URL on unmount
+  useEffect(() => {
+    return () => {
+      if (logoPreview) {
+        URL.revokeObjectURL(logoPreview)
+      }
+    }
+  }, [logoPreview])
+
   const handleInputChange = (field: keyof SchoolFormData, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }))
+  }
+
+  // Handle logo file upload
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file')
+      return
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image size must be less than 2MB')
+      return
+    }
+
+    try {
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file)
+      setLogoPreview(previewUrl)
+      setLogoFile(file)
+
+      // Convert to base64 for storage
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const base64String = reader.result as string
+        setFormData(prev => ({
+          ...prev,
+          logo: base64String
+        }))
+      }
+      reader.readAsDataURL(file)
+
+      toast.success('Logo uploaded successfully')
+    } catch (error) {
+      console.error('Error uploading logo:', error)
+      toast.error('Failed to upload logo')
+    }
+  }
+
+  // Remove logo
+  const handleRemoveLogo = () => {
+    setLogoPreview(null)
+    setLogoFile(null)
+    setFormData(prev => ({
+      ...prev,
+      logo: null
+    }))
+    toast.success('Logo removed')
   }
 
   const validateForm = (): string => {
@@ -178,6 +244,7 @@ export default function SchoolSetupPage() {
           phone: formData.phone || undefined,
           email: formData.email || undefined,
           website: formData.website || undefined,
+          logo: formData.logo || undefined,
         }),
       })
 
@@ -567,6 +634,70 @@ export default function SchoolSetupPage() {
                     className="w-full"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Logo Upload Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <ImageIcon className="h-5 w-5 text-purple-600" />
+                <h3 className="text-lg font-semibold">School Logo</h3>
+              </div>
+
+              <div className="space-y-4">
+                {logoPreview ? (
+                  <div className="relative">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
+                      <div className="flex items-center gap-4">
+                        <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-white border border-gray-200">
+                          <Image
+                            src={logoPreview}
+                            alt="School logo preview"
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900">{logoFile?.name}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {logoFile && `${(logoFile.size / 1024).toFixed(2)} KB`}
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleRemoveLogo}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors cursor-pointer bg-gray-50">
+                    <input
+                      type="file"
+                      id="logo-upload"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      className="hidden"
+                    />
+                    <label htmlFor="logo-upload" className="cursor-pointer">
+                      <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm font-medium text-gray-700 mb-1">
+                        Click to upload school logo
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        PNG, JPG, or SVG (max 2MB)
+                      </p>
+                    </label>
+                  </div>
+                )}
+                <p className="text-xs text-gray-500">
+                  Upload your school&apos;s logo. This will be displayed on your school profile and documents.
+                </p>
               </div>
             </div>
 

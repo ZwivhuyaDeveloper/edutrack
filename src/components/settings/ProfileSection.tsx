@@ -29,9 +29,12 @@ interface ProfileSectionProps {
   email: string
   avatar?: string | null
   fields: ProfileField[]
-  onSave: (data: any) => Promise<void>
+  onSave: (data: ProfileField[]) => Promise<void>
   onAvatarUpload?: () => void
   isSaving?: boolean
+  avatarUploadElement?: React.ReactNode
+  uploadingAvatar?: boolean
+  avatarPreview?: string | null
 }
 
 export function ProfileSection({
@@ -42,7 +45,10 @@ export function ProfileSection({
   fields,
   onSave,
   onAvatarUpload,
-  isSaving: externalIsSaving
+  isSaving: externalIsSaving,
+  avatarUploadElement,
+  uploadingAvatar = false,
+  avatarPreview
 }: ProfileSectionProps) {
   const [internalIsSaving, setInternalIsSaving] = useState(false)
   const isSaving = externalIsSaving !== undefined ? externalIsSaving : internalIsSaving
@@ -71,32 +77,58 @@ export function ProfileSection({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <User className="h-5 w-5 text-primary" />
-          Personal Information
-        </CardTitle>
-        <CardDescription>Update your personal details</CardDescription>
+    <Card className="border-2">
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950 dark:to-green-950">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <User className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <CardTitle className="text-xl">Personal Information</CardTitle>
+            <CardDescription>Update your profile details and contact information</CardDescription>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Avatar */}
-          <div className="flex items-center gap-6">
-            <Avatar className="h-24 w-24">
-              <AvatarImage src={avatar || undefined} />
-              <AvatarFallback className="text-2xl">
+          <div className="flex items-start gap-6 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border-2 border-dashed">
+            <Avatar className="h-28 w-28 border-4 border-white shadow-lg">
+              <AvatarImage src={avatarPreview || avatar || undefined} />
+              <AvatarFallback className="text-2xl bg-gradient-to-br from-purple-500 to-pink-600 text-white">
                 {firstName[0]}{lastName[0]}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <Button type="button" variant="outline" size="sm" onClick={onAvatarUpload}>
-                <Upload className="h-4 w-4 mr-2" />
-                Upload Photo
-              </Button>
-              <p className="text-xs text-gray-500 mt-2">
-                JPG, PNG or GIF. Max size 2MB.
+            <div className="flex-1">
+              <h4 className="font-semibold text-lg mb-2">Profile Photo</h4>
+              <p className="text-sm text-muted-foreground mb-3">
+                Upload a professional photo that represents you. This will be visible to students, parents, and staff.
               </p>
+              <div className="flex items-center gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={onAvatarUpload}
+                  disabled={uploadingAvatar}
+                >
+                  {uploadingAvatar ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Photo
+                    </>
+                  )}
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  JPG, PNG (max 2MB)
+                </span>
+              </div>
+              {avatarUploadElement}
             </div>
           </div>
 
@@ -141,12 +173,17 @@ export function ProfileSection({
                           id={field.id}
                           value={field.value || ''}
                           onChange={(e) => field.onChange?.(e.target.value)}
-                          placeholder={field.placeholder}
+                          placeholder={field.placeholder || (field.value ? String(field.value) : 'Not set')}
                           disabled={field.disabled}
                           required={field.required}
                           className={FieldIcon ? 'pl-10' : ''}
                           rows={3}
                         />
+                        {!field.disabled && field.value && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Current: {String(field.value).substring(0, 50)}{String(field.value).length > 50 ? '...' : ''}
+                          </p>
+                        )}
                       </div>
                     ) : (
                       <div className="relative">
@@ -158,11 +195,16 @@ export function ProfileSection({
                           type={field.type || 'text'}
                           value={field.value || ''}
                           onChange={(e) => field.onChange?.(e.target.value)}
-                          placeholder={field.placeholder}
+                          placeholder={field.placeholder || (field.value ? String(field.value) : 'Not set')}
                           disabled={field.disabled}
                           required={field.required}
                           className={FieldIcon ? 'pl-10' : ''}
                         />
+                        {!field.disabled && field.value && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Current: {String(field.value)}
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
