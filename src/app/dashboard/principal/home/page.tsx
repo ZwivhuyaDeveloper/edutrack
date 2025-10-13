@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -20,7 +20,11 @@ import {
   CalendarPlus,
   RefreshCw,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ActivitySquareIcon,
+  MousePointer,
+  MouseIcon,
+  ActivityIcon
 } from 'lucide-react'
 import {
   Select,
@@ -80,7 +84,12 @@ export default function PrincipalHomePage() {
   const activitiesPerPage = 6
 
   useEffect(() => {
-    fetchDashboardData()
+    // Use requestIdleCallback for non-critical data fetching
+    const timeoutId = setTimeout(() => {
+      fetchDashboardData()
+    }, 0)
+    
+    return () => clearTimeout(timeoutId)
   }, [])
 
   const fetchDashboardData = async () => {
@@ -89,10 +98,20 @@ export default function PrincipalHomePage() {
       setError(null)
       setHasPartialData(false)
       
-      const [statsRes, activityRes, trendsRes] = await Promise.all([
-        fetch('/api/dashboard/principal/stats'),
-        fetch('/api/dashboard/principal/activity'),
-        fetch('/api/dashboard/principal/enrollment-trends')
+      // Fetch stats first (priority), then others in parallel
+      const statsRes = await fetch('/api/dashboard/principal/stats', {
+        // Add cache control for better performance
+        next: { revalidate: 60 } // Cache for 60 seconds
+      })
+      
+      // Fetch non-critical data in parallel
+      const [activityRes, trendsRes] = await Promise.all([
+        fetch('/api/dashboard/principal/activity', {
+          next: { revalidate: 30 }
+        }),
+        fetch('/api/dashboard/principal/enrollment-trends', {
+          next: { revalidate: 300 } // Cache trends for 5 minutes
+        })
       ])
 
       let statsLoaded = false
@@ -202,7 +221,7 @@ export default function PrincipalHomePage() {
     }
   ]
 
-  // Pagination helpers
+  // Pagination helpers - memoized for performance
   const getPeriodLabel = (days: string) => {
     switch (days) {
       case '1': return 'Today'
@@ -213,11 +232,15 @@ export default function PrincipalHomePage() {
     }
   }
 
-  const filteredActivities = recentActivity
-  const totalPages = Math.ceil(filteredActivities.length / activitiesPerPage)
-  const paginatedActivities = filteredActivities.slice(
-    (activityPage - 1) * activitiesPerPage,
-    activityPage * activitiesPerPage
+  // Memoize filtered and paginated activities to avoid unnecessary recalculations
+  const filteredActivities = useMemo(() => recentActivity, [recentActivity])
+  const totalPages = useMemo(() => Math.ceil(filteredActivities.length / activitiesPerPage), [filteredActivities.length, activitiesPerPage])
+  const paginatedActivities = useMemo(() => 
+    filteredActivities.slice(
+      (activityPage - 1) * activitiesPerPage,
+      activityPage * activitiesPerPage
+    ),
+    [filteredActivities, activityPage, activitiesPerPage]
   )
 
   const handlePeriodChange = (value: string) => {
@@ -316,20 +339,86 @@ export default function PrincipalHomePage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div className="h-4 w-20 bg-muted animate-pulse rounded" />
-                <div className="h-4 w-4 bg-muted animate-pulse rounded" />
-              </CardHeader>
-              <CardContent>
-                <div className="h-8 w-16 bg-muted animate-pulse rounded mb-2" />
-                <div className="h-3 w-24 bg-muted animate-pulse rounded" />
-              </CardContent>
-            </Card>
-          ))}
+      <div className="space-y-4 pt-4">
+        <div className="grid space-y-4 bg-white p-5 rounded-3xl lg:grid-cols-1">
+          {/* Stats Cards Skeleton */}
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <Card key={i} className="border-none shadow-none bg-zinc-100 overflow-hidden">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <div className="flex flex-row items-center gap-2">
+                    <div className="h-5 w-5 bg-zinc-300 animate-pulse rounded" />
+                    <div className="h-4 w-24 bg-zinc-300 animate-pulse rounded" />
+                  </div>
+                  <div className="h-7 w-16 bg-zinc-300 animate-pulse rounded" />
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="h-8 w-20 bg-zinc-300 animate-pulse rounded" />
+                  <div className="h-3 w-32 bg-zinc-300 animate-pulse rounded" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Additional Stats Skeleton */}
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-3 lg:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <Card key={i} className="border-none shadow-none bg-zinc-100">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <div className="flex flex-row items-center gap-2">
+                    <div className="h-5 w-5 bg-zinc-300 animate-pulse rounded" />
+                    <div className="h-4 w-20 bg-zinc-300 animate-pulse rounded" />
+                  </div>
+                  <div className="h-7 w-16 bg-zinc-300 animate-pulse rounded" />
+                </CardHeader>
+                <CardContent>
+                  <div className="h-8 w-16 bg-zinc-300 animate-pulse rounded mb-2" />
+                  <div className="h-3 w-28 bg-zinc-300 animate-pulse rounded" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Quick Actions Skeleton */}
+          <Card className="border-none shadow-none bg-zinc-100">
+            <CardHeader>
+              <div className="h-6 w-40 bg-zinc-300 animate-pulse rounded mb-2" />
+              <div className="h-4 w-64 bg-zinc-300 animate-pulse rounded" />
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="h-20 bg-zinc-300 animate-pulse rounded-lg" />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recent Activity Skeleton */}
+          <Card className="border-none shadow-none bg-zinc-100">
+            <CardHeader className="space-y-4 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex flex-col gap-2">
+                  <div className="h-6 w-48 bg-zinc-300 animate-pulse rounded" />
+                  <div className="h-4 w-56 bg-zinc-300 animate-pulse rounded" />
+                </div>
+                <div className="h-9 w-32 bg-zinc-300 animate-pulse rounded" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3 bg-white rounded-lg">
+                    <div className="h-9 w-9 bg-zinc-300 animate-pulse rounded-full" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-3/4 bg-zinc-300 animate-pulse rounded" />
+                      <div className="h-3 w-1/2 bg-zinc-300 animate-pulse rounded" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     )
@@ -380,13 +469,13 @@ export default function PrincipalHomePage() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="flex flex-row items-center gap-2">
               <Users strokeWidth={3} className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg font-semibold text-primary">Total Students</CardTitle>
+              <CardTitle className="text-md font-semibold text-primary">Total Students</CardTitle>
             </div>
             <Button variant="default" size="sm" className="border-primary text-xs">
               See All
             </Button>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-2 lg:text-md text-sm">
             <div className="text-2xl font-bold">{stats.totalStudents}</div>
             <p className="text-sm font-medium text-muted-foreground">
               Active enrollments
@@ -444,7 +533,7 @@ export default function PrincipalHomePage() {
               <CardTitle className="text-md font-semibold text-primary">Attendance Rate</CardTitle>
             </div>
             <Button variant="default" size="sm" className="border-primary text-xs ">
-              See All
+              View All
             </Button>
           </CardHeader>
           <CardContent>
@@ -462,7 +551,7 @@ export default function PrincipalHomePage() {
               <CardTitle className="text-md font-semibold text-primary">Pending Fees</CardTitle>
             </div>
             <Button variant="default" size="sm" className="border-primary text-xs">
-              See All
+              Transactions
             </Button>
           </CardHeader>
           <CardContent>
@@ -534,7 +623,9 @@ export default function PrincipalHomePage() {
       {/* Quick Actions */}
       <Card className="border-none shadow-none bg-zinc-100">
         <CardHeader>
-          <CardTitle className="text-lg font-semibold text-primary">Quick Actions</CardTitle>
+          <CardTitle className="text-lg font-semibold flex flex-row items-center gap-2 text-primary">
+            <MouseIcon strokeWidth={3} className="h-5 w-5 text-primary" />
+            Quick Actions</CardTitle>
           <CardDescription className="text-md font-medium text-muted-foreground">
             Frequently used actions for school management
           </CardDescription>
@@ -545,7 +636,7 @@ export default function PrincipalHomePage() {
               <Button
                 key={index}
                 variant={action.variant}
-                className="h-20 flex flex-col border-none shadow-none items-center justify-center gap-2"
+                className="h-20 flex flex-col  border-none shadow-none items-center justify-center gap-2"
                 onClick={() => window.location.href = action.href}
               >
                 <action.icon strokeWidth={3} className="h-5 w-5" />
@@ -563,8 +654,8 @@ export default function PrincipalHomePage() {
         <Card className="border-none shadow-none bg-zinc-100">
           <CardHeader className="space-y-4 pb-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex flex-col">
-                <CardTitle className="text-lg font-bold text-primary">Recent Activity</CardTitle>
+              <div className="flex flex-col gap-2">
+                <CardTitle className="text-lg font-bold flex flex-row items-center gap-2 text-primary"><ActivityIcon strokeWidth={3} className="h-5 w-5 text-primary" />Recent Activity</CardTitle>
                 <CardDescription className="text-md font-medium text-muted-foreground">
                   Latest updates from your school
                 </CardDescription>

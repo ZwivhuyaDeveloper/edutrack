@@ -816,12 +816,12 @@ function DashboardContent() {
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4 bg-gray-200" />
             <div className="flex items-center gap-2">
-              <span className="text-md font-semibold text-primary capitalize">{dbUser.role.toLowerCase()} Dashboard</span>
+              <span className="lg:text-md text-sm font-semibold text-primary capitalize">{dbUser.role.toLowerCase()} Dashboard</span>
               <span className="text-md text-black gap-2 flex flex-row ">
-                <p className="font-medium text-md">
+                <p className="font-medium lg:text-md text-sm">
                   Welcome back,
                 </p>
-                <p className="font-semibold text-primary text-md">
+                <p className="font-semibold text-primary lg:text-md text-sm">
                   {dbUser.firstName} {dbUser.lastName}
                 </p>
               </span>
