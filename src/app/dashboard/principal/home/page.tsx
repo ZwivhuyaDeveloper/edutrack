@@ -382,7 +382,7 @@ export default function PrincipalHomePage() {
               <Users strokeWidth={3} className="h-5 w-5 text-primary" />
               <CardTitle className="text-lg font-semibold text-primary">Total Students</CardTitle>
             </div>
-            <Button variant="default" size="sm" className="border-primary">
+            <Button variant="default" size="sm" className="border-primary text-xs">
               See All
             </Button>
           </CardHeader>
@@ -392,6 +392,7 @@ export default function PrincipalHomePage() {
               Active enrollments
             </p>
             {/* Student Enrollment Trend Chart */}
+            {/*
             <div className="w-full mt-3">
               <StudentEnrollmentChart
                 data={enrollmentTrends.length > 0 ? enrollmentTrends : 
@@ -414,7 +415,8 @@ export default function PrincipalHomePage() {
                 isLoading={isLoading}
               />
             </div>
-          </CardContent>
+            */}
+            </CardContent>
         </Card>
 
         <Card className="border-none shadow-none bg-zinc-100">
@@ -423,7 +425,7 @@ export default function PrincipalHomePage() {
               <GraduationCap strokeWidth={3} className="h-5 w-5 text-primary" />
               <CardTitle className="text-md font-semibold text-primary">Teachers</CardTitle>
             </div>
-            <Button variant="default" size="sm" className="border-primary">
+            <Button variant="default" size="sm" className="border-primary text-xs">
               See All
             </Button>
           </CardHeader>
@@ -441,7 +443,7 @@ export default function PrincipalHomePage() {
               <TrendingUp strokeWidth={3} className="h-5 w-5 text-primary" />
               <CardTitle className="text-md font-semibold text-primary">Attendance Rate</CardTitle>
             </div>
-            <Button variant="default" size="sm" className="border-primary">
+            <Button variant="default" size="sm" className="border-primary text-xs ">
               See All
             </Button>
           </CardHeader>
@@ -459,7 +461,7 @@ export default function PrincipalHomePage() {
               <DollarSign strokeWidth={3} className="h-5 w-5 text-primary" />
               <CardTitle className="text-md font-semibold text-primary">Pending Fees</CardTitle>
             </div>
-            <Button variant="default" size="sm" className="border-primary">
+            <Button variant="default" size="sm" className="border-primary text-xs">
               See All
             </Button>
           </CardHeader>
@@ -480,7 +482,7 @@ export default function PrincipalHomePage() {
               <BookOpen strokeWidth={3} className="h-5 w-5 text-primary" />
               <CardTitle className="text-md font-semibold text-primary">Classes</CardTitle>
             </div>
-            <Button variant="default" size="sm" className="border-primary">
+            <Button variant="default" size="sm" className="border-primary text-xs">
               See All
             </Button>
           </CardHeader>
@@ -498,7 +500,7 @@ export default function PrincipalHomePage() {
               <Calendar strokeWidth={3} className="h-5 w-5 text-primary" />
               <CardTitle className="text-md font-semibold text-primary">Upcoming Events</CardTitle>
             </div>
-            <Button variant="default" size="sm" className="border-primary">
+            <Button variant="default" size="sm" className="border-primary text-xs">
               See All
             </Button>
           </CardHeader>
@@ -516,7 +518,7 @@ export default function PrincipalHomePage() {
               <MessageSquare strokeWidth={3} className="h-5 w-5 text-primary" />
               <CardTitle className="text-md font-semibold text-primary">Messages</CardTitle>
             </div>
-            <Button variant="default" size="sm" className="border-primary">
+            <Button variant="default" size="sm" className="border-primary text-xs">
               See All
             </Button>
           </CardHeader>
