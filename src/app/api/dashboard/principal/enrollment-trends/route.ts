@@ -25,42 +25,51 @@ export async function GET() {
       )
     }
 
-    // Get enrollment data for the last 6 months
-    const sixMonthsAgo = new Date()
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+    // Get enrollment data for the last 10 years (120 months) to support all time ranges
+    const tenYearsAgo = new Date()
+    tenYearsAgo.setMonth(tenYearsAgo.getMonth() - 120)
 
-    // Get all students with their creation dates
-    const students = await prisma.user.findMany({
+    // Get all enrollments with their enrollment dates
+    const enrollments = await prisma.enrollment.findMany({
       where: {
-        schoolId: user.schoolId,
-        role: 'STUDENT',
-        createdAt: {
-          gte: sixMonthsAgo
-        }
+        student: {
+          schoolId: user.schoolId,
+          role: 'STUDENT'
+        },
+        enrolledAt: {
+          gte: tenYearsAgo
+        },
+        status: 'ACTIVE'
       },
       select: {
         id: true,
-        createdAt: true
+        enrolledAt: true,
+        studentId: true
       },
       orderBy: {
-        createdAt: 'asc'
+        enrolledAt: 'asc'
       }
     })
 
-    // Get current total students
+    // Get current total active students
     const totalStudents = await prisma.user.count({
       where: {
         schoolId: user.schoolId,
-        role: 'STUDENT'
+        role: 'STUDENT',
+        enrollments: {
+          some: {
+            status: 'ACTIVE'
+          }
+        }
       }
     })
 
-    // Generate month labels for the last 6 months
+    // Generate month labels for the last 120 months (10 years)
     const months: Array<{ month: string; year: number; date: Date }> = []
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
     const now = new Date()
     
-    for (let i = 5; i >= 0; i--) {
+    for (let i = 119; i >= 0; i--) {
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
       months.push({
         month: monthNames[date.getMonth()],
@@ -69,18 +78,21 @@ export async function GET() {
       })
     }
 
-    // Count students enrolled up to each month
+    // Count unique students enrolled up to each month
     const enrollmentData = months.map(({ month, date }) => {
       const nextMonth = new Date(date)
       nextMonth.setMonth(nextMonth.getMonth() + 1)
       
-      // Count students created before the end of this month
-      const studentsUpToMonth = students.filter(student => 
-        new Date(student.createdAt) < nextMonth
-      ).length
+      // Get unique students enrolled before the end of this month
+      const uniqueStudentsUpToMonth = new Set(
+        enrollments
+          .filter(enrollment => new Date(enrollment.enrolledAt) < nextMonth)
+          .map(enrollment => enrollment.studentId)
+      )
+      const studentsUpToMonth = uniqueStudentsUpToMonth.size
 
-      // If no students in historical data, use proportional calculation
-      const studentCount = students.length > 0 
+      // If no enrollments in historical data, use proportional calculation
+      const studentCount = enrollments.length > 0 
         ? studentsUpToMonth 
         : Math.max(0, totalStudents - (months.length - months.findIndex(m => m.month === month)) * 20)
 
@@ -95,18 +107,21 @@ export async function GET() {
       enrollmentData[enrollmentData.length - 1].students = totalStudents
     }
 
-    // If we have no historical data, create a growth trend
-    if (students.length === 0 && totalStudents > 0) {
-      const baseCount = Math.max(totalStudents - 150, 0)
+    // If we have no historical enrollment data, create a growth trend
+    if (enrollments.length === 0 && totalStudents > 0) {
+      // Simulate realistic growth over 10 years
+      const baseCount = Math.max(Math.floor(totalStudents * 0.1), 10)
       enrollmentData.forEach((data, index) => {
-        data.students = Math.round(baseCount + (totalStudents - baseCount) * (index / (enrollmentData.length - 1)))
+        // Use exponential-like growth curve for more realistic simulation
+        const progress = index / (enrollmentData.length - 1)
+        data.students = Math.round(baseCount + (totalStudents - baseCount) * Math.pow(progress, 0.7))
       })
     }
 
     console.log('Enrollment Trends:', {
       schoolId: user.schoolId,
       totalStudents,
-      historicalStudents: students.length,
+      historicalEnrollments: enrollments.length,
       trends: enrollmentData
     })
 

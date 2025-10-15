@@ -1,7 +1,23 @@
 "use client"
 
 import * as React from "react"
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
+import { TrendingDown, TrendingUp, Users } from "lucide-react"
+import { Area, AreaChart, CartesianGrid, Line, LineChart, XAxis } from "recharts"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   ChartConfig,
   ChartContainer,
@@ -26,113 +42,193 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export function StudentEnrollmentChart({ data, isLoading = false }: StudentEnrollmentChartProps) {
-  // Ensure we have valid data
+export function StudentEnrollmentChart({ 
+  data, 
+  isLoading = false
+}: StudentEnrollmentChartProps) {
+  const [timeRange, setTimeRange] = React.useState("12")
+
+  // Process and filter data based on time range
   const chartData = React.useMemo(() => {
     if (!data || data.length === 0) {
-      return [
-        { month: 'Jan', students: 100 },
-        { month: 'Feb', students: 120 },
-        { month: 'Mar', students: 150 },
-        { month: 'Apr', students: 180 },
-        { month: 'May', students: 210 },
-        { month: 'Jun', students: 250 },
-      ]
+      // Generate default data based on selected time range
+      const rangeMonths = parseInt(timeRange)
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                     'July', 'August', 'September', 'October', 'November', 'December']
+      const defaultData = []
+      
+      for (let i = 0; i < rangeMonths; i++) {
+        const monthIndex = i % 12
+        defaultData.push({
+          month: months[monthIndex],
+          students: 100 + i * 10
+        })
+      }
+      
+      return defaultData
     }
-    return data
-  }, [data])
+
+    // Filter data based on selected time range
+    const rangeMonths = parseInt(timeRange)
+    
+    // If we want all months and data has enough, return the requested range
+    // Otherwise, slice to the requested range
+    if (rangeMonths >= data.length) {
+      return data
+    }
+    
+    return data.slice(-rangeMonths)
+  }, [data, timeRange])
+
+  // Calculate trend percentage
+  const trendPercentage = React.useMemo(() => {
+    if (chartData.length < 2) return "0"
+    const firstValue = chartData[0].students
+    const lastValue = chartData[chartData.length - 1].students
+    if (firstValue === 0) return "0"
+    return (((lastValue - firstValue) / firstValue) * 100).toFixed(1)
+  }, [chartData])
+
+  // Get date range for footer
+  const dateRange = React.useMemo(() => {
+    if (chartData.length === 0) return ""
+    const firstMonth = chartData[0].month
+    const lastMonth = chartData[chartData.length - 1].month
+    const currentYear = new Date().getFullYear()
+    
+    // Calculate years based on time range
+    const rangeMonths = parseInt(timeRange)
+    if (rangeMonths > 12) {
+      const yearsAgo = Math.floor(rangeMonths / 12)
+      const startYear = currentYear - yearsAgo
+      return `${firstMonth} ${startYear} - ${lastMonth} ${currentYear}`
+    }
+    
+    return `${firstMonth} - ${lastMonth} ${currentYear}`
+  }, [chartData, timeRange])
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-[120px] w-full">
-        <p className="text-xs text-muted-foreground">Loading chart...</p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Student Enrollment Trend</CardTitle>
+          <CardDescription>Loading enrollment data...</CardDescription>
+        </CardHeader>
+        <CardContent className="h-[300px] flex items-center justify-center">
+          <p className="text-sm text-muted-foreground">Loading chart...</p>
+        </CardContent>
+      </Card>
     )
   }
 
   return (
-    <ChartContainer
-      config={chartConfig}
-      className="h-[120px] w-full"
-    >
-      <AreaChart
-        data={chartData}
-        margin={{ top: 10, right: 10, left: 45, bottom: 5 }}
-      >
-        <defs>
-          <linearGradient id="fillStudents" x1="0" y1="0" x2="0" y2="1">
-            <stop
-              offset="0%"
-              stopColor="hsl(var(--primary))"
-              stopOpacity={0.4}
+    <Card className="bg-transparent border-none shadow-none" >
+      <CardHeader className="flex flex-col items-stretch space-y-0 border-b px-1 sm:flex-row">
+        <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
+          <Users strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+          <CardDescription className="text-sm sm:text-sm  w-30 font-bold text-primary">
+            Student Enrollment Trend
+          </CardDescription>
+        </div>
+        <div className="flex">
+          <div className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-1 py-1  sm:border-l sm:border-t-0 sm:px-2 sm:py-1">
+            <Select value={timeRange} onValueChange={setTimeRange}>
+              <SelectTrigger
+                className="w-fit justify-center border-none shadow-none bg-primary hover:bg-primary/80 text-xs text-white rounded-lg"
+                aria-label="Select time range"
+              >
+                <SelectValue placeholder="Last 12 months" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="3" className="rounded-lg">
+                  Last 3 months
+                </SelectItem>
+                <SelectItem value="6" className="rounded-lg">
+                  Last 6 months
+                </SelectItem>
+                <SelectItem value="12" className="rounded-lg">
+                  Last 12 months
+                </SelectItem>
+                <SelectItem value="24" className="rounded-lg">
+                  Past 2 years
+                </SelectItem>
+                <SelectItem value="36" className="rounded-lg">
+                  Past 3 years
+                </SelectItem>
+                <SelectItem value="60" className="rounded-lg">
+                  Past 5 years
+                </SelectItem>
+                <SelectItem value="120" className="rounded-lg">
+                  Past 10 years
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="px-3 sm:px-5">
+        <ChartContainer
+          config={chartConfig}
+          className="aspect-auto h-[200px] w-full"
+        >
+          <AreaChart
+            accessibilityLayer
+            data={chartData}
+            margin={{
+              left: 12,
+              right: 12,
+            }}
+          >
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent indicator="line" />}
             />
-            <stop
-              offset="100%"
-              stopColor="hsl(var(--primary))"
-              stopOpacity={0.05}
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="month"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              tickFormatter={(value) => value.slice(0, 3)}
             />
-          </linearGradient>
-        </defs>
-        <CartesianGrid 
-          strokeDasharray="3 3" 
-          opacity={0.3}
-          stroke="hsl(var(--border))"
-          vertical={true}
-          horizontal={true}
-        />
-        <XAxis
-          dataKey="month"
-          tickLine={false}
-          axisLine={{ stroke: "hsl(var(--foreground))", strokeWidth: 1.5 }}
-          tickMargin={8}
-          tick={{ fontSize: 12, fill: "hsl(var(--foreground))", fontWeight: 500 }}
-        />
-        <YAxis
-          domain={[0, 1000]}
-          tickLine={false}
-          axisLine={{ stroke: "hsl(var(--foreground))", strokeWidth: 1.5 }}
-          tickMargin={8}
-          tick={{ fontSize: 12, fill: "hsl(var(--foreground))", fontWeight: 500 }}
-          ticks={[0, 200, 400, 600, 800, 1000]}
-          width={45}
-        />
-        <ChartTooltip
-          cursor={{ stroke: "hsl(var(--primary))", strokeWidth: 2, strokeDasharray: '5 5', opacity: 0.5 }}
-          content={
-            <ChartTooltipContent
-              labelFormatter={(value) => value}
-              formatter={(value) => (
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-primary text-base">{value} students</span>
-                </div>
-              )}
-              indicator="dot"
+
+            <Area
+              dataKey="students"
+              type="natural"
+              fill="var(--chart-1)"
+              fillOpacity={0.2}
+              stroke="var(--chart-1)"
+              strokeWidth={3}
+              dot={{
+                fill: "var(--chart-1)",
+                strokeWidth: 2,
+                fillOpacity: 1,
+                r: 4,
+                stroke: "var(--chart-1)"
+              }}
+              activeDot={{
+                r: 6,
+                fill: "var(--chart-1)",
+                stroke: "var(--chart-1)",
+                strokeWidth: 2
+              }}
             />
-          }
-        />
-        <Area
-          dataKey="students"
-          type="monotone"
-          fill="url(#fillStudents)"
-          stroke="hsl(var(--primary))"
-          strokeWidth={4}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          dot={{
-            r: 5,
-            fill: "hsl(var(--primary))",
-            stroke: "white",
-            strokeWidth: 3
-          }}
-          activeDot={{
-            r: 7,
-            fill: "hsl(var(--primary))",
-            stroke: "white",
-            strokeWidth: 3,
-            filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))"
-          }}
-        />
-      </AreaChart>
-    </ChartContainer>
+          </AreaChart>
+        </ChartContainer>
+      </CardContent>
+      <CardFooter className="hidden">
+        <div className="flex w-full items-start gap-2 text-sm">
+          <div className="flex flex-col justify-between gap-2">
+            <div className="flex items-center gap-1 font-medium leading-none">
+              {parseFloat(trendPercentage) >= 0 ? 'Enrollment up' : 'Enrollment down'} by {Math.abs(parseFloat(trendPercentage))}% 
+              {parseFloat(trendPercentage) >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+            </div>
+            <div className="flex items-center gap-2 leading-none text-muted-foreground">
+              {dateRange}
+            </div>
+          </div>
+        </div>
+      </CardFooter>
+    </Card>
   )
 }

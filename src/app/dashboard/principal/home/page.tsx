@@ -464,55 +464,26 @@ export default function PrincipalHomePage() {
       <div className="grid space-y-3 sm:space-y-4 bg-white p-3 sm:p-5 rounded-2xl sm:rounded-3xl lg:grid-cols-1">
 
       {/* Stats Cards */}
-      <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-none shadow-none pt-0 bg-zinc-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
-            <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-              <Users strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Total Students</CardTitle>
-            </div>
-            <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
-              See All
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-1 sm:space-y-2 p-3 sm:p-6 pt-0">
-            <div className="text-xl sm:text-2xl font-bold">{stats.totalStudents}</div>
+      <div className="grid gap-2 sm:gap-3 md:gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="border-none shadow-none pt-0 mb-0 bg-zinc-100">
+                      {/* Student Enrollment Trend Chart */}
+            <StudentEnrollmentChart
+              data={enrollmentTrends}
+              isLoading={isLoading}
+            />
+          <CardContent className="p-2 sm:px-6 pt-0">
+            <div className="text-xl sm:text-2xl font-bold">Total Students: <span className="text-primary">{stats.totalStudents}</span></div>
             <p className="text-xs sm:text-sm font-medium text-muted-foreground">
               Active enrollments
             </p>
-            {/* Student Enrollment Trend Chart */}
-            {/*
-            <div className="w-full mt-3">
-              <StudentEnrollmentChart
-                data={enrollmentTrends.length > 0 ? enrollmentTrends : 
-                  stats.totalStudents > 0 ? [
-                    { month: 'Jan', students: Math.max(stats.totalStudents - 150, 50) },
-                    { month: 'Feb', students: Math.max(stats.totalStudents - 120, 80) },
-                    { month: 'Mar', students: Math.max(stats.totalStudents - 80, 120) },
-                    { month: 'Apr', students: Math.max(stats.totalStudents - 50, 160) },
-                    { month: 'May', students: Math.max(stats.totalStudents - 20, 200) },
-                    { month: 'Jun', students: stats.totalStudents },
-                  ] : [
-                    { month: 'Jan', students: 150 },
-                    { month: 'Feb', students: 220 },
-                    { month: 'Mar', students: 320 },
-                    { month: 'Apr', students: 450 },
-                    { month: 'May', students: 620 },
-                    { month: 'Jun', students: 800 },
-                  ]
-                }
-                isLoading={isLoading}
-              />
-            </div>
-            */}
-            </CardContent>
+          </CardContent>
         </Card>
 
         <Card className="border-none shadow-none pt-0  bg-zinc-100">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
             <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-              <GraduationCap strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Teachers</CardTitle>
+              <GraduationCap strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+              <CardTitle className="text-md sm:text-md font-bold text-primary">Teachers</CardTitle>
             </div>
             <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
               See All
@@ -529,8 +500,8 @@ export default function PrincipalHomePage() {
         <Card className="border-none shadow-none pt-0 bg-zinc-100">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
             <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-              <TrendingUp strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Attendance</CardTitle>
+              <TrendingUp strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+              <CardTitle className="text-md sm:text-md font-bold text-primary">Attendance</CardTitle>
             </div>
             <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
               View All
@@ -547,8 +518,8 @@ export default function PrincipalHomePage() {
         <Card className="border-none shadow-none pt-0 bg-zinc-100">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
             <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-              <DollarSign strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Pending Fees</CardTitle>
+              <DollarSign strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+              <CardTitle className="text-md sm:text-md font-bold text-primary">Pending Fees</CardTitle>
             </div>
             <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
               Transactions
