@@ -281,7 +281,7 @@ export function FeePaymentsChart({
           </ChartContainer>
         </div>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 px-3">
+      <CardFooter className="flex-col items-start gap-2 px-3 pb-0">
         <div className="flex flex-col gap-1 px-3">
           <div className="text-lg sm:text-xl font-bold">
             Total Paid: <span className="text-primary">${totalPayments}</span>

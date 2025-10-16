@@ -164,10 +164,10 @@ export function StudentEnrollmentChart({
   if (!data || data.length === 0) {
     return (
       <Card className="bg-transparent border-none shadow-none h-full">
-        <CardHeader className="flex flex-col items-stretch space-y-0 border-b px-1 sm:flex-row">
-          <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
-            <Users strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-            <CardDescription className="text-sm sm:text-sm w-30 font-bold text-primary">
+        <CardHeader className="flex flex-col  items-stretch space-y-0 border-b sm:flex-row">
+          <div className="flex flex-1 flex-row w-full items-center justify-start gap-3 pl-4 py-1 sm:py-1">
+            <Users strokeWidth={2} className="h-5 w-5 sm:h-5 sm:w-5 text-primary" />
+            <CardDescription className="text-sm sm:text-sm text-left w-full font-bold text-primary">
               Student Enrollment Trend
             </CardDescription>
           </div>
@@ -294,7 +294,7 @@ export function StudentEnrollmentChart({
           </AreaChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 px-6 pt-0">
+      <CardFooter className="flex-col items-start gap-2 px-6 pt-0 pb-0 ">
         <div className="flex w-full flex-col gap-1">
           <div className="text-lg sm:text-xl font-bold">
             Total Students: <span className="text-primary">{totalStudents}</span>

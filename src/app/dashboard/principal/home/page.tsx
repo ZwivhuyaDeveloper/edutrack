@@ -685,7 +685,7 @@ export default function PrincipalHomePage() {
 
       {/* Stats Cards */}
       <div className="grid gap-3 sm:gap-3 md:gap-3  grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-none shadow-none gap-5 pt-0 mb-0 bg-white">
+        <Card className="border-none shadow-none gap-5 pb-0 pt-0 mb-0 bg-white">
             <StudentEnrollmentChart
               data={enrollmentTrends}
               isLoading={isLoading}
@@ -740,11 +740,11 @@ export default function PrincipalHomePage() {
 
         <Card className="border-none shadow-none pt-0 bg-white">
           <ClassesOverviewCard
-          classes={classes}
-          totalClasses={stats.totalClasses}
-          totalSubjects={stats.totalSubjects}
-          isLoading={isLoading}
-          maxDisplay={4}
+            classes={classes}
+            totalClasses={stats.totalClasses}
+            totalSubjects={stats.totalSubjects}
+            isLoading={isLoading}
+            maxDisplay={4}
         />
         </Card>
 
@@ -761,7 +761,7 @@ export default function PrincipalHomePage() {
       </div>
 
       {/* Quick Actions */}
-      <Card className="border-none shadow-none bg-zinc-100">
+      <Card className="border-none shadow-none bg-white">
         <CardHeader className="p-3 sm:p-6">
           <CardTitle className="text-base sm:text-lg font-semibold flex flex-row items-center gap-2 text-primary">
             <MouseIcon strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
@@ -776,7 +776,7 @@ export default function PrincipalHomePage() {
               <Button
                 key={index}
                 variant={action.variant}
-                className="h-16 sm:h-20 flex flex-col border-none shadow-none items-center justify-center gap-1 sm:gap-2"
+                className={`h-16 sm:h-20 flex flex-col border-none shadow-none items-center justify-center gap-1 sm:gap-2 ${action.variant === 'outline' ? 'bg-zinc-100 hover:bg-zinc-200' : ''}`}
                 onClick={() => window.location.href = action.href}
               >
                 <action.icon strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -791,7 +791,7 @@ export default function PrincipalHomePage() {
       <div className="grid gap-6 lg:grid-cols-1">
 
         {/* Recent Activity */}
-        <Card className="border-none shadow-none bg-zinc-100">
+        <Card className="border-none shadow-none bg-white">
           <CardHeader className="space-y-3 sm:space-y-4 pb-3 sm:pb-4 p-3 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
               <div className="flex flex-col gap-1 sm:gap-2">
@@ -829,7 +829,7 @@ export default function PrincipalHomePage() {
                   const Icon = getActivityIcon(activity.type)
                   const activityColor = getActivityColor(activity.type)
                   return (
-                    <div key={activity.id} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-white rounded-lg hover:bg-white transition-colors">
+                    <div key={activity.id} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-zinc-100 rounded-lg hover:bg-white transition-colors">
                       <div className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full flex-shrink-0 ${activityColor.bg}`}>
                         <Icon strokeWidth={3} className={`h-4 w-4 sm:h-5 sm:w-5 ${activityColor.text}`} />
                       </div>

@@ -182,9 +182,9 @@ export function PendingFeesCard({
   }
 
   return (
-    <Card className="border-none shadow-none pt-0 ">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6">
-        <div className="flex flex-row items-center gap-1.5 sm:gap-2">
+    <Card className="border-none shadow-none pt-0 gap-3 ">
+      <CardHeader className="flex flex-row items-center border-b border-zinc-200 justify-between space-y-0 px-6 pt-6">
+        <div className="flex flex-row items-center gap-1.5 sm:gap-2 w-full h-full border-r border-zinc-200">
           <DollarSign strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
           <CardTitle className="text-md sm:text-md font-bold text-primary">Pending Fees</CardTitle>
         </div>

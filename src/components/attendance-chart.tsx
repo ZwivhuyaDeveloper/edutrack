@@ -294,7 +294,7 @@ export function AttendanceChart({
           </BarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 px-6">
+      <CardFooter className="flex-col items-start gap-2 px-6 pb-0">
         <div className="flex w-full flex-col gap-1">
           <div className="text-lg sm:text-xl font-bold">
             Attendance Rate: <span className="text-primary">{averageRate}%</span>
