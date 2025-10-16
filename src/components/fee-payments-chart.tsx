@@ -112,7 +112,7 @@ export function FeePaymentsChart({
   return (
     <Card className="border-none shadow-none bg-transparent">
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
-        <div className="flex flex-1 flex-col justify-center gap-1 px-3 py-3 sm:px-6 sm:py-6">
+        <div className="flex flex-1 flex-col justify-center gap-1 px-3 py-3 sm:px-6 sm:py-3">
           <CardTitle className="text-primary">Fee Payments Trend</CardTitle>
         </div>
         <div className="flex">
@@ -139,7 +139,8 @@ export function FeePaymentsChart({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-3 sm:px-5">
+      <div className="flex flex-col justify-between h-full">
+        <CardContent className="px-3 sm:px-5">
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[200px] w-full"
@@ -184,8 +185,8 @@ export function FeePaymentsChart({
           </LineChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 p-3 sm:p-6 pt-3">
-        <div className="flex w-full flex-col gap-2">
+      <CardFooter className="flex-col items-end gap-2 px-6">
+        <div className="flex w-full flex-col gap-1">
           <div className="text-xl sm:text-2xl font-bold">
             Total Paid: <span className="text-primary">${totalPayments}</span>
           </div>
@@ -194,6 +195,7 @@ export function FeePaymentsChart({
           </p>
         </div>
       </CardFooter>
+    </div>
     </Card>
   )
 }

@@ -553,8 +553,8 @@ export default function PrincipalHomePage() {
       <div className="grid space-y-3 sm:space-y-4 bg-white p-3 sm:p-5 rounded-2xl sm:rounded-3xl lg:grid-cols-1">
 
       {/* Stats Cards */}
-      <div className="grid gap-2 sm:gap-3 md:gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-none shadow-none pt-0 mb-0 bg-zinc-100">
+      <div className="grid gap-2 sm:gap-3 md:gap-2  grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="border-none shadow-none justify-between pt-0 mb-0 bg-zinc-100">
             <StudentEnrollmentChart
               data={enrollmentTrends}
               isLoading={isLoading}
