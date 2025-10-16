@@ -38,6 +38,9 @@ import { AttendanceChart } from "@/components/attendance-chart"
 import { FeePaymentsChart } from "@/components/fee-payments-chart"
 import { PendingFeesCard } from "@/components/pending-fees-card"
 import { ClassesOverviewCard } from "@/components/classes-overview-card"
+import { StaffOverviewCard } from "@/components/staff-overview-card"
+import { UpcomingEventsCard } from "@/components/upcoming-events-card"
+import { UnreadMessagesCard } from "@/components/unread-messages-card"
 
 interface DashboardStats {
   totalStudents: number
@@ -158,6 +161,18 @@ interface ClassData {
   }[]
 }
 
+interface StaffMember {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  avatar?: string
+  role: 'TEACHER' | 'CLERK'
+  department?: string
+  employeeId?: string
+  hireDate?: string
+}
+
 export default function PrincipalHomePage() {
   const [stats, setStats] = useState<DashboardStats>({
     totalStudents: 0,
@@ -179,6 +194,8 @@ export default function PrincipalHomePage() {
   const [events, setEvents] = useState<Event[]>([])
   const [messages, setMessages] = useState<Message[]>([])
   const [classes, setClasses] = useState<ClassData[]>([])
+  const [staff, setStaff] = useState<StaffMember[]>([])
+  const [totalClerks, setTotalClerks] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
@@ -211,7 +228,7 @@ export default function PrincipalHomePage() {
       })
       
       // Fetch non-critical data in parallel
-      const [activityRes, trendsRes, attendanceTrendsRes, teachersRes, feeRecordsRes, paymentTrendsRes, eventsRes, messagesRes, classesRes] = await Promise.all([
+      const [activityRes, trendsRes, attendanceTrendsRes, teachersRes, feeRecordsRes, paymentTrendsRes, eventsRes, messagesRes, classesRes, staffRes] = await Promise.all([
         fetch('/api/dashboard/principal/activity', {
           next: { revalidate: 30 }
         }),
@@ -238,6 +255,9 @@ export default function PrincipalHomePage() {
         }),
         fetch('/api/dashboard/principal/classes', {
           next: { revalidate: 300 } // Cache classes for 5 minutes
+        }),
+        fetch('/api/dashboard/principal/staff', {
+          next: { revalidate: 300 } // Cache staff for 5 minutes
         })
       ])
 
@@ -364,6 +384,16 @@ export default function PrincipalHomePage() {
         setClasses(classesData.classes || [])
       } else {
         console.error('Failed to fetch classes:', classesRes.status)
+      }
+
+      // Handle staff response
+      if (staffRes.ok) {
+        const staffData = await staffRes.json()
+        console.log('Received staff:', staffData)
+        setStaff(staffData.staff || [])
+        setTotalClerks(staffData.totalClerks || 0)
+      } else {
+        console.error('Failed to fetch staff:', staffRes.status)
       }
 
       // If stats failed but activity loaded, show partial data
@@ -691,164 +721,21 @@ export default function PrincipalHomePage() {
 
 
         <Card className="border-none shadow-none pt-0 bg-white">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6 pb-3">
-            <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-              <MessageSquare strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Unread Messages</CardTitle>
-            </div>
-            <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
-              See All
-            </Button>
-          </CardHeader>
-          <CardContent className="px-6 pb-6 pt-0">
-            {/* Messages List */}
-            <div className="space-y-3">
-              {isLoading ? (
-                <div className="text-xs text-muted-foreground">Loading messages...</div>
-              ) : messages.length > 0 ? (
-                messages.slice(0, 3).map((message) => (
-                  <div 
-                    key={message.id} 
-                    className="flex items-start gap-3 p-3 rounded-lg bg-white hover:bg-zinc-50 transition-colors border border-zinc-200"
-                  >
-                    {/* Avatar */}
-                    <div className="flex-shrink-0">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        {message.lastMessage?.sender.avatar ? (
-                          <img 
-                            src={message.lastMessage.sender.avatar} 
-                            alt={`${message.lastMessage.sender.firstName} ${message.lastMessage.sender.lastName}`}
-                            className="h-10 w-10 rounded-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-sm font-semibold text-primary">
-                            {message.lastMessage?.sender.firstName.charAt(0)}
-                            {message.lastMessage?.sender.lastName.charAt(0)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Message Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-foreground truncate">
-                            {message.isGroup 
-                              ? message.conversationTitle 
-                              : message.otherParticipant 
-                                ? `${message.otherParticipant.firstName} ${message.otherParticipant.lastName}`
-                                : 'Unknown'}
-                          </p>
-                          {message.lastMessage && (
-                            <p className="text-xs text-muted-foreground truncate mt-0.5">
-                              {message.lastMessage.sender.firstName}: {message.lastMessage.content}
-                            </p>
-                          )}
-                        </div>
-                        {message.isUnread && (
-                          <Badge variant="destructive" className="text-xs px-2 py-0 h-5 flex-shrink-0">
-                            New
-                          </Badge>
-                        )}
-                      </div>
-                      {message.lastMessage && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {new Date(message.lastMessage.sentAt).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-xs text-muted-foreground text-center py-4">No unread messages</div>
-              )}
-            </div>
-
-            {/* Total Count */}
-            <div className="mt-4 pt-3 border-t border-zinc-200">
-              <div className="text-xl sm:text-2xl font-bold">
-                Total: <span className="text-primary">{stats.unreadMessages}</span>
-              </div>
-              <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                Unread messages
-              </p>
-            </div>
-          </CardContent>
+          <UnreadMessagesCard
+            messages={messages}
+            totalUnread={stats.unreadMessages}
+            isLoading={isLoading}
+            maxDisplay={3}
+          />
         </Card>
 
         <Card className="border-none shadow-none pt-0 bg-white">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6 pb-3">
-            <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-              <Calendar strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Upcoming Events</CardTitle>
-            </div>
-            <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
-              See All
-            </Button>
-          </CardHeader>
-          <CardContent className="px-6 pb-6 pt-0">
-            {/* Events List */}
-            <div className="space-y-3">
-              {isLoading ? (
-                <div className="text-xs text-muted-foreground">Loading events...</div>
-              ) : events.length > 0 ? (
-                events.slice(0, 3).map((event) => (
-                  <div 
-                    key={event.id} 
-                    className="flex flex-col gap-1 p-3 rounded-lg bg-white hover:bg-zinc-50 transition-colors border border-zinc-200"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">
-                          {event.title}
-                        </p>
-                        {event.description && (
-                          <p className="text-xs text-muted-foreground truncate mt-0.5">
-                            {event.description}
-                          </p>
-                        )}
-                      </div>
-                      <Badge variant="secondary" className="text-xs px-2 py-0 h-5 flex-shrink-0">
-                        {event.type}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {new Date(event.startDate).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric',
-                          hour: event.isAllDay ? undefined : '2-digit',
-                          minute: event.isAllDay ? undefined : '2-digit'
-                        })}
-                      </span>
-                      {event.location && (
-                        <span className="truncate">📍 {event.location}</span>
-                      )}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-xs text-muted-foreground text-center py-4">No upcoming events</div>
-              )}
-            </div>
-
-            {/* Total Count */}
-            <div className="mt-4 pt-3 border-t border-zinc-200">
-              <div className="text-xl sm:text-2xl font-bold">
-                Total: <span className="text-primary">{stats.upcomingEvents}</span>
-              </div>
-              <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                Next 7 days
-              </p>
-            </div>
-          </CardContent>
+          <UpcomingEventsCard
+            events={events}
+            totalEvents={stats.upcomingEvents}
+            isLoading={isLoading}
+            maxDisplay={3}
+          />
         </Card>
 
         <Card className="border-none shadow-none pt-0 bg-white">
@@ -862,70 +749,13 @@ export default function PrincipalHomePage() {
         </Card>
 
         <Card className="border-none shadow-none pt-0 bg-white">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6">
-            <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-              <GraduationCap strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-              <CardTitle className="text-md sm:text-md font-bold text-primary">Teachers</CardTitle>
-            </div>
-            <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
-              See All
-            </Button>
-          </CardHeader>
-          <CardContent className=" sm:px-6 justify-between h-full flex flex-col">
-
-            <div className="space-y-2">
-              {isLoading ? (
-                <div className="text-xs text-muted-foreground">Loading teachers...</div>
-              ) : teachers.length > 0 ? (
-                teachers.slice(0, 4).map((teacher) => (
-                  <div 
-                    key={teacher.id} 
-                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-zinc-200/50 transition-colors"
-                  >
-                    <div className="flex-shrink-0">
-                      {teacher.avatar ? (
-                        <img 
-                          src={teacher.avatar} 
-                          alt={`${teacher.firstName} ${teacher.lastName}`}
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <span className="text-xs font-semibold text-primary">
-                            {teacher.firstName[0]}{teacher.lastName[0]}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-foreground truncate">
-                          {teacher.firstName} {teacher.lastName}
-                        </p>
-                        {teacher.teacherProfile?.department && (
-                          <Badge variant="secondary" className="text-xs px-2 py-0 h-5">
-                            {teacher.teacherProfile.department}
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {teacher.email}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-xs text-muted-foreground">No teachers found</div>
-              )}
-            </div>
-
-            <div className="flex flex-col py-2 ">
-              <div className="text-xl sm:text-2xl font-bold">Total Teachers: <span className="text-primary">{stats.totalTeachers}</span></div>
-              <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                Active faculty members
-              </p>
-            </div>
-          </CardContent>
+          <StaffOverviewCard
+            staff={staff}
+            totalTeachers={stats.totalTeachers}
+            totalClerks={totalClerks}
+            isLoading={isLoading}
+            maxDisplay={4}
+          />
         </Card>
 
       </div>

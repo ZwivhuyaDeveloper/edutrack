@@ -1,6 +1,6 @@
 "use client"
 
-import { BookOpen, Users, AlertCircle, Loader2, GraduationCap } from "lucide-react"
+import { GraduationCap, AlertCircle, Loader2, Users } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -12,31 +12,22 @@ import {
 } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
-interface ClassData {
+interface StaffMember {
   id: string
-  name: string
-  grade?: string
-  section?: string
-  _count: {
-    enrollments: number
-    subjects: number
-  }
-  subjects: {
-    subject: {
-      name: string
-      code?: string
-    }
-    teacher: {
-      firstName: string
-      lastName: string
-    }
-  }[]
+  firstName: string
+  lastName: string
+  email: string
+  avatar?: string
+  role: 'TEACHER' | 'CLERK'
+  department?: string
+  employeeId?: string
+  hireDate?: string
 }
 
-interface ClassesOverviewCardProps {
-  classes: ClassData[]
-  totalClasses: number
-  totalSubjects: number
+interface StaffOverviewCardProps {
+  staff: StaffMember[]
+  totalTeachers: number
+  totalClerks: number
   isLoading?: boolean
   error?: string | null
   onRetry?: () => void
@@ -44,24 +35,26 @@ interface ClassesOverviewCardProps {
   onSeeAll?: () => void
 }
 
-export function ClassesOverviewCard({ 
-  classes, 
-  totalClasses,
-  totalSubjects,
+export function StaffOverviewCard({ 
+  staff, 
+  totalTeachers,
+  totalClerks,
   isLoading = false,
   error = null,
   onRetry,
   maxDisplay = 4,
   onSeeAll
-}: ClassesOverviewCardProps) {
+}: StaffOverviewCardProps) {
+  const totalStaff = totalTeachers + totalClerks
+
   // Enhanced Loading State
   if (isLoading) {
     return (
       <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6 pb-3">
           <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-            <BookOpen strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-            <CardTitle className="text-sm sm:text-md font-semibold text-primary">Classes Overview</CardTitle>
+            <GraduationCap strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+            <CardTitle className="text-md sm:text-md font-bold text-primary">Staff Overview</CardTitle>
           </div>
           <Button 
             variant="default" 
@@ -76,18 +69,20 @@ export function ClassesOverviewCard({
           <div className="h-[200px] flex flex-col items-center justify-center gap-3">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <div className="text-center">
-              <p className="text-sm font-medium text-foreground">Loading classes...</p>
-              <p className="text-xs text-muted-foreground mt-1">Please wait while we fetch class information</p>
+              <p className="text-sm font-medium text-foreground">Loading staff...</p>
+              <p className="text-xs text-muted-foreground mt-1">Please wait while we fetch staff information</p>
             </div>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col items-start px-6">
           <div className="text-lg sm:text-xl font-bold text-muted-foreground/50">
-            Total Classes: <span className="text-primary/50">---</span>
+            Total Staff: <span className="text-primary/50">---</span>
           </div>
-          <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-            --- subjects across all classes
-          </p>
+          <div className="flex items-center gap-3 text-xs sm:text-sm font-medium text-muted-foreground">
+            <span>--- Teachers</span>
+            <span>•</span>
+            <span>--- Clerks</span>
+          </div>
         </CardFooter>
       </Card>
     )
@@ -99,8 +94,8 @@ export function ClassesOverviewCard({
       <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6 pb-3">
           <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-            <BookOpen strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-            <CardTitle className="text-sm sm:text-md font-semibold text-primary">Classes Overview</CardTitle>
+            <GraduationCap strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+            <CardTitle className="text-md sm:text-md font-bold text-primary">Staff Overview</CardTitle>
           </div>
           <Button 
             variant="default" 
@@ -116,7 +111,7 @@ export function ClassesOverviewCard({
             <Alert variant="destructive" className="max-w-md">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription className="ml-2">
-                <p className="font-medium">Failed to load classes</p>
+                <p className="font-medium">Failed to load staff</p>
                 <p className="text-xs mt-1">{error}</p>
                 {onRetry && (
                   <Button 
@@ -134,7 +129,7 @@ export function ClassesOverviewCard({
         </CardContent>
         <CardFooter className="flex flex-col items-start px-6">
           <div className="text-lg sm:text-xl font-bold text-muted-foreground/50">
-            Total Classes: <span className="text-primary/50">---</span>
+            Total Staff: <span className="text-primary/50">---</span>
           </div>
           <p className="text-xs sm:text-sm font-medium text-muted-foreground">
             Data unavailable
@@ -145,13 +140,13 @@ export function ClassesOverviewCard({
   }
 
   // Enhanced Empty State
-  if (!classes || classes.length === 0) {
+  if (!staff || staff.length === 0) {
     return (
       <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6 pb-3">
           <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-            <BookOpen strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-            <CardTitle className="text-sm sm:text-md font-semibold text-primary">Classes Overview</CardTitle>
+            <GraduationCap strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+            <CardTitle className="text-md sm:text-md font-bold text-primary">Staff Overview</CardTitle>
           </div>
           <Button 
             variant="default" 
@@ -165,22 +160,22 @@ export function ClassesOverviewCard({
         <CardContent className="px-6 pb-6 pt-0">
           <div className="h-[200px] flex flex-col items-center justify-center gap-3 text-center">
             <div className="rounded-full bg-primary/10 p-4">
-              <GraduationCap className="h-8 w-8 text-primary" />
+              <Users className="h-8 w-8 text-primary" />
             </div>
             <div>
-              <p className="text-sm font-medium text-foreground">No classes found</p>
+              <p className="text-sm font-medium text-foreground">No staff members found</p>
               <p className="text-xs text-muted-foreground mt-1 max-w-xs">
-                Start creating classes to organize students and subjects
+                Start adding teachers and clerks to manage your school staff
               </p>
             </div>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col items-start px-6">
           <div className="text-lg sm:text-xl font-bold">
-            Total Classes: <span className="text-primary">0</span>
+            Total Staff: <span className="text-primary">0</span>
           </div>
           <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-            No classes created
+            No staff members
           </p>
         </CardFooter>
       </Card>
@@ -191,8 +186,8 @@ export function ClassesOverviewCard({
     <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6 pb-3">
         <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-          <BookOpen strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-          <CardTitle className="text-sm sm:text-md font-semibold text-primary">Classes Overview</CardTitle>
+          <GraduationCap strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+          <CardTitle className="text-md sm:text-md font-bold text-primary">Staff Overview</CardTitle>
         </div>
         <Button 
           variant="default" 
@@ -204,40 +199,51 @@ export function ClassesOverviewCard({
         </Button>
       </CardHeader>
       <CardContent className="px-6 pb-6 pt-0">
-        {/* Classes List */}
-        <div className="space-y-3">
-          {classes.slice(0, maxDisplay).map((classItem) => (
+        {/* Staff List */}
+        <div className="space-y-2">
+          {staff.slice(0, maxDisplay).map((member) => (
               <div 
-                key={classItem.id} 
-                className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-zinc-50 hover:bg-zinc-100/50 transition-colors border border-zinc-50"
+                key={member.id} 
+                className="flex items-center gap-2 p-2 rounded-lg bg-zinc-50 hover:bg-zinc-100/50 transition-colors border border-zinc-50"
               >
-                {/* Left Section: Class Info */}
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <h3 className="text-sm font-bold text-foreground truncate">
-                    {classItem.name}
-                  </h3>
-                  {classItem.grade && (
-                    <Badge variant="outline" className="text-xs px-2 py-0 h-5 flex-shrink-0 border-primary/30 text-primary">
-                      Grade {classItem.grade}
-                    </Badge>
-                  )}
-                  {classItem.section && (
-                    <Badge variant="secondary" className="text-xs px-2 py-0 h-5 flex-shrink-0">
-                      Sec {classItem.section}
-                    </Badge>
+                {/* Avatar */}
+                <div className="flex-shrink-0">
+                  {member.avatar ? (
+                    <img 
+                      src={member.avatar} 
+                      alt={`${member.firstName} ${member.lastName}`}
+                      className="w-8 h-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-xs font-semibold text-primary">
+                        {member.firstName[0]}{member.lastName[0]}
+                      </span>
+                    </div>
                   )}
                 </div>
 
-                {/* Right Section: Stats */}
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Users className="h-3 w-3" />
-                    <span className="font-medium">{classItem._count.enrollments}</span>
-                  </span>
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <BookOpen className="h-3 w-3" />
-                    <span className="font-medium">{classItem._count.subjects}</span>
-                  </span>
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {member.firstName} {member.lastName}
+                    </p>
+                    <Badge 
+                      variant={member.role === 'TEACHER' ? 'default' : 'secondary'} 
+                      className="text-xs px-2 py-0 h-5 flex-shrink-0"
+                    >
+                      {member.role === 'TEACHER' ? 'Teacher' : 'Clerk'}
+                    </Badge>
+                    {member.department && (
+                      <Badge variant="outline" className="text-xs px-2 py-0 h-5 flex-shrink-0">
+                        {member.department}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {member.email}
+                  </p>
                 </div>
               </div>
             ))}
@@ -245,13 +251,15 @@ export function ClassesOverviewCard({
       </CardContent>
 
       {/* Total Count Footer */}
-      <CardFooter className="flex flex-col items-start px-6 ">
+      <CardFooter className="flex flex-col items-start px-6">
         <div className="text-lg sm:text-xl font-bold">
-          Total Classes: <span className="text-primary">{totalClasses}</span>
+          Total Staff: <span className="text-primary">{totalStaff}</span>
         </div>
-        <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-          {totalSubjects} subjects across all classes
-        </p>
+        <div className="flex items-center gap-3 text-xs sm:text-sm font-medium text-muted-foreground">
+          <span>{totalTeachers} Teachers</span>
+          <span>•</span>
+          <span>{totalClerks} Clerks</span>
+        </div>
       </CardFooter>
     </Card>
   )

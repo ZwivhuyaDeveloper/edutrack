@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { TrendingUp, Users } from "lucide-react"
+import { TrendingUp, Users, AlertCircle, Loader2, BarChart3 } from "lucide-react"
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 import {
   Card,
@@ -24,6 +24,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 
 interface AttendanceData {
   date: string
@@ -33,6 +35,8 @@ interface AttendanceData {
 interface AttendanceChartProps {
   data: AttendanceData[]
   isLoading?: boolean
+  error?: string | null
+  onRetry?: () => void
 }
 
 const chartConfig = {
@@ -44,29 +48,16 @@ const chartConfig = {
 
 export function AttendanceChart({ 
   data, 
-  isLoading = false
+  isLoading = false,
+  error = null,
+  onRetry
 }: AttendanceChartProps) {
   const [timeRange, setTimeRange] = React.useState("30")
 
   // Process and filter data based on time range
   const chartData = React.useMemo(() => {
     if (!data || data.length === 0) {
-      // Generate default data based on selected time range (in days)
-      const rangeDays = parseInt(timeRange)
-      const defaultData = []
-      const now = new Date()
-      
-      for (let i = rangeDays - 1; i >= 0; i--) {
-        const date = new Date(now)
-        date.setDate(date.getDate() - i)
-        const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-        defaultData.push({
-          date: dateStr,
-          rate: 75 + Math.random() * 20 // Random rate between 75-95%
-        })
-      }
-      
-      return defaultData
+      return []
     }
 
     // Filter data based on selected time range (in days)
@@ -98,16 +89,123 @@ export function AttendanceChart({
     return { categoryGap: '2%', barGap: 0 } // For larger ranges
   }, [chartData.length])
 
+  // Enhanced Loading State
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Attendance Trend</CardTitle>
-          <CardDescription>Loading attendance data...</CardDescription>
+      <Card className="bg-transparent border-none shadow-none h-full">
+        <CardHeader className="flex flex-col items-stretch space-y-0 border-b px-1 sm:flex-row">
+          <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
+            <TrendingUp strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+            <CardDescription className="text-sm sm:text-sm w-30 font-bold text-primary">
+              Attendance Trend
+            </CardDescription>
+          </div>
         </CardHeader>
-        <CardContent className="h-[300px] flex items-center justify-center">
-          <p className="text-sm text-muted-foreground">Loading chart...</p>
+        <CardContent className="px-3 sm:px-5">
+          <div className="h-[200px] flex flex-col items-center justify-center gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="text-center">
+              <p className="text-sm font-medium text-foreground">Loading attendance data...</p>
+              <p className="text-xs text-muted-foreground mt-1">Please wait while we fetch the latest statistics</p>
+            </div>
+          </div>
         </CardContent>
+        <CardFooter className="flex-col items-start gap-2 px-6">
+          <div className="flex w-full flex-col gap-1">
+            <div className="text-lg sm:text-xl font-bold text-muted-foreground/50">
+              Attendance Rate: <span className="text-primary/50">---%</span>
+            </div>
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+              This week average
+            </p>
+          </div>
+        </CardFooter>
+      </Card>
+    )
+  }
+
+  // Enhanced Error State
+  if (error) {
+    return (
+      <Card className="bg-transparent border-none shadow-none h-full">
+        <CardHeader className="flex flex-col items-stretch space-y-0 border-b px-1 sm:flex-row">
+          <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
+            <TrendingUp strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+            <CardDescription className="text-sm sm:text-sm w-30 font-bold text-primary">
+              Attendance Trend
+            </CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent className="px-3 sm:px-5">
+          <div className="h-[200px] flex items-center justify-center">
+            <Alert variant="destructive" className="max-w-md">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="ml-2">
+                <p className="font-medium">Failed to load attendance data</p>
+                <p className="text-xs mt-1">{error}</p>
+                {onRetry && (
+                  <Button 
+                    onClick={onRetry} 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-3 w-full"
+                  >
+                    Try Again
+                  </Button>
+                )}
+              </AlertDescription>
+            </Alert>
+          </div>
+        </CardContent>
+        <CardFooter className="flex-col items-start gap-2 px-6">
+          <div className="flex w-full flex-col gap-1">
+            <div className="text-lg sm:text-xl font-bold text-muted-foreground/50">
+              Attendance Rate: <span className="text-primary/50">---%</span>
+            </div>
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+              Data unavailable
+            </p>
+          </div>
+        </CardFooter>
+      </Card>
+    )
+  }
+
+  // Enhanced Empty State
+  if (!data || data.length === 0) {
+    return (
+      <Card className="bg-transparent border-none shadow-none h-full">
+        <CardHeader className="flex flex-col items-stretch space-y-0 border-b px-1 sm:flex-row">
+          <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
+            <TrendingUp strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+            <CardDescription className="text-sm sm:text-sm w-30 font-bold text-primary">
+              Attendance Trend
+            </CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent className="px-3 sm:px-5">
+          <div className="h-[200px] flex flex-col items-center justify-center gap-3 text-center">
+            <div className="rounded-full bg-primary/10 p-4">
+              <BarChart3 className="h-8 w-8 text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-foreground">No attendance data available</p>
+              <p className="text-xs text-muted-foreground mt-1 max-w-xs">
+                Start tracking attendance to see trends and statistics
+              </p>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter className="flex-col items-start gap-2 px-6">
+          <div className="flex w-full flex-col gap-1">
+            <div className="text-lg sm:text-xl font-bold">
+              Attendance Rate: <span className="text-primary">0%</span>
+            </div>
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+              No records available
+            </p>
+          </div>
+        </CardFooter>
       </Card>
     )
   }
