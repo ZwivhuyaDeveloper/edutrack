@@ -150,6 +150,20 @@ export async function GET() {
     // Calculate total pending fees
     const pendingFees = pendingInvoices.reduce((sum: number, invoice: { total: number }) => sum + invoice.total, 0)
     
+    // Calculate total paid fees
+    const paidFees = await prisma.fee_records.findMany({
+      where: {
+        paid: true,
+        studentId: {
+          in: allStudents.map(s => s.id)
+        }
+      },
+      select: {
+        amount: true
+      }
+    })
+    const totalPaidFees = paidFees.reduce((sum, fee) => sum + fee.amount, 0)
+    
     const upcomingEvents = upcomingEventsData
     const unreadMessages = unreadNotifications
 
@@ -176,6 +190,7 @@ export async function GET() {
       totalSubjects: subjectCount,
       attendanceRate,
       pendingFees,
+      totalPaidFees,
       upcomingEvents,
       unreadMessages
     })

@@ -10,7 +10,6 @@ import {
   BookOpen, 
   Calendar, 
   DollarSign, 
-  TrendingUp, 
   AlertTriangle,
   Plus,
   MessageSquare,
@@ -35,6 +34,8 @@ import {
 } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { StudentEnrollmentChart } from '@/components/student-enrollment-chart'
+import { AttendanceChart } from '@/components/attendance-chart'
+import { FeePaymentsChart } from '@/components/fee-payments-chart'
 
 interface DashboardStats {
   totalStudents: number
@@ -43,6 +44,7 @@ interface DashboardStats {
   totalSubjects: number
   attendanceRate: number
   pendingFees: number
+  totalPaidFees: number
   upcomingEvents: number
   unreadMessages: number
 }
@@ -60,6 +62,40 @@ interface EnrollmentTrend {
   students: number
 }
 
+interface AttendanceTrend {
+  date: string
+  rate: number
+}
+
+interface Teacher {
+  id: string
+  firstName: string
+  lastName: string
+  email: string
+  avatar?: string
+  teacherProfile?: {
+    department?: string
+  }
+}
+
+interface FeeRecord {
+  id: string
+  description: string
+  amount: number
+  dueDate: string
+  paid: boolean
+  studentId: string
+  student?: {
+    firstName: string
+    lastName: string
+  }
+}
+
+interface PaymentTrend {
+  month: string
+  amount: number
+}
+
 export default function PrincipalHomePage() {
   const [stats, setStats] = useState<DashboardStats>({
     totalStudents: 0,
@@ -68,11 +104,16 @@ export default function PrincipalHomePage() {
     totalSubjects: 0,
     attendanceRate: 0,
     pendingFees: 0,
+    totalPaidFees: 0,
     upcomingEvents: 0,
     unreadMessages: 0
   })
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([])
   const [enrollmentTrends, setEnrollmentTrends] = useState<EnrollmentTrend[]>([])
+  const [attendanceTrends, setAttendanceTrends] = useState<AttendanceTrend[]>([])
+  const [teachers, setTeachers] = useState<Teacher[]>([])
+  const [feeRecords, setFeeRecords] = useState<FeeRecord[]>([])
+  const [paymentTrends, setPaymentTrends] = useState<PaymentTrend[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
@@ -105,12 +146,24 @@ export default function PrincipalHomePage() {
       })
       
       // Fetch non-critical data in parallel
-      const [activityRes, trendsRes] = await Promise.all([
+      const [activityRes, trendsRes, attendanceTrendsRes, teachersRes, feeRecordsRes, paymentTrendsRes] = await Promise.all([
         fetch('/api/dashboard/principal/activity', {
           next: { revalidate: 30 }
         }),
         fetch('/api/dashboard/principal/enrollment-trends', {
           next: { revalidate: 300 } // Cache trends for 5 minutes
+        }),
+        fetch('/api/dashboard/principal/attendance-trends', {
+          next: { revalidate: 300 } // Cache trends for 5 minutes
+        }),
+        fetch('/api/dashboard/principal/teachers', {
+          next: { revalidate: 60 } // Cache teachers for 1 minute
+        }),
+        fetch('/api/dashboard/principal/fee-records', {
+          next: { revalidate: 60 } // Cache fee records for 1 minute
+        }),
+        fetch('/api/dashboard/principal/payment-trends', {
+          next: { revalidate: 300 } // Cache payment trends for 5 minutes
         })
       ])
 
@@ -174,6 +227,42 @@ export default function PrincipalHomePage() {
           { month: 'May', students: stats.totalStudents - 20 },
           { month: 'Jun', students: stats.totalStudents },
         ])
+      }
+
+      // Handle attendance trends response
+      if (attendanceTrendsRes.ok) {
+        const attendanceData = await attendanceTrendsRes.json()
+        console.log('Received attendance trends:', attendanceData)
+        setAttendanceTrends(attendanceData.trends || [])
+      } else {
+        console.error('Failed to fetch attendance trends:', attendanceTrendsRes.status)
+      }
+
+      // Handle teachers response
+      if (teachersRes.ok) {
+        const teachersData = await teachersRes.json()
+        console.log('Received teachers:', teachersData)
+        setTeachers(teachersData.teachers || [])
+      } else {
+        console.error('Failed to fetch teachers:', teachersRes.status)
+      }
+
+      // Handle fee records response
+      if (feeRecordsRes.ok) {
+        const feeRecordsData = await feeRecordsRes.json()
+        console.log('Received fee records:', feeRecordsData)
+        setFeeRecords(feeRecordsData.feeRecords || [])
+      } else {
+        console.error('Failed to fetch fee records:', feeRecordsRes.status)
+      }
+
+      // Handle payment trends response
+      if (paymentTrendsRes.ok) {
+        const paymentData = await paymentTrendsRes.json()
+        console.log('Received payment trends:', paymentData)
+        setPaymentTrends(paymentData.trends || [])
+      } else {
+        console.error('Failed to fetch payment trends:', paymentTrendsRes.status)
       }
 
       // If stats failed but activity loaded, show partial data
@@ -466,7 +555,6 @@ export default function PrincipalHomePage() {
       {/* Stats Cards */}
       <div className="grid gap-2 sm:gap-3 md:gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="border-none shadow-none pt-0 mb-0 bg-zinc-100">
-                      {/* Student Enrollment Trend Chart */}
             <StudentEnrollmentChart
               data={enrollmentTrends}
               isLoading={isLoading}
@@ -479,8 +567,29 @@ export default function PrincipalHomePage() {
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-none pt-0  bg-zinc-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+        <Card className="border-none shadow-none justify-between pt-0 mb-0 bg-zinc-100">
+          {/* Attendance Trend Chart */}
+          <AttendanceChart
+            data={attendanceTrends}
+            isLoading={isLoading}
+          />
+          <CardContent className="p-2 sm:px-6 pt-0">
+            <div className="text-xl sm:text-2xl font-bold">Attendance Rate: <span className="text-primary">{stats.attendanceRate}%</span></div>
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+              This week average
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-none pt-0 mb-0 bg-zinc-100">
+          <FeePaymentsChart
+            data={paymentTrends}
+            isLoading={isLoading}
+          />
+        </Card> 
+        {/* 
+        <Card className="border-none shadow-none pt-0 bg-zinc-100">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6">
             <div className="flex flex-row items-center gap-1.5 sm:gap-2">
               <GraduationCap strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
               <CardTitle className="text-md sm:text-md font-bold text-primary">Teachers</CardTitle>
@@ -489,34 +598,66 @@ export default function PrincipalHomePage() {
               See All
             </Button>
           </CardHeader>
-          <CardContent className="p-3 sm:p-6 pt-0">
-            <div className="text-xl sm:text-2xl font-bold">{stats.totalTeachers}</div>
-            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-              Active faculty members
-            </p>
-          </CardContent>
-        </Card>
+          <CardContent className=" sm:px-6 justify-between h-full flex flex-col">
 
-        <Card className="border-none shadow-none pt-0 bg-zinc-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
-            <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-              <TrendingUp strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-              <CardTitle className="text-md sm:text-md font-bold text-primary">Attendance</CardTitle>
+            <div className="space-y-2">
+              {isLoading ? (
+                <div className="text-xs text-muted-foreground">Loading teachers...</div>
+              ) : teachers.length > 0 ? (
+                teachers.slice(0, 4).map((teacher) => (
+                  <div 
+                    key={teacher.id} 
+                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-zinc-200/50 transition-colors"
+                  >
+                    <div className="flex-shrink-0">
+                      {teacher.avatar ? (
+                        <img 
+                          src={teacher.avatar} 
+                          alt={`${teacher.firstName} ${teacher.lastName}`}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                          <span className="text-xs font-semibold text-primary">
+                            {teacher.firstName[0]}{teacher.lastName[0]}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {teacher.firstName} {teacher.lastName}
+                        </p>
+                        {teacher.teacherProfile?.department && (
+                          <Badge variant="secondary" className="text-xs px-2 py-0 h-5">
+                            {teacher.teacherProfile.department}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {teacher.email}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-xs text-muted-foreground">No teachers found</div>
+              )}
             </div>
-            <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
-              View All
-            </Button>
-          </CardHeader>
-          <CardContent className="p-3 sm:p-6 pt-0">
-            <div className="text-xl sm:text-2xl font-bold">{stats.attendanceRate}%</div>
-            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-              This week average
-            </p>
+
+            <div className="flex flex-col py-2 ">
+              <div className="text-xl sm:text-2xl font-bold">Total Teachers: <span className="text-primary">{stats.totalTeachers}</span></div>
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+                Active faculty members
+              </p>
+            </div>
           </CardContent>
         </Card>
+        */}
 
         <Card className="border-none shadow-none pt-0 bg-zinc-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6">
             <div className="flex flex-row items-center gap-1.5 sm:gap-2">
               <DollarSign strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
               <CardTitle className="text-md sm:text-md font-bold text-primary">Pending Fees</CardTitle>
@@ -525,11 +666,49 @@ export default function PrincipalHomePage() {
               Transactions
             </Button>
           </CardHeader>
-          <CardContent className="p-3 sm:p-6 pt-0">
-            <div className="text-xl sm:text-2xl font-bold">${stats.pendingFees}</div>
-            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-              Outstanding amount
-            </p>
+          <CardContent className="sm:px-6 justify-between h-full flex flex-col">
+            {/* Fee Records List */}
+            <div className="space-y-2">
+              {isLoading ? (
+                <div className="text-xs text-muted-foreground">Loading fee records...</div>
+              ) : feeRecords.length > 0 ? (
+                feeRecords.slice(0, 4).map((record) => (
+                  <div 
+                    key={record.id} 
+                    className="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-zinc-200/50 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {record.student ? `${record.student.firstName} ${record.student.lastName}` : 'Unknown Student'}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {record.description}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Due: {new Date(record.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </p>
+                    </div>
+                    <div className="flex-shrink-0 text-right">
+                      <p className="text-sm font-bold text-destructive">
+                        ${record.amount.toFixed(2)}
+                      </p>
+                      <Badge variant="destructive" className="text-xs px-2 py-0 h-5 mt-1">
+                        Unpaid
+                      </Badge>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-xs text-muted-foreground">No pending fees</div>
+              )}
+            </div>
+
+            <div className="flex flex-col py-2">
+              <div className="text-xl sm:text-2xl font-bold">Total Pending: <span className="text-destructive">${stats.pendingFees}</span></div>
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+                Outstanding amount
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
