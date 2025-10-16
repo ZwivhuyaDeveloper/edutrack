@@ -96,6 +96,45 @@ interface PaymentTrend {
   amount: number
 }
 
+interface Event {
+  id: string
+  title: string
+  description?: string
+  startDate: string
+  endDate: string
+  location?: string
+  type: string
+  isAllDay: boolean
+  createdBy: {
+    firstName: string
+    lastName: string
+  }
+}
+
+interface Message {
+  id: string
+  conversationTitle?: string
+  isGroup: boolean
+  lastMessage: {
+    id: string
+    content: string
+    sentAt: string
+    sender: {
+      firstName: string
+      lastName: string
+      avatar?: string
+    }
+  } | null
+  otherParticipant: {
+    id: string
+    firstName: string
+    lastName: string
+    avatar?: string
+  } | null
+  isUnread: boolean
+  updatedAt: string
+}
+
 export default function PrincipalHomePage() {
   const [stats, setStats] = useState<DashboardStats>({
     totalStudents: 0,
@@ -114,6 +153,8 @@ export default function PrincipalHomePage() {
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [feeRecords, setFeeRecords] = useState<FeeRecord[]>([])
   const [paymentTrends, setPaymentTrends] = useState<PaymentTrend[]>([])
+  const [events, setEvents] = useState<Event[]>([])
+  const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
@@ -146,7 +187,7 @@ export default function PrincipalHomePage() {
       })
       
       // Fetch non-critical data in parallel
-      const [activityRes, trendsRes, attendanceTrendsRes, teachersRes, feeRecordsRes, paymentTrendsRes] = await Promise.all([
+      const [activityRes, trendsRes, attendanceTrendsRes, teachersRes, feeRecordsRes, paymentTrendsRes, eventsRes, messagesRes] = await Promise.all([
         fetch('/api/dashboard/principal/activity', {
           next: { revalidate: 30 }
         }),
@@ -164,6 +205,12 @@ export default function PrincipalHomePage() {
         }),
         fetch('/api/dashboard/principal/payment-trends', {
           next: { revalidate: 300 } // Cache payment trends for 5 minutes
+        }),
+        fetch('/api/dashboard/principal/events', {
+          next: { revalidate: 60 } // Cache events for 1 minute
+        }),
+        fetch('/api/dashboard/principal/messages', {
+          next: { revalidate: 30 } // Cache messages for 30 seconds
         })
       ])
 
@@ -263,6 +310,24 @@ export default function PrincipalHomePage() {
         setPaymentTrends(paymentData.trends || [])
       } else {
         console.error('Failed to fetch payment trends:', paymentTrendsRes.status)
+      }
+
+      // Handle events response
+      if (eventsRes.ok) {
+        const eventsData = await eventsRes.json()
+        console.log('Received events:', eventsData)
+        setEvents(eventsData.events || [])
+      } else {
+        console.error('Failed to fetch events:', eventsRes.status)
+      }
+
+      // Handle messages response
+      if (messagesRes.ok) {
+        const messagesData = await messagesRes.json()
+        console.log('Received messages:', messagesData)
+        setMessages(messagesData.messages || [])
+      } else {
+        console.error('Failed to fetch messages:', messagesRes.status)
       }
 
       // If stats failed but activity loaded, show partial data
@@ -722,38 +787,163 @@ export default function PrincipalHomePage() {
         </Card>
 
         <Card className="border-none shadow-none pt-0 bg-zinc-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6 pb-3">
             <div className="flex flex-row items-center gap-1.5 sm:gap-2">
               <Calendar strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Events</CardTitle>
+              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Upcoming Events</CardTitle>
             </div>
             <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
               See All
             </Button>
           </CardHeader>
-          <CardContent className="p-3 sm:p-6 pt-0">
-            <div className="text-xl sm:text-2xl font-bold">{stats.upcomingEvents}</div>
-            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-              Next 7 days
-            </p>
+          <CardContent className="px-6 pb-6 pt-0">
+            {/* Events List */}
+            <div className="space-y-3">
+              {isLoading ? (
+                <div className="text-xs text-muted-foreground">Loading events...</div>
+              ) : events.length > 0 ? (
+                events.slice(0, 3).map((event) => (
+                  <div 
+                    key={event.id} 
+                    className="flex flex-col gap-1 p-3 rounded-lg bg-white hover:bg-zinc-50 transition-colors border border-zinc-200"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">
+                          {event.title}
+                        </p>
+                        {event.description && (
+                          <p className="text-xs text-muted-foreground truncate mt-0.5">
+                            {event.description}
+                          </p>
+                        )}
+                      </div>
+                      <Badge variant="secondary" className="text-xs px-2 py-0 h-5 flex-shrink-0">
+                        {event.type}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {new Date(event.startDate).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric',
+                          hour: event.isAllDay ? undefined : '2-digit',
+                          minute: event.isAllDay ? undefined : '2-digit'
+                        })}
+                      </span>
+                      {event.location && (
+                        <span className="truncate">📍 {event.location}</span>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-xs text-muted-foreground text-center py-4">No upcoming events</div>
+              )}
+            </div>
+
+            {/* Total Count */}
+            <div className="mt-4 pt-3 border-t border-zinc-200">
+              <div className="text-xl sm:text-2xl font-bold">
+                Total: <span className="text-primary">{stats.upcomingEvents}</span>
+              </div>
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+                Next 7 days
+              </p>
+            </div>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-none pt-0 bg-zinc-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6 pb-3">
             <div className="flex flex-row items-center gap-1.5 sm:gap-2">
               <MessageSquare strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Messages</CardTitle>
+              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Unread Messages</CardTitle>
             </div>
             <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
               See All
             </Button>
           </CardHeader>
-          <CardContent className="p-3 sm:p-6 pt-0">
-            <div className="text-xl sm:text-2xl font-bold">{stats.unreadMessages}</div>
-            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-              Unread messages
-            </p>
+          <CardContent className="px-6 pb-6 pt-0">
+            {/* Messages List */}
+            <div className="space-y-3">
+              {isLoading ? (
+                <div className="text-xs text-muted-foreground">Loading messages...</div>
+              ) : messages.length > 0 ? (
+                messages.slice(0, 3).map((message) => (
+                  <div 
+                    key={message.id} 
+                    className="flex items-start gap-3 p-3 rounded-lg bg-white hover:bg-zinc-50 transition-colors border border-zinc-200"
+                  >
+                    {/* Avatar */}
+                    <div className="flex-shrink-0">
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        {message.lastMessage?.sender.avatar ? (
+                          <img 
+                            src={message.lastMessage.sender.avatar} 
+                            alt={`${message.lastMessage.sender.firstName} ${message.lastMessage.sender.lastName}`}
+                            className="h-10 w-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-sm font-semibold text-primary">
+                            {message.lastMessage?.sender.firstName.charAt(0)}
+                            {message.lastMessage?.sender.lastName.charAt(0)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Message Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-foreground truncate">
+                            {message.isGroup 
+                              ? message.conversationTitle 
+                              : message.otherParticipant 
+                                ? `${message.otherParticipant.firstName} ${message.otherParticipant.lastName}`
+                                : 'Unknown'}
+                          </p>
+                          {message.lastMessage && (
+                            <p className="text-xs text-muted-foreground truncate mt-0.5">
+                              {message.lastMessage.sender.firstName}: {message.lastMessage.content}
+                            </p>
+                          )}
+                        </div>
+                        {message.isUnread && (
+                          <Badge variant="destructive" className="text-xs px-2 py-0 h-5 flex-shrink-0">
+                            New
+                          </Badge>
+                        )}
+                      </div>
+                      {message.lastMessage && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {new Date(message.lastMessage.sentAt).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-xs text-muted-foreground text-center py-4">No unread messages</div>
+              )}
+            </div>
+
+            {/* Total Count */}
+            <div className="mt-4 pt-3 border-t border-zinc-200">
+              <div className="text-xl sm:text-2xl font-bold">
+                Total: <span className="text-primary">{stats.unreadMessages}</span>
+              </div>
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+                Unread messages
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
