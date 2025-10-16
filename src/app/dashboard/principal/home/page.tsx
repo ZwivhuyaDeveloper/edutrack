@@ -33,9 +33,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { toast } from 'sonner'
-import { StudentEnrollmentChart } from '@/components/student-enrollment-chart'
-import { AttendanceChart } from '@/components/attendance-chart'
-import { FeePaymentsChart } from '@/components/fee-payments-chart'
+import { StudentEnrollmentChart } from "@/components/student-enrollment-chart"
+import { AttendanceChart } from "@/components/attendance-chart"
+import { FeePaymentsChart } from "@/components/fee-payments-chart"
+import { PendingFeesCard } from "@/components/pending-fees-card"
+import { ClassesOverviewCard } from "@/components/classes-overview-card"
 
 interface DashboardStats {
   totalStudents: number
@@ -649,18 +651,18 @@ export default function PrincipalHomePage() {
 
       {/* Content Container */}
 
-      <div className="grid space-y-3 sm:space-y-4 bg-white p-3 sm:p-5 rounded-2xl sm:rounded-3xl lg:grid-cols-1">
+      <div className="grid space-y-3 sm:space-y-4 bg-transparent rounded-2xl sm:rounded-3xl lg:grid-cols-1">
 
       {/* Stats Cards */}
-      <div className="grid gap-2 sm:gap-3 md:gap-2  grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-none shadow-none gap-5 pt-0 mb-0 bg-zinc-100">
+      <div className="grid gap-3 sm:gap-3 md:gap-3  grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="border-none shadow-none gap-5 pt-0 mb-0 bg-white">
             <StudentEnrollmentChart
               data={enrollmentTrends}
               isLoading={isLoading}
             />
         </Card>
 
-        <Card className="border-none shadow-none gap-5 pt-0 mb-0 bg-zinc-100">
+        <Card className="border-none shadow-none gap-5 pt-0 mb-0 bg-white">
           {/* Attendance Trend Chart */}
           <AttendanceChart
             data={attendanceTrends}
@@ -668,301 +670,27 @@ export default function PrincipalHomePage() {
           />
         </Card>
 
-        <Card className="border-none shadow-none pt-0 mb-0 bg-zinc-100">
+        <Card className="border-none shadow-none pt-0 mb-0 bg-white">
           <FeePaymentsChart
             data={paymentTrends}
             isLoading={isLoading}
           />
-        </Card> 
-        {/* 
-        <Card className="border-none shadow-none pt-0 bg-zinc-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6">
-            <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-              <GraduationCap strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-              <CardTitle className="text-md sm:text-md font-bold text-primary">Teachers</CardTitle>
-            </div>
-            <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
-              See All
-            </Button>
-          </CardHeader>
-          <CardContent className=" sm:px-6 justify-between h-full flex flex-col">
-
-            <div className="space-y-2">
-              {isLoading ? (
-                <div className="text-xs text-muted-foreground">Loading teachers...</div>
-              ) : teachers.length > 0 ? (
-                teachers.slice(0, 4).map((teacher) => (
-                  <div 
-                    key={teacher.id} 
-                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-zinc-200/50 transition-colors"
-                  >
-                    <div className="flex-shrink-0">
-                      {teacher.avatar ? (
-                        <img 
-                          src={teacher.avatar} 
-                          alt={`${teacher.firstName} ${teacher.lastName}`}
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <span className="text-xs font-semibold text-primary">
-                            {teacher.firstName[0]}{teacher.lastName[0]}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-foreground truncate">
-                          {teacher.firstName} {teacher.lastName}
-                        </p>
-                        {teacher.teacherProfile?.department && (
-                          <Badge variant="secondary" className="text-xs px-2 py-0 h-5">
-                            {teacher.teacherProfile.department}
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {teacher.email}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-xs text-muted-foreground">No teachers found</div>
-              )}
-            </div>
-
-            <div className="flex flex-col py-2 ">
-              <div className="text-xl sm:text-2xl font-bold">Total Teachers: <span className="text-primary">{stats.totalTeachers}</span></div>
-              <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                Active faculty members
-              </p>
-            </div>
-          </CardContent>
         </Card>
-        */}
 
-        <Card className="border-none shadow-none pt-0 bg-zinc-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6">
-            <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-              <DollarSign strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-              <CardTitle className="text-md sm:text-md font-bold text-primary">Pending Fees</CardTitle>
-            </div>
-            <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
-              Transactions
-            </Button>
-          </CardHeader>
-          <CardContent className="sm:px-6 justify-between h-fit flex flex-col">
-            {/* Fee Records List */}
-            <div className="space-y-2">
-              {isLoading ? (
-                <div className="text-xs text-muted-foreground">Loading fee records...</div>
-              ) : feeRecords.length > 0 ? (
-                feeRecords.slice(0, 3).map((record) => (
-                  <div 
-                    key={record.id} 
-                    className="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-zinc-200/50 transition-colors"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">
-                        {record.student ? `${record.student.firstName} ${record.student.lastName}` : 'Unknown Student'}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {record.description}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Due: {new Date(record.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </p>
-                    </div>
-                    <div className="flex-shrink-0 text-right">
-                      <p className="text-sm font-bold text-destructive">
-                        ${record.amount.toFixed(2)}
-                      </p>
-                      <Badge variant="destructive" className="text-xs px-2 py-0 h-5 mt-1">
-                        Unpaid
-                      </Badge>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-xs text-muted-foreground">No pending fees</div>
-              )}
-            </div>
-
-            <div className="flex flex-col py-2">
-              <div className="text-xl sm:text-2xl font-bold">Total Pending: <span className="text-destructive">${stats.pendingFees}</span></div>
-              <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                Outstanding amount
-              </p>
-            </div>
-          </CardContent>
+        <Card className="border-none shadow-none pt-0 mb-0 bg-white">
+          <PendingFeesCard
+            feeRecords={feeRecords}
+            totalPending={stats.pendingFees}
+            isLoading={isLoading}
+          />
         </Card>
       </div>
 
             {/* Additional Stats */}
-      <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-1 md:grid-cols-3">
-        <Card className="border-none shadow-none pt-0 bg-zinc-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6 pb-3">
-            <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-              <BookOpen strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Classes Overview</CardTitle>
-            </div>
-            <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
-              See All
-            </Button>
-          </CardHeader>
-          <CardContent className="px-6 pb-6 pt-0">
-            {/* Classes List */}
-            <div className="space-y-3">
-              {isLoading ? (
-                <div className="text-xs text-muted-foreground">Loading classes...</div>
-              ) : classes.length > 0 ? (
-                classes.slice(0, 4).map((classItem) => (
-                  <div 
-                    key={classItem.id} 
-                    className="flex flex-col gap-2 p-3 rounded-lg bg-white hover:bg-zinc-50 transition-colors border border-zinc-200"
-                  >
-                    {/* Class Header */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-bold text-foreground truncate">
-                            {classItem.name}
-                          </h3>
-                          {classItem.grade && (
-                            <Badge variant="outline" className="text-xs px-2 py-0 h-5 flex-shrink-0 border-primary/30 text-primary">
-                              Grade {classItem.grade}
-                            </Badge>
-                          )}
-                          {classItem.section && (
-                            <Badge variant="secondary" className="text-xs px-2 py-0 h-5 flex-shrink-0">
-                              Sec {classItem.section}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+      <div className="grid gap-3 sm:gap-3 md:gap-3 grid-cols-1 md:grid-cols-4">
 
-                    {/* Class Stats */}
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Users className="h-3 w-3" />
-                        <span className="font-medium">{classItem._count.enrollments}</span> students
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <BookOpen className="h-3 w-3" />
-                        <span className="font-medium">{classItem._count.subjects}</span> subjects
-                      </span>
-                    </div>
 
-                    {/* Subjects Preview */}
-                    {classItem.subjects.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-1">
-                        {classItem.subjects.map((cs, idx) => (
-                          <div 
-                            key={idx}
-                            className="text-xs px-2 py-1 rounded-md bg-primary/5 text-primary border border-primary/10"
-                          >
-                            {cs.subject.name}
-                          </div>
-                        ))}
-                        {classItem._count.subjects > 3 && (
-                          <div className="text-xs px-2 py-1 rounded-md bg-zinc-100 text-muted-foreground">
-                            +{classItem._count.subjects - 3} more
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))
-              ) : (
-                <div className="text-xs text-muted-foreground text-center py-4">No classes found</div>
-              )}
-            </div>
-
-            {/* Total Count */}
-            <div className="mt-4 pt-3 border-t border-zinc-200">
-              <div className="text-xl sm:text-2xl font-bold">
-                Total Classes: <span className="text-primary">{stats.totalClasses}</span>
-              </div>
-              <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                {stats.totalSubjects} subjects across all classes
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-none pt-0 bg-zinc-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6 pb-3">
-            <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-              <Calendar strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Upcoming Events</CardTitle>
-            </div>
-            <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
-              See All
-            </Button>
-          </CardHeader>
-          <CardContent className="px-6 pb-6 pt-0">
-            {/* Events List */}
-            <div className="space-y-3">
-              {isLoading ? (
-                <div className="text-xs text-muted-foreground">Loading events...</div>
-              ) : events.length > 0 ? (
-                events.slice(0, 3).map((event) => (
-                  <div 
-                    key={event.id} 
-                    className="flex flex-col gap-1 p-3 rounded-lg bg-white hover:bg-zinc-50 transition-colors border border-zinc-200"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">
-                          {event.title}
-                        </p>
-                        {event.description && (
-                          <p className="text-xs text-muted-foreground truncate mt-0.5">
-                            {event.description}
-                          </p>
-                        )}
-                      </div>
-                      <Badge variant="secondary" className="text-xs px-2 py-0 h-5 flex-shrink-0">
-                        {event.type}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {new Date(event.startDate).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric',
-                          hour: event.isAllDay ? undefined : '2-digit',
-                          minute: event.isAllDay ? undefined : '2-digit'
-                        })}
-                      </span>
-                      {event.location && (
-                        <span className="truncate">📍 {event.location}</span>
-                      )}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-xs text-muted-foreground text-center py-4">No upcoming events</div>
-              )}
-            </div>
-
-            {/* Total Count */}
-            <div className="mt-4 pt-3 border-t border-zinc-200">
-              <div className="text-xl sm:text-2xl font-bold">
-                Total: <span className="text-primary">{stats.upcomingEvents}</span>
-              </div>
-              <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                Next 7 days
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-none pt-0 bg-zinc-100">
+        <Card className="border-none shadow-none pt-0 bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6 pb-3">
             <div className="flex flex-row items-center gap-1.5 sm:gap-2">
               <MessageSquare strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
@@ -1053,6 +781,153 @@ export default function PrincipalHomePage() {
             </div>
           </CardContent>
         </Card>
+
+        <Card className="border-none shadow-none pt-0 bg-white">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6 pb-3">
+            <div className="flex flex-row items-center gap-1.5 sm:gap-2">
+              <Calendar strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Upcoming Events</CardTitle>
+            </div>
+            <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
+              See All
+            </Button>
+          </CardHeader>
+          <CardContent className="px-6 pb-6 pt-0">
+            {/* Events List */}
+            <div className="space-y-3">
+              {isLoading ? (
+                <div className="text-xs text-muted-foreground">Loading events...</div>
+              ) : events.length > 0 ? (
+                events.slice(0, 3).map((event) => (
+                  <div 
+                    key={event.id} 
+                    className="flex flex-col gap-1 p-3 rounded-lg bg-white hover:bg-zinc-50 transition-colors border border-zinc-200"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">
+                          {event.title}
+                        </p>
+                        {event.description && (
+                          <p className="text-xs text-muted-foreground truncate mt-0.5">
+                            {event.description}
+                          </p>
+                        )}
+                      </div>
+                      <Badge variant="secondary" className="text-xs px-2 py-0 h-5 flex-shrink-0">
+                        {event.type}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {new Date(event.startDate).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric',
+                          hour: event.isAllDay ? undefined : '2-digit',
+                          minute: event.isAllDay ? undefined : '2-digit'
+                        })}
+                      </span>
+                      {event.location && (
+                        <span className="truncate">📍 {event.location}</span>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-xs text-muted-foreground text-center py-4">No upcoming events</div>
+              )}
+            </div>
+
+            {/* Total Count */}
+            <div className="mt-4 pt-3 border-t border-zinc-200">
+              <div className="text-xl sm:text-2xl font-bold">
+                Total: <span className="text-primary">{stats.upcomingEvents}</span>
+              </div>
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+                Next 7 days
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-none pt-0 bg-white">
+          <ClassesOverviewCard
+          classes={classes}
+          totalClasses={stats.totalClasses}
+          totalSubjects={stats.totalSubjects}
+          isLoading={isLoading}
+          maxDisplay={4}
+        />
+        </Card>
+
+        <Card className="border-none shadow-none pt-0 bg-white">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6">
+            <div className="flex flex-row items-center gap-1.5 sm:gap-2">
+              <GraduationCap strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+              <CardTitle className="text-md sm:text-md font-bold text-primary">Teachers</CardTitle>
+            </div>
+            <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
+              See All
+            </Button>
+          </CardHeader>
+          <CardContent className=" sm:px-6 justify-between h-full flex flex-col">
+
+            <div className="space-y-2">
+              {isLoading ? (
+                <div className="text-xs text-muted-foreground">Loading teachers...</div>
+              ) : teachers.length > 0 ? (
+                teachers.slice(0, 4).map((teacher) => (
+                  <div 
+                    key={teacher.id} 
+                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-zinc-200/50 transition-colors"
+                  >
+                    <div className="flex-shrink-0">
+                      {teacher.avatar ? (
+                        <img 
+                          src={teacher.avatar} 
+                          alt={`${teacher.firstName} ${teacher.lastName}`}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                          <span className="text-xs font-semibold text-primary">
+                            {teacher.firstName[0]}{teacher.lastName[0]}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {teacher.firstName} {teacher.lastName}
+                        </p>
+                        {teacher.teacherProfile?.department && (
+                          <Badge variant="secondary" className="text-xs px-2 py-0 h-5">
+                            {teacher.teacherProfile.department}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {teacher.email}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-xs text-muted-foreground">No teachers found</div>
+              )}
+            </div>
+
+            <div className="flex flex-col py-2 ">
+              <div className="text-xl sm:text-2xl font-bold">Total Teachers: <span className="text-primary">{stats.totalTeachers}</span></div>
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+                Active faculty members
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
       </div>
 
       {/* Quick Actions */}

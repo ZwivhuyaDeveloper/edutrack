@@ -24,6 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { TrendingUp } from "lucide-react"
+import { IconMoneybag, IconMoneybagPlus } from "@tabler/icons-react"
 
 interface PaymentData {
   month: string
@@ -112,7 +114,8 @@ export function FeePaymentsChart({
   return (
     <Card className="border-none shadow-none bg-transparent h-full">
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
-        <div className="flex flex-1 flex-col justify-center gap-1 px-3 py-3 sm:px-6 sm:py-3">
+        <div className="flex flex-1 flex-row items-center justify-start gap-2 pl-4 py-1 sm:py-1">
+          <IconMoneybagPlus strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
           <CardTitle className="text-primary">Fee Payments Trend</CardTitle>
         </div>
         <div className="flex">
@@ -185,15 +188,17 @@ export function FeePaymentsChart({
             </LineChart>
           </ChartContainer>
         </div>
-        <div className="flex flex-col gap-1 px-6">
-          <div className="text-xl sm:text-2xl font-bold">
+      </CardContent>
+      <CardFooter className="flex-col items-start gap-2 px-3">
+        <div className="flex flex-col gap-1 px-3">
+          <div className="text-lg sm:text-xl font-bold">
             Total Paid: <span className="text-primary">${totalPayments}</span>
           </div>
           <p className="text-xs sm:text-sm font-medium text-muted-foreground">
             {timeRangeLabel} collections
           </p>
         </div>
-      </CardContent>
+      </CardFooter>
       </Card>
     )
 }

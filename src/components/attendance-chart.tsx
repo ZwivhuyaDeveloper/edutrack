@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Users } from "lucide-react"
+import { TrendingUp, Users } from "lucide-react"
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 import {
   Card,
@@ -116,7 +116,7 @@ export function AttendanceChart({
     <Card className="bg-transparent border-none shadow-none h-full">
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b px-1 sm:flex-row">
         <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
-          <Users strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
+          <TrendingUp strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
           <CardDescription className="text-sm sm:text-sm w-30 font-bold text-primary">
             Attendance Trend
           </CardDescription>
@@ -198,7 +198,7 @@ export function AttendanceChart({
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 px-6">
         <div className="flex w-full flex-col gap-1">
-          <div className="text-xl sm:text-2xl font-bold">
+          <div className="text-lg sm:text-xl font-bold">
             Attendance Rate: <span className="text-primary">{averageRate}%</span>
           </div>
           <p className="text-xs sm:text-sm font-medium text-muted-foreground">

@@ -197,7 +197,7 @@ export function StudentEnrollmentChart({
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 px-6 pt-0">
         <div className="flex w-full flex-col gap-1">
-          <div className="text-xl sm:text-2xl font-bold">
+          <div className="text-lg sm:text-xl font-bold">
             Total Students: <span className="text-primary">{totalStudents}</span>
           </div>
           <p className="text-xs sm:text-sm font-medium text-muted-foreground">
