@@ -135,6 +135,27 @@ interface Message {
   updatedAt: string
 }
 
+interface ClassData {
+  id: string
+  name: string
+  grade?: string
+  section?: string
+  _count: {
+    enrollments: number
+    subjects: number
+  }
+  subjects: {
+    subject: {
+      name: string
+      code?: string
+    }
+    teacher: {
+      firstName: string
+      lastName: string
+    }
+  }[]
+}
+
 export default function PrincipalHomePage() {
   const [stats, setStats] = useState<DashboardStats>({
     totalStudents: 0,
@@ -155,6 +176,7 @@ export default function PrincipalHomePage() {
   const [paymentTrends, setPaymentTrends] = useState<PaymentTrend[]>([])
   const [events, setEvents] = useState<Event[]>([])
   const [messages, setMessages] = useState<Message[]>([])
+  const [classes, setClasses] = useState<ClassData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
@@ -187,7 +209,7 @@ export default function PrincipalHomePage() {
       })
       
       // Fetch non-critical data in parallel
-      const [activityRes, trendsRes, attendanceTrendsRes, teachersRes, feeRecordsRes, paymentTrendsRes, eventsRes, messagesRes] = await Promise.all([
+      const [activityRes, trendsRes, attendanceTrendsRes, teachersRes, feeRecordsRes, paymentTrendsRes, eventsRes, messagesRes, classesRes] = await Promise.all([
         fetch('/api/dashboard/principal/activity', {
           next: { revalidate: 30 }
         }),
@@ -211,6 +233,9 @@ export default function PrincipalHomePage() {
         }),
         fetch('/api/dashboard/principal/messages', {
           next: { revalidate: 30 } // Cache messages for 30 seconds
+        }),
+        fetch('/api/dashboard/principal/classes', {
+          next: { revalidate: 300 } // Cache classes for 5 minutes
         })
       ])
 
@@ -328,6 +353,15 @@ export default function PrincipalHomePage() {
         setMessages(messagesData.messages || [])
       } else {
         console.error('Failed to fetch messages:', messagesRes.status)
+      }
+
+      // Handle classes response
+      if (classesRes.ok) {
+        const classesData = await classesRes.json()
+        console.log('Received classes:', classesData)
+        setClasses(classesData.classes || [])
+      } else {
+        console.error('Failed to fetch classes:', classesRes.status)
       }
 
       // If stats failed but activity loaded, show partial data
@@ -769,20 +803,93 @@ export default function PrincipalHomePage() {
             {/* Additional Stats */}
       <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-1 md:grid-cols-3">
         <Card className="border-none shadow-none pt-0 bg-zinc-100">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6 pb-3">
             <div className="flex flex-row items-center gap-1.5 sm:gap-2">
               <BookOpen strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Classes</CardTitle>
+              <CardTitle className="text-sm sm:text-md font-semibold text-primary">Classes Overview</CardTitle>
             </div>
             <Button variant="default" size="sm" className="border-primary text-xs h-7 px-2 sm:px-3">
               See All
             </Button>
           </CardHeader>
-          <CardContent className="p-3 sm:p-6 pt-0">
-            <div className="text-xl sm:text-2xl font-bold">{stats.totalClasses}</div>
-            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-              {stats.totalSubjects} subjects total
-            </p>
+          <CardContent className="px-6 pb-6 pt-0">
+            {/* Classes List */}
+            <div className="space-y-3">
+              {isLoading ? (
+                <div className="text-xs text-muted-foreground">Loading classes...</div>
+              ) : classes.length > 0 ? (
+                classes.slice(0, 4).map((classItem) => (
+                  <div 
+                    key={classItem.id} 
+                    className="flex flex-col gap-2 p-3 rounded-lg bg-white hover:bg-zinc-50 transition-colors border border-zinc-200"
+                  >
+                    {/* Class Header */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm font-bold text-foreground truncate">
+                            {classItem.name}
+                          </h3>
+                          {classItem.grade && (
+                            <Badge variant="outline" className="text-xs px-2 py-0 h-5 flex-shrink-0 border-primary/30 text-primary">
+                              Grade {classItem.grade}
+                            </Badge>
+                          )}
+                          {classItem.section && (
+                            <Badge variant="secondary" className="text-xs px-2 py-0 h-5 flex-shrink-0">
+                              Sec {classItem.section}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Class Stats */}
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        <span className="font-medium">{classItem._count.enrollments}</span> students
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <BookOpen className="h-3 w-3" />
+                        <span className="font-medium">{classItem._count.subjects}</span> subjects
+                      </span>
+                    </div>
+
+                    {/* Subjects Preview */}
+                    {classItem.subjects.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        {classItem.subjects.map((cs, idx) => (
+                          <div 
+                            key={idx}
+                            className="text-xs px-2 py-1 rounded-md bg-primary/5 text-primary border border-primary/10"
+                          >
+                            {cs.subject.name}
+                          </div>
+                        ))}
+                        {classItem._count.subjects > 3 && (
+                          <div className="text-xs px-2 py-1 rounded-md bg-zinc-100 text-muted-foreground">
+                            +{classItem._count.subjects - 3} more
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="text-xs text-muted-foreground text-center py-4">No classes found</div>
+              )}
+            </div>
+
+            {/* Total Count */}
+            <div className="mt-4 pt-3 border-t border-zinc-200">
+              <div className="text-xl sm:text-2xl font-bold">
+                Total Classes: <span className="text-primary">{stats.totalClasses}</span>
+              </div>
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+                {stats.totalSubjects} subjects across all classes
+              </p>
+            </div>
           </CardContent>
         </Card>
 
