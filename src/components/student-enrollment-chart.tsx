@@ -1,8 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { TrendingDown, TrendingUp, Users } from "lucide-react"
-import { Area, AreaChart, CartesianGrid, Line, LineChart, XAxis } from "recharts"
+import { Users } from "lucide-react"
+import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 import {
   Card,
   CardContent,
@@ -80,32 +80,11 @@ export function StudentEnrollmentChart({
     return data.slice(-rangeMonths)
   }, [data, timeRange])
 
-  // Calculate trend percentage
-  const trendPercentage = React.useMemo(() => {
-    if (chartData.length < 2) return "0"
-    const firstValue = chartData[0].students
-    const lastValue = chartData[chartData.length - 1].students
-    if (firstValue === 0) return "0"
-    return (((lastValue - firstValue) / firstValue) * 100).toFixed(1)
+  // Calculate total students (latest value in the chart)
+  const totalStudents = React.useMemo(() => {
+    if (chartData.length === 0) return 0
+    return chartData[chartData.length - 1].students
   }, [chartData])
-
-  // Get date range for footer
-  const dateRange = React.useMemo(() => {
-    if (chartData.length === 0) return ""
-    const firstMonth = chartData[0].month
-    const lastMonth = chartData[chartData.length - 1].month
-    const currentYear = new Date().getFullYear()
-    
-    // Calculate years based on time range
-    const rangeMonths = parseInt(timeRange)
-    if (rangeMonths > 12) {
-      const yearsAgo = Math.floor(rangeMonths / 12)
-      const startYear = currentYear - yearsAgo
-      return `${firstMonth} ${startYear} - ${lastMonth} ${currentYear}`
-    }
-    
-    return `${firstMonth} - ${lastMonth} ${currentYear}`
-  }, [chartData, timeRange])
 
   if (isLoading) {
     return (
@@ -122,7 +101,7 @@ export function StudentEnrollmentChart({
   }
 
   return (
-    <Card className="bg-transparent border-none shadow-none" >
+    <Card className="bg-transparent border-none shadow-none h-full" >
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b px-1 sm:flex-row">
         <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
           <Users strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
@@ -216,17 +195,14 @@ export function StudentEnrollmentChart({
           </AreaChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="hidden">
-        <div className="flex w-full items-start gap-2 text-sm">
-          <div className="flex flex-col justify-between gap-2">
-            <div className="flex items-center gap-1 font-medium leading-none">
-              {parseFloat(trendPercentage) >= 0 ? 'Enrollment up' : 'Enrollment down'} by {Math.abs(parseFloat(trendPercentage))}% 
-              {parseFloat(trendPercentage) >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-            </div>
-            <div className="flex items-center gap-2 leading-none text-muted-foreground">
-              {dateRange}
-            </div>
+      <CardFooter className="flex-col items-start gap-2 px-6 pt-0">
+        <div className="flex w-full flex-col gap-1">
+          <div className="text-xl sm:text-2xl font-bold">
+            Total Students: <span className="text-primary">{totalStudents}</span>
           </div>
+          <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+            Active enrollments
+          </p>
         </div>
       </CardFooter>
     </Card>

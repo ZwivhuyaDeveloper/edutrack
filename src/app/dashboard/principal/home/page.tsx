@@ -554,31 +554,19 @@ export default function PrincipalHomePage() {
 
       {/* Stats Cards */}
       <div className="grid gap-2 sm:gap-3 md:gap-2  grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-none shadow-none justify-between pt-0 mb-0 bg-zinc-100">
+        <Card className="border-none shadow-none gap-5 pt-0 mb-0 bg-zinc-100">
             <StudentEnrollmentChart
               data={enrollmentTrends}
               isLoading={isLoading}
             />
-          <CardContent className="p-2 sm:px-6 pt-0">
-            <div className="text-xl sm:text-2xl font-bold">Total Students: <span className="text-primary">{stats.totalStudents}</span></div>
-            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-              Active enrollments
-            </p>
-          </CardContent>
         </Card>
 
-        <Card className="border-none shadow-none justify-between pt-0 mb-0 bg-zinc-100">
+        <Card className="border-none shadow-none gap-5 pt-0 mb-0 bg-zinc-100">
           {/* Attendance Trend Chart */}
           <AttendanceChart
             data={attendanceTrends}
             isLoading={isLoading}
           />
-          <CardContent className="p-2 sm:px-6 pt-0">
-            <div className="text-xl sm:text-2xl font-bold">Attendance Rate: <span className="text-primary">{stats.attendanceRate}%</span></div>
-            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-              This week average
-            </p>
-          </CardContent>
         </Card>
 
         <Card className="border-none shadow-none pt-0 mb-0 bg-zinc-100">
@@ -666,13 +654,13 @@ export default function PrincipalHomePage() {
               Transactions
             </Button>
           </CardHeader>
-          <CardContent className="sm:px-6 justify-between h-full flex flex-col">
+          <CardContent className="sm:px-6 justify-between h-fit flex flex-col">
             {/* Fee Records List */}
             <div className="space-y-2">
               {isLoading ? (
                 <div className="text-xs text-muted-foreground">Loading fee records...</div>
               ) : feeRecords.length > 0 ? (
-                feeRecords.slice(0, 4).map((record) => (
+                feeRecords.slice(0, 3).map((record) => (
                   <div 
                     key={record.id} 
                     className="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-zinc-200/50 transition-colors"

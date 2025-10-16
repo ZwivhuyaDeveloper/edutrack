@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { TrendingDown, TrendingUp, Users } from "lucide-react"
+import { Users } from "lucide-react"
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 import {
   Card,
@@ -81,25 +81,6 @@ export function AttendanceChart({
     return data.slice(-rangeDays)
   }, [data, timeRange])
 
-  // Calculate trend percentage
-  const trendPercentage = React.useMemo(() => {
-    if (chartData.length < 2) return "0"
-    const firstValue = chartData[0].rate
-    const lastValue = chartData[chartData.length - 1].rate
-    if (firstValue === 0) return "0"
-    return (((lastValue - firstValue) / firstValue) * 100).toFixed(1)
-  }, [chartData])
-
-  // Get date range for footer
-  const dateRange = React.useMemo(() => {
-    if (chartData.length === 0) return ""
-    const firstDate = chartData[0].date
-    const lastDate = chartData[chartData.length - 1].date
-    const currentYear = new Date().getFullYear()
-    
-    return `${firstDate} - ${lastDate} ${currentYear}`
-  }, [chartData])
-
   // Calculate average attendance rate
   const averageRate = React.useMemo(() => {
     if (chartData.length === 0) return 0
@@ -132,7 +113,7 @@ export function AttendanceChart({
   }
 
   return (
-    <Card className="bg-transparent border-none shadow-none">
+    <Card className="bg-transparent border-none shadow-none h-full">
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b px-1 sm:flex-row">
         <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
           <Users strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
@@ -215,17 +196,14 @@ export function AttendanceChart({
           </BarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="hidden">
-        <div className="flex w-full items-start gap-2 text-sm">
-          <div className="flex flex-col justify-between gap-2">
-            <div className="flex items-center gap-1 font-medium leading-none">
-              {parseFloat(trendPercentage) >= 0 ? 'Attendance up' : 'Attendance down'} by {Math.abs(parseFloat(trendPercentage))}% 
-              {parseFloat(trendPercentage) >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-            </div>
-            <div className="flex items-center gap-2 leading-none text-muted-foreground">
-              Average: {averageRate}% • {dateRange}
-            </div>
+      <CardFooter className="flex-col items-start gap-2 px-6">
+        <div className="flex w-full flex-col gap-1">
+          <div className="text-xl sm:text-2xl font-bold">
+            Attendance Rate: <span className="text-primary">{averageRate}%</span>
           </div>
+          <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+            This week average
+          </p>
         </div>
       </CardFooter>
     </Card>

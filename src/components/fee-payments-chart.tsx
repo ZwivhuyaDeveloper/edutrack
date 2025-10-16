@@ -110,7 +110,7 @@ export function FeePaymentsChart({
   }
 
   return (
-    <Card className="border-none shadow-none bg-transparent">
+    <Card className="border-none shadow-none bg-transparent h-full">
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
         <div className="flex flex-1 flex-col justify-center gap-1 px-3 py-3 sm:px-6 sm:py-3">
           <CardTitle className="text-primary">Fee Payments Trend</CardTitle>
@@ -139,54 +139,53 @@ export function FeePaymentsChart({
           </div>
         </div>
       </CardHeader>
-      <div className="flex flex-col justify-between h-full">
-        <CardContent className="px-3 sm:px-5">
-        <ChartContainer
-          config={chartConfig}
-          className="aspect-auto h-[200px] w-full"
-        >
-          <LineChart
-            accessibilityLayer
-            data={chartData}
-            margin={{
-              left: 12,
-              right: 12,
-            }}
-          >
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="month"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tickFormatter={(value) => value.slice(0, 3)}
-            />
-            <ChartTooltip
-              cursor={false}
-              content={
-                <ChartTooltipContent 
-                  hideLabel
-                  formatter={(value) => `$${Number(value).toFixed(2)}`}
-                />
-              }
-            />
-            <Line
-              dataKey="amount"
-              type="monotone"
-              stroke="var(--chart-1)"
-              strokeWidth={2}
-              dot={{
-                fill: "var(--chart-1)",
+      <CardContent className="flex flex-col gap-10 p-0 justify-between h-full">
+        <div className="px-3 sm:px-5 h-full">
+          <ChartContainer
+            config={chartConfig}
+            className="aspect-auto h-[200px] w-full"
+            >
+            <LineChart
+              accessibilityLayer
+              data={chartData}
+              margin={{
+                left: 12,
+                right: 12,
               }}
-              activeDot={{
-                r: 6,
-              }}
-            />
-          </LineChart>
-        </ChartContainer>
-      </CardContent>
-      <CardFooter className="flex-col items-end gap-2 px-6">
-        <div className="flex w-full flex-col gap-1">
+              >
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="month"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tickFormatter={(value) => value.slice(0, 3)}
+              />
+              <ChartTooltip
+                cursor={false}
+                content={
+                  <ChartTooltipContent 
+                    hideLabel
+                    formatter={(value) => `$${Number(value).toFixed(2)}`}
+                  />
+                }
+              />
+              <Line
+                dataKey="amount"
+                type="monotone"
+                stroke="var(--chart-1)"
+                strokeWidth={2}
+                dot={{
+                  fill: "var(--chart-1)",
+                }}
+                activeDot={{
+                  r: 6,
+                }}
+              />
+            </LineChart>
+          </ChartContainer>
+        </div>
+        <div className="flex flex-col gap-1 px-6">
           <div className="text-xl sm:text-2xl font-bold">
             Total Paid: <span className="text-primary">${totalPayments}</span>
           </div>
@@ -194,8 +193,7 @@ export function FeePaymentsChart({
             {timeRangeLabel} collections
           </p>
         </div>
-      </CardFooter>
-    </div>
-    </Card>
-  )
+      </CardContent>
+      </Card>
+    )
 }
