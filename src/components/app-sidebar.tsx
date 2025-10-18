@@ -36,7 +36,7 @@ import Image from "next/image"
 import logo from "@/assets/Standalone_Logo.png"
 
 // Role-based navigation data
-const getRoleBasedNavigation = (userRole: string) => {
+export const getRoleBasedNavigation = (userRole: string) => {
   switch (userRole) {
     case "student":
       return [
@@ -313,7 +313,7 @@ export function AppSidebar({ onNavigate, activePage, userRole = "student", ...pr
     <Sidebar 
       collapsible="icon" 
       {...props} 
-      className="border-r border-border/40  bg-gradient-to-b from-background to-background/95 backdrop-blur-sm"
+      className="border-r border-border/40 bg-white backdrop-blur-sm"
     >
       {/* Header with Logo */}
       <SidebarHeader className="border-b border-border/40 px-4 py-6">
@@ -329,7 +329,7 @@ export function AppSidebar({ onNavigate, activePage, userRole = "student", ...pr
 
       {/* Footer with User */}
       <SidebarFooter className="border-t border-border/40 px-4 py-4">
-        <NavUser user={data.user} />
+        
       </SidebarFooter>
       
       {/* Resize Handle */}

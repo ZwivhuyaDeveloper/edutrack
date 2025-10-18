@@ -31,6 +31,20 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
+interface UserProfile {
+  phone?: string
+  address?: string
+  employeeId?: string
+  department?: string
+  qualifications?: string
+}
+
+interface UserCount {
+  classSubjects?: number
+  enrollments?: number
+  childRelationships?: number
+}
+
 interface User {
   id: string
   firstName: string
@@ -40,8 +54,8 @@ interface User {
   avatar?: string
   isActive: boolean
   createdAt: string
-  profile?: any
-  _count?: any
+  profile?: UserProfile
+  _count?: UserCount
 }
 
 interface UserStats {
@@ -442,33 +456,39 @@ export default function PrincipalPeoplePage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">People Management</h1>
-          <p className="text-muted-foreground">
-            Manage teachers, students, parents, and staff members
-          </p>
+      <div className='p-5 bg-white rounded-3xl mt-3 gap-2'>
+              {/* Header */}
+        <div className="flex items-center mb-3 justify-between">
+          <div>
+
+          </div>
+          {/*
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">People Management</h1>
+            <p className="text-muted-foreground">
+              Manage teachers, students, parents, and staff members
+            </p>
+          </div>
+          */}
+          <div className="flex items-center gap-2">
+            <Button variant="outline" className='bg-zinc-100 shadow-none border-none hover:bg-zinc-200' onClick={handleBulkImport}>
+              <Upload className="h-4 text-primary w-4 mr-2" />
+              Bulk Import
+            </Button>
+            <Button variant="outline" className='bg-zinc-100 shadow-none border-none hover:bg-zinc-200' onClick={handleExportUsers}>
+              <Download className="h-4 text-primary w-4 mr-2" />
+              Export
+            </Button>
+            <Button onClick={() => setIsAddModalOpen(true)}>
+              <UserPlus className="h-4 w-4 mr-2" />
+              Add {activeTab.slice(0, -1)}
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={handleBulkImport}>
-            <Upload className="h-4 w-4 mr-2" />
-            Bulk Import
-          </Button>
-          <Button variant="outline" onClick={handleExportUsers}>
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-          <Button onClick={() => setIsAddModalOpen(true)}>
-            <UserPlus className="h-4 w-4 mr-2" />
-            Add {activeTab.slice(0, -1)}
-          </Button>
-        </div>
-      </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+      <div className="grid space-x-3 md:grid-cols-2 mb-3 lg:grid-cols-4">
+        <Card className='bg-zinc-100 border-none shadow-none'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Teachers</CardTitle>
             <GraduationCap className="h-4 w-4 text-muted-foreground" />
@@ -479,7 +499,7 @@ export default function PrincipalPeoplePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className='bg-zinc-100 border-none shadow-none'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Students</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -490,7 +510,7 @@ export default function PrincipalPeoplePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className='bg-zinc-100 border-none shadow-none'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Parents</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -501,7 +521,7 @@ export default function PrincipalPeoplePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className='bg-zinc-100 border-none shadow-none'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">New This Month</CardTitle>
             <UserPlus className="h-4 w-4 text-muted-foreground" />
@@ -514,7 +534,7 @@ export default function PrincipalPeoplePage() {
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className='mb-3 shadow-none border-none bg-zinc-100'>
         <CardContent className="pt-6">
           <div className="flex items-center gap-4">
             <div className="flex-1">
@@ -524,12 +544,12 @@ export default function PrincipalPeoplePage() {
                   placeholder="Search by name or email..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 bg-white shadow-none border-none"
                 />
               </div>
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-fit bg-primary text-background border-none shadow-none">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -544,18 +564,18 @@ export default function PrincipalPeoplePage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="teachers">Teachers</TabsTrigger>
-          <TabsTrigger value="students">Students</TabsTrigger>
-          <TabsTrigger value="parents">Parents</TabsTrigger>
-          <TabsTrigger value="staff">Staff</TabsTrigger>
+        <TabsList className="grid w-full shadow-none border-0 grid-cols-4">
+          <TabsTrigger className='shadow-none border-none' value="teachers">Teachers</TabsTrigger>
+          <TabsTrigger className='shadow-none border-none' value="students">Students</TabsTrigger>
+          <TabsTrigger className='shadow-none border-none' value="parents">Parents</TabsTrigger>
+          <TabsTrigger className='shadow-none border-none' value="staff">Staff</TabsTrigger>
         </TabsList>
 
-        <TabsContent value={activeTab} className="space-y-4">
+        <TabsContent value={activeTab} className="space-y-4 shadow-none border-0">
           {isLoading ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {[...Array(6)].map((_, i) => (
-                <Card key={i}>
+                <Card key={i} className='shadow-none border-0'>
                   <CardHeader>
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 bg-muted animate-pulse rounded-full" />
@@ -575,7 +595,7 @@ export default function PrincipalPeoplePage() {
               ))}
             </div>
           ) : (
-            <Card>
+            <Card className='shadow-none border-dotted bg-zinc-100 border-3 border-zinc-200'>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Users className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No {activeTab} found</h3>
@@ -598,6 +618,7 @@ export default function PrincipalPeoplePage() {
       {/* Modals */}
       <AddUserModal />
       <ViewUserModal />
+      </div>
     </div>
   )
 }

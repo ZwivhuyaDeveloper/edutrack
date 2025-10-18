@@ -100,23 +100,23 @@ export function AlertsDropdown({ role }: AlertsDropdownProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="relative rounded-full p-2 hover:bg-accent transition-colors" aria-label="Notifications">
-          <Bell className="h-4 w-4" />
+        <button className="relative rounded-full p-1.5 sm:p-2 hover:bg-accent transition-colors" aria-label="Notifications">
+          <Bell className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
+            <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-primary text-[9px] sm:text-[10px] font-bold text-white">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[400px] p-0">
+      <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] sm:w-[400px] p-0">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 pb-3">
-          <div className="flex items-center gap-2">
-            <Bell className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold text-base">Alerts</h3>
+        <div className="flex items-center justify-between p-3 sm:p-4 pb-2 sm:pb-3">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+            <h3 className="font-semibold text-sm sm:text-base">Alerts</h3>
             {unreadCount > 0 && (
-              <Badge variant="destructive" className="text-xs bg-primary text-primary-foreground">
+              <Badge variant="destructive" className="text-[10px] sm:text-xs bg-primary text-primary-foreground">
                 {unreadCount} new
               </Badge>
             )}
@@ -125,7 +125,7 @@ export function AlertsDropdown({ role }: AlertsDropdownProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 text-xs"
+              className="h-6 sm:h-7 text-[10px] sm:text-xs px-2"
               onClick={markAllAsRead}
             >
               Mark all read
@@ -135,48 +135,48 @@ export function AlertsDropdown({ role }: AlertsDropdownProps) {
         <Separator />
 
         {/* Alerts List */}
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-[300px] sm:h-[400px]">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <Clock className="h-8 w-8 text-muted-foreground animate-spin mb-2" />
-              <p className="text-sm text-muted-foreground">Loading alerts...</p>
+            <div className="flex flex-col items-center justify-center py-8 sm:py-12">
+              <Clock className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground animate-spin mb-2" />
+              <p className="text-xs sm:text-sm text-muted-foreground">Loading alerts...</p>
             </div>
           ) : alerts.length > 0 ? (
-            <div className="p-2">
+            <div className="p-1.5 sm:p-2">
               {alerts.map((alert) => (
                 <div
                   key={alert.id}
-                  className={`relative p-3 mx-2 mb-2 bg-primary/10 border-2 border-primary rounded-lg  ${getPriorityColor(alert.priority)} hover:shadow-sm transition-shadow`}
+                  className={`relative p-2.5 sm:p-3 mx-1.5 sm:mx-2 mb-2 bg-primary/10 border-2 border-primary rounded-lg ${getPriorityColor(alert.priority)} hover:shadow-sm transition-shadow`}
                 >
                   <button
                     onClick={() => dismissAlert(alert.id)}
-                    className="absolute top-2 right-2 rounded-full p-1 hover:bg-white/50 transition-colors"
+                    className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 rounded-full p-0.5 sm:p-1 hover:bg-white/50 transition-colors"
                     aria-label="Dismiss alert"
                   >
-                    <X className="h-4 w-4 text-primary" />
+                    <X className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
                   </button>
-                  <div className="flex items-start gap-3 pr-6">
-                    <AlertTriangle  className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-primary leading-tight">{alert.title}</p>
-                        <Badge variant={getAlertColor(alert.type)} className="text-[10px] px-1.5 py-0">
+                  <div className="flex items-start gap-2 sm:gap-3 pr-5 sm:pr-6">
+                    <AlertTriangle className="h-3.5 w-3.5 sm:h-4 sm:w-4 mt-0.5 text-primary flex-shrink-0" />
+                    <div className="flex-1 space-y-0.5 sm:space-y-1">
+                      <div className="flex items-center gap-1.5 sm:gap-2">
+                        <p className="text-xs sm:text-sm font-semibold text-primary leading-tight">{alert.title}</p>
+                        <Badge variant={getAlertColor(alert.type)} className="text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0">
                           {alert.priority}
                         </Badge>
                       </div>
-                      <p className="text-xs text-primary leading-relaxed">{alert.message}</p>
+                      <p className="text-[11px] sm:text-xs text-primary leading-relaxed">{alert.message}</p>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-12">
-              <div className="rounded-full bg-muted p-3 mb-3">
-                <Bell className="h-8 w-8 text-muted-foreground" />
+            <div className="flex flex-col items-center justify-center py-8 sm:py-12">
+              <div className="rounded-full bg-muted p-2 sm:p-3 mb-2 sm:mb-3">
+                <Bell className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
               </div>
-              <p className="text-sm font-medium mb-1">No alerts</p>
-              <p className="text-xs text-muted-foreground text-center px-4">
+              <p className="text-xs sm:text-sm font-medium mb-1">No alerts</p>
+              <p className="text-[11px] sm:text-xs text-muted-foreground text-center px-4">
                 You&apos;re all caught up! New alerts will appear here.
               </p>
             </div>
@@ -187,8 +187,8 @@ export function AlertsDropdown({ role }: AlertsDropdownProps) {
         {alerts.length > 0 && (
           <>
             <Separator />
-            <div className="p-2">
-              <Button variant="ghost" className="w-full text-xs" size="sm">
+            <div className="p-1.5 sm:p-2">
+              <Button variant="ghost" className="w-full text-[11px] sm:text-xs" size="sm">
                 View All Alerts
               </Button>
             </div>
