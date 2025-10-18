@@ -4,6 +4,15 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
+    // Verify Prisma client is initialized
+    if (!prisma) {
+      console.error('Prisma client is not initialized')
+      return NextResponse.json(
+        { error: 'Database connection error' },
+        { status: 500 }
+      )
+    }
+
     const { userId } = await auth()
 
     if (!userId) {
@@ -53,6 +62,15 @@ export async function GET() {
     })
 
     const studentIds = schoolStudents.map(s => s.id)
+
+    // Verify fee_records model is available
+    if (!prisma.fee_records) {
+      console.error('Prisma fee_records model is not available. Prisma client may not be properly generated.')
+      return NextResponse.json(
+        { error: 'Database model not available', details: 'fee_records model not found' },
+        { status: 500 }
+      )
+    }
 
     // Get payment data for each month
     const paymentData = await Promise.all(
