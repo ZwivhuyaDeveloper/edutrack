@@ -1,10 +1,17 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { getCurrentUser, getDashboardRoute, PERMISSIONS } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { RateLimiters } from '@/lib/rate-limit'
+import { cache, CacheKeys } from '@/lib/cache'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Apply rate limiting
+    const rateLimitResult = await RateLimiters.readOnly(request)
+    if (!rateLimitResult.success) {
+      return rateLimitResult.response
+    }
     // First check if user is authenticated with Clerk
     const { userId } = await auth()
     
@@ -79,8 +86,14 @@ export async function GET() {
   }
 }
 
-export async function PATCH(request: Request) {
+export async function PATCH(request: NextRequest) {
   try {
+    // Apply rate limiting
+    const rateLimitResult = await RateLimiters.write(request)
+    if (!rateLimitResult.success) {
+      return rateLimitResult.response
+    }
+
     const { userId } = await auth()
     
     if (!userId) {
@@ -91,50 +104,24 @@ export async function PATCH(request: Request) {
     const { firstName, lastName, avatar } = body
 
     // Update user in database
-    let updatedUser
-    try {
-      updatedUser = await prisma.user.update({
-        where: { clerkId: userId },
-        data: {
-          ...(firstName && { firstName }),
-          ...(lastName && { lastName }),
-          ...(avatar !== undefined && { avatar }),
-        },
-        include: {
-          school: true,
-          studentProfile: true,
-          teacherProfile: true,
-          parentProfile: true,
-          principalProfile: true,
-        }
-      })
-    } catch (error) {
-      console.error('[/api/users/me PATCH] Database connection error:', error)
-      if (error instanceof Error && error.message.includes('Server has closed the connection')) {
-        console.log('[/api/users/me PATCH] Retrying database connection...')
-        // Retry once after 1 second delay
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        updatedUser = await prisma.user.update({
-          where: { clerkId: userId },
-          data: {
-            ...(firstName && { firstName }),
-            ...(lastName && { lastName }),
-            ...(avatar !== undefined && { avatar }),
-          },
-          include: {
-            school: true,
-            studentProfile: true,
-            teacherProfile: true,
-            parentProfile: true,
-            principalProfile: true,
-          }
-        })
-        console.log('[/api/users/me PATCH] Retry successful')
-      } else {
-        console.error('[/api/users/me PATCH] Non-connection error, rethrowing:', error)
-        throw error
+    const updatedUser = await prisma.user.update({
+      where: { clerkId: userId },
+      data: {
+        ...(firstName && { firstName }),
+        ...(lastName && { lastName }),
+        ...(avatar !== undefined && { avatar }),
+      },
+      include: {
+        school: true,
+        studentProfile: true,
+        teacherProfile: true,
+        parentProfile: true,
+        principalProfile: true,
       }
-    }
+    })
+
+    // Invalidate cache after update
+    cache.invalidate(CacheKeys.user(userId))
 
     return NextResponse.json({
       user: {
