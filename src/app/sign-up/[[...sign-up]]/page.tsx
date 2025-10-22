@@ -949,6 +949,9 @@ export default function Page() {
                       </p>
                     </div>
                     
+                    {/* Clerk CAPTCHA container */}
+                    <div id="clerk-captcha" className="flex justify-center"></div>
+                    
                     <Button
                       type="submit"
                       disabled={isLoading}
