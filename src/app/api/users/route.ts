@@ -5,6 +5,7 @@ import { User } from '@prisma/client'
 import { z } from 'zod'
 import { RateLimiters } from '@/lib/rate-limit'
 import { getCurrentUser } from '@/lib/auth'
+import { secureLog, sanitizeForLog } from '@/lib/secure-logger'
 
 // Helper function to create or update user profile based on role
 async function createOrUpdateUserProfile(user: User, validatedData: CreateUserType) {
@@ -66,7 +67,7 @@ async function createOrUpdateUserProfile(user: User, validatedData: CreateUserTy
       })
       break
     case 'PRINCIPAL':
-      console.log('Creating/Updating Principal Profile with data:', JSON.stringify(validatedData.principalProfile, null, 2))
+      secureLog.info('Creating/Updating Principal Profile', sanitizeForLog(validatedData.principalProfile))
       await prisma.principalProfile.upsert({
         where: { principalId: user.id },
         create: {
@@ -97,7 +98,7 @@ async function createOrUpdateUserProfile(user: User, validatedData: CreateUserTy
           administrativeArea: validatedData.principalProfile?.administrativeArea || null,
         }
       })
-      console.log('Principal Profile created/updated successfully')
+      secureLog.info('Principal Profile created/updated successfully')
       break
   }
 }
@@ -125,16 +126,16 @@ async function createOrUpdateClerkProfile(user: User, validatedData: CreateUserT
         address: validatedData.principalProfile?.address || validatedData.parentProfile?.address || null,
       }
     })
-    console.log(`Created/Updated ClerkProfile for user ${user.id} with Clerk ID ${userId}`)
+    secureLog.info('Created/Updated ClerkProfile', sanitizeForLog({ userId: user.id, clerkId: userId }))
   } catch (error) {
     console.error('Error creating/updating ClerkProfile:', error)
-    console.error('ClerkProfile data:', {
+    console.error('ClerkProfile data:', sanitizeForLog({
       clerkId: user.id,
       employeeId: validatedData.principalProfile?.employeeId,
       department: validatedData.department,
       phone: validatedData.principalProfile?.phone,
       address: validatedData.principalProfile?.address,
-    })
+    }))
   }
 }
 
@@ -277,17 +278,17 @@ export async function PUT(request: NextRequest) {
 
     const { userId } = await auth()
     
-    console.log(`PUT /api/users - Auth userId: ${userId} (type: ${typeof userId}, length: ${userId?.length})`)
+    secureLog.info('PUT /api/users - Auth', sanitizeForLog({ userId }))
     
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
-    console.log('Received PUT request body:', JSON.stringify(body, null, 2))
+    secureLog.info('PUT /api/users - Body', sanitizeForLog(body))
     
     const validatedData = createUserSchema.parse(body)
-    console.log('Validated PUT data:', JSON.stringify(validatedData, null, 2))
+    secureLog.info('PUT /api/users - Validated', sanitizeForLog(validatedData))
 
     // Find the existing user
     const existingUser = await prisma.user.findUnique({
@@ -349,17 +350,17 @@ export async function POST(request: NextRequest) {
 
     const { userId } = await auth()
     
-    console.log(`POST /api/users - Auth userId: ${userId} (type: ${typeof userId}, length: ${userId?.length})`)
+    secureLog.info('POST /api/users - Auth', sanitizeForLog({ userId }))
     
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
-    console.log('Received request body:', JSON.stringify(body, null, 2))
+    secureLog.info('POST /api/users - Body', sanitizeForLog(body))
     
     const validatedData = createUserSchema.parse(body)
-    console.log('Validated data:', JSON.stringify(validatedData, null, 2))
+    secureLog.info('POST /api/users - Validated', sanitizeForLog(validatedData))
 
     // Check if this is a self-registration (user doesn't exist yet)
     // Use getCurrentUser which has caching
@@ -405,17 +406,18 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingUserByEmail) {
-      console.log(`Found existing user with email ${validatedData.email}:`, {
+      secureLog.info('Found existing user with email', sanitizeForLog({
+        email: validatedData.email,
         id: existingUserByEmail.id,
         clerkId: existingUserByEmail.clerkId,
         role: existingUserByEmail.role,
         isSelfRegistration,
         currentUserId: userId
-      })
+      }))
 
       // If this is self-registration and the existing user has the same clerkId, update/create profiles
       if (isSelfRegistration && existingUserByEmail.clerkId === userId) {
-        console.log(`User with email ${validatedData.email} and clerkId ${userId} already exists, updating profiles`)
+        secureLog.info('Existing user matched by email and clerkId - updating profiles', sanitizeForLog({ email: validatedData.email, userId }))
         
         // Use the existing user for profile creation
         const user = existingUserByEmail
@@ -438,7 +440,7 @@ export async function POST(request: NextRequest) {
 
       // If this is self-registration but existing user has empty clerkId, update it
       if (isSelfRegistration && (!existingUserByEmail.clerkId || existingUserByEmail.clerkId === '')) {
-        console.log(`Updating existing user ${existingUserByEmail.id} with clerkId ${userId}`)
+        secureLog.info('Updating existing user with clerkId', sanitizeForLog({ userId, existingUserId: existingUserByEmail.id }))
         
         // Update the existing user with the clerkId and other data
         const updatedUser = await prisma.user.update({
@@ -483,7 +485,7 @@ export async function POST(request: NextRequest) {
       })
 
       if (existingUserByClerkId) {
-        console.log(`User with clerkId ${userId} already exists, returning existing user`)
+        secureLog.info('User with clerkId already exists - returning existing user', sanitizeForLog({ userId }))
         return NextResponse.json({ 
           user: {
             id: existingUserByClerkId.id,
@@ -496,7 +498,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 1: Add user to Clerk organization and set metadata
-    console.log(`isSelfRegistration: ${isSelfRegistration}, School has clerkOrganizationId: ${!!school.clerkOrganizationId}`)
+    secureLog.info('isSelfRegistration and school org status', sanitizeForLog({ isSelfRegistration, hasOrg: !!school.clerkOrganizationId }))
     if (isSelfRegistration) {
       if (!school.clerkOrganizationId) {
         console.warn(`School ${school.name} (${school.id}) does not have a Clerk organization ID. User will be created without organization membership.`)
@@ -514,7 +516,7 @@ export async function POST(request: NextRequest) {
 
         // Validate organization exists in current Clerk project; auto-repair if missing (e.g., env mismatch)
         let organizationId = school.clerkOrganizationId as string
-        console.log(`Checking Clerk organization: ${organizationId} for school: ${school.name} (${school.id})`)
+        secureLog.info('Checking Clerk organization', sanitizeForLog({ organizationId, schoolId: school.id, schoolName: school.name }))
         
         try {
           await cc.organizations.getOrganization({ organizationId })

@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/sidebar"
 import Image from "next/image"
 import logo from "@/assets/Standalone_Logo.png"
+import Link from "next/link"
 
 // Role-based navigation data
 export const getRoleBasedNavigation = (userRole: string) => {
@@ -317,9 +318,9 @@ export function AppSidebar({ onNavigate, activePage, userRole = "student", ...pr
     >
       {/* Header with Logo */}
       <SidebarHeader className="border-b border-border/40 px-4 py-6">
-        <div className="flex items-center justify-center">
+        <Link href="/" className="flex items-center justify-center">
           <TeamSwitcher teams={data.teams} />
-        </div>
+        </Link>
       </SidebarHeader>
 
       {/* Main Navigation */}
