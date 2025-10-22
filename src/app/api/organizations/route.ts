@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import { getClerkOrgRole } from '@/lib/permissions'
+import { getCurrentUser } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,6 +17,21 @@ export async function POST(request: NextRequest) {
     if (!name) {
       return NextResponse.json({ error: 'Organization name is required' }, { status: 400 })
     }
+
+    // CRITICAL: Only PRINCIPAL role can create organizations (per Prisma schema)
+    const currentUser = await getCurrentUser()
+    
+    if (currentUser && currentUser.role) {
+      if (currentUser.role !== 'PRINCIPAL') {
+        console.warn(`[POST /api/organizations] Access denied for user ${userId} with role ${currentUser.role}`)
+        return NextResponse.json(
+          { error: 'Only principals can create organizations. Please contact your administrator.' },
+          { status: 403 }
+        )
+      }
+    }
+    
+    console.log(`[POST /api/organizations] User ${userId} (role: ${currentUser?.role || 'new'}) creating organization: ${name}`)
 
     // Create a valid slug for Clerk organization (same logic as schools route)
     const baseSlug = name

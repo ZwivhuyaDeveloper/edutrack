@@ -62,14 +62,22 @@ export default function SchoolSetupPage() {
   const [redirectCountdown, setRedirectCountdown] = useState(10)
   const { user, isLoaded } = useUser()
   const [principalProfile, setPrincipalProfile] = useState<PrincipalProfileData | null>(null)
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false)
   const router = useRouter()
 
-  // Check if user is authenticated and verify they should be here
+  // Check if user is authenticated and verify they should be here - with loop prevention
   useEffect(() => {
     async function checkAuth() {
+      // Prevent infinite loops - only check once
+      if (hasCheckedAuth) {
+        console.log('[setup-school] Skipping duplicate auth check')
+        return
+      }
+      
       if (!isLoaded) return
       
       if (!user) {
+        console.log('[setup-school] No user, redirecting to sign-in')
         window.location.replace('/sign-in')
         return
       }
@@ -77,28 +85,45 @@ export default function SchoolSetupPage() {
       // Skip auth check if we're showing success or currently loading (user just completed setup)
       if (showSuccess || isLoading) {
         setIsCheckingAuth(false)
+        setHasCheckedAuth(true)
         return
       }
 
+      setHasCheckedAuth(true)
+
       try {
         // Check if user already has a profile
-        const response = await fetch('/api/users/me')
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 5000)
+        
+        const response = await fetch('/api/users/me', {
+          signal: controller.signal,
+          cache: 'no-store'
+        })
+        clearTimeout(timeoutId)
+        
         if (response.ok) {
           // User already has profile, redirect to dashboard
+          console.log('[setup-school] User has profile, redirecting to dashboard')
           window.location.replace('/dashboard')
           return
         } else if (response.status === 404) {
           // User doesn't have profile yet, this is correct - they should be here
+          console.log('[setup-school] User needs to setup school')
           setIsCheckingAuth(false)
         }
       } catch (error) {
-        console.error('Error checking auth:', error)
+        if (error instanceof Error && error.name === 'AbortError') {
+          console.warn('[setup-school] Auth check timed out')
+        } else {
+          console.error('[setup-school] Error checking auth:', error)
+        }
         setIsCheckingAuth(false)
       }
     }
 
     checkAuth()
-  }, [isLoaded, user, router, showSuccess, isLoading])
+  }, [isLoaded, user, showSuccess, isLoading, hasCheckedAuth])
 
   // Load principal data from session storage on mount
   useEffect(() => {

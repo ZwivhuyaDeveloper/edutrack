@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = createSchoolSchema.parse(body)
 
-    // Check if user is already a principal of another school
+    // Check if user exists and their current role
     const existingUser = await prisma.user.findUnique({
       where: { clerkId: userId },
       include: { 
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    console.log(`[POST /api/schools] Existing user check for ${userId}:`, {
+    console.log(`[POST /api/schools] User check for ${userId}:`, {
       exists: !!existingUser,
       role: existingUser?.role,
       schoolId: existingUser?.schoolId,
@@ -98,20 +98,27 @@ export async function POST(request: NextRequest) {
       hasClerkProfile: !!existingUser?.clerkProfile
     })
 
-    if (existingUser && existingUser.role === 'PRINCIPAL' && existingUser.schoolId) {
-      return NextResponse.json(
-        { error: `You are already the principal of ${existingUser.school?.name || 'another school'}. Each principal can only manage one school.` },
-        { status: 400 }
-      )
-    }
+    // CRITICAL: Only PRINCIPAL role can create schools (per Prisma schema)
+    if (existingUser && existingUser.role) {
+      if (existingUser.role !== 'PRINCIPAL') {
+        console.warn(`[POST /api/schools] Access denied for user ${userId} with role ${existingUser.role}`)
+        return NextResponse.json(
+          { error: 'Only principals can create schools. Please contact your administrator.' },
+          { status: 403 }
+        )
+      }
 
-    // Only allow school creation if user doesn't exist (new principal) or is not already assigned a role
-    if (existingUser && existingUser.role && existingUser.role !== 'PRINCIPAL') {
-      return NextResponse.json(
-        { error: 'Only principals can create schools. Please contact your administrator.' },
-        { status: 403 }
-      )
+      // If user is already a principal of another school, prevent duplicate
+      if (existingUser.schoolId) {
+        return NextResponse.json(
+          { error: `You are already the principal of ${existingUser.school?.name || 'another school'}. Each principal can only manage one school.` },
+          { status: 400 }
+        )
+      }
     }
+    
+    // If no existing user, this is initial school setup (allowed for new principals)
+    console.log(`[POST /api/schools] Proceeding with school creation for ${existingUser ? 'existing' : 'new'} principal`)
 
     // Step 1: Create Clerk organization for the school
     let clerkOrganizationId: string | null = null
