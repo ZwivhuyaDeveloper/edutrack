@@ -1,28 +1,16 @@
 "use client"
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { AuthenticateWithRedirectCallback } from '@clerk/nextjs'
 import { Loader2 } from 'lucide-react'
 
 /**
  * SSO Callback Page
  * 
  * This page handles the OAuth redirect after a user signs up with Google or LinkedIn.
- * It processes the OAuth flow and redirects the user back to the sign-up page
- * to complete their profile setup.
+ * Clerk's AuthenticateWithRedirectCallback component processes the OAuth flow
+ * and automatically redirects to the sign-up page to complete profile setup.
  */
 export default function SSOCallbackPage() {
-  const router = useRouter()
-
-  useEffect(() => {
-    // Small delay to ensure Clerk processes the callback
-    const timer = setTimeout(() => {
-      router.push('/sign-up')
-    }, 2000)
-
-    return () => clearTimeout(timer)
-  }, [router])
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center">
@@ -34,6 +22,12 @@ export default function SSOCallbackPage() {
           Please wait while we set up your account.
         </p>
       </div>
+      
+      {/* Clerk handles the OAuth callback and redirects */}
+      <AuthenticateWithRedirectCallback
+        signUpForceRedirectUrl="/sign-up"
+        signInForceRedirectUrl="/dashboard"
+      />
     </div>
   )
 }
