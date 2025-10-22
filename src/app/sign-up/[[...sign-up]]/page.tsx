@@ -694,12 +694,13 @@ export default function Page() {
   }
 
   // Handle OAuth sign-up (Google, LinkedIn, etc.)
-  const handleOAuthSignUp = async (provider: 'oauth_google' | 'oauth_linkedin') => {
+  const handleOAuthSignUp = async (provider: 'google' | 'linkedin') => {
     if (!signUpLoaded || !signUp) return
     
     try {
+      const strategy = provider === 'google' ? 'oauth_google' : 'oauth_linkedin'
       await signUp.authenticateWithRedirect({
-        strategy: provider,
+        strategy: strategy as 'oauth_google' | 'oauth_linkedin',
         redirectUrl: '/sso-callback',
         redirectUrlComplete: '/sign-up',
       })
@@ -796,7 +797,7 @@ export default function Page() {
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => handleOAuthSignUp('oauth_google')}
+                        onClick={() => handleOAuthSignUp('google')}
                         className="w-full border-gray-300 hover:bg-gray-50 hover:border-gray-400 rounded-lg transition-all duration-200 font-medium py-2.5"
                       >
                         <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -823,7 +824,7 @@ export default function Page() {
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => handleOAuthSignUp('oauth_linkedin')}
+                        onClick={() => handleOAuthSignUp('linkedin')}
                         className="w-full border-gray-300 hover:bg-gray-50 hover:border-gray-400 rounded-lg transition-all duration-200 font-medium py-2.5"
                       >
                         <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="#0A66C2">

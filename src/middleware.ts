@@ -36,25 +36,31 @@ const isProtectedRoute = createRouteMatcher([
   '/api/reports(.*)'
 ])
 
-// Role-specific route matchers are intentionally removed.
-// Role enforcement is handled in route handlers using Prisma.
-
 export default clerkMiddleware(async (auth, req) => {
   const { userId } = await auth()
 
   // Create response with security headers
   const response = NextResponse.next()
   
-  // Security Headers
-  response.headers.set('X-Frame-Options', 'DENY')
+  // Security Headers (Updated for Clerk CAPTCHA compatibility)
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN')
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
   
-  // Content Security Policy (adjust as needed for your app)
+  // Updated CSP to allow Clerk CAPTCHA and services
   response.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.*.com https://*.clerk.accounts.dev; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://clerk.*.com https://*.clerk.accounts.dev https://api.clerk.com;"
+    [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com https://www.google.com https://www.gstatic.com",
+      "style-src 'self' 'unsafe-inline' https://*.clerk.com",
+      "img-src 'self' data: https: blob:",
+      "font-src 'self' data: https://*.clerk.com",
+      "connect-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://api.clerk.com wss://*.clerk.com",
+      "frame-src 'self' https://*.clerk.com https://*.clerk.accounts.dev https://challenges.cloudflare.com https://www.google.com",
+      "worker-src 'self' blob:",
+    ].join('; ')
   )
 
   // Allow public routes
@@ -65,7 +71,7 @@ export default clerkMiddleware(async (auth, req) => {
   // Protect all other routes
   if (isProtectedRoute(req)) {
     if (!userId) {
-      // For API routes, return JSON 401 to keep responses machine-readable
+      // For API routes, return JSON 401
       if (req.nextUrl.pathname.startsWith('/api')) {
         const errorResponse = NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         // Copy security headers to error response
@@ -74,13 +80,13 @@ export default clerkMiddleware(async (auth, req) => {
         })
         return errorResponse
       }
-      // Redirect to sign-in if not authenticated for non-API routes
+      // Redirect to sign-in if not authenticated
       const signInUrl = new URL('/sign-in', req.url)
       signInUrl.searchParams.set('redirect_url', req.url)
       return NextResponse.redirect(signInUrl)
     }
 
-    // Allow /api/schools and /api/users for registration flow
+    // Allow registration API routes
     const isRegistrationAPI = req.nextUrl.pathname === '/api/schools' || 
                               req.nextUrl.pathname === '/api/users' ||
                               req.nextUrl.pathname === '/api/users/me' ||
@@ -90,17 +96,14 @@ export default clerkMiddleware(async (auth, req) => {
       return response
     }
 
-    // Defer role-based enforcement to API route handlers and pages using Prisma
-    // For API routes, always pass through (handlers will check DB roles)
+    // Allow API routes (handlers will check roles)
     if (req.nextUrl.pathname.startsWith('/api')) {
       return response
     }
 
-    // For non-API routes, allow access; UI/server routes should fetch DB user and handle role gating
     return response
   }
 
-  // For any other route, allow access
   return response
 })
 
