@@ -24,7 +24,16 @@ import {
   CheckCircle2,
   Edit,
   Save,
-  X
+  X,
+  GraduationCap,
+  Briefcase,
+  Users,
+  Phone,
+  MapPin,
+  Award,
+  Clock,
+  FileText,
+  IdCard
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -40,9 +49,13 @@ interface UserProfile {
     name: string
     city?: string
     state?: string
+    country?: string
   }
   createdAt: string
+  updatedAt: string
   profile?: any
+  avatar?: string | null
+  fullName?: string
 }
 
 export default function ProfilePage() {
@@ -140,14 +153,33 @@ export default function ProfilePage() {
 
   const getRoleBadgeColor = (role: string) => {
     const colors: Record<string, string> = {
-      STUDENT: 'bg-blue-100 text-blue-800 border-blue-200',
-      TEACHER: 'bg-green-100 text-green-800 border-green-200',
-      PARENT: 'bg-purple-100 text-purple-800 border-purple-200',
-      PRINCIPAL: 'bg-red-100 text-red-800 border-red-200',
-      CLERK: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      ADMIN: 'bg-gray-100 text-gray-800 border-gray-200',
+      STUDENT: 'bg-blue-100 text-blue-800 border-blue-300',
+      TEACHER: 'bg-purple-100 text-purple-800 border-purple-300',
+      PARENT: 'bg-green-100 text-green-800 border-green-300',
+      PRINCIPAL: 'bg-orange-100 text-orange-800 border-orange-300',
+      CLERK: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+      ADMIN: 'bg-red-100 text-red-800 border-red-300',
     }
-    return colors[role] || 'bg-gray-100 text-gray-800'
+    return colors[role] || 'bg-gray-100 text-gray-800 border-gray-300'
+  }
+
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'STUDENT':
+        return <GraduationCap className="h-5 w-5" />
+      case 'TEACHER':
+        return <Briefcase className="h-5 w-5" />
+      case 'PARENT':
+        return <Users className="h-5 w-5" />
+      case 'PRINCIPAL':
+        return <Shield className="h-5 w-5" />
+      case 'CLERK':
+        return <FileText className="h-5 w-5" />
+      case 'ADMIN':
+        return <Shield className="h-5 w-5" />
+      default:
+        return <User className="h-5 w-5" />
+    }
   }
 
   const getInitials = (firstName: string, lastName: string) => {
@@ -228,19 +260,28 @@ export default function ProfilePage() {
           <CardContent className="space-y-6">
             {/* Avatar Section */}
             <div className="flex items-center gap-4">
-              <Avatar className="h-20 w-20">
+              <Avatar className="h-24 w-24 border-4 border-primary/10">
                 <AvatarImage src={clerkUser?.imageUrl} alt={profile.firstName} />
-                <AvatarFallback className="text-2xl">
+                <AvatarFallback className="text-2xl bg-primary/10 text-primary">
                   {getInitials(profile.firstName, profile.lastName)}
                 </AvatarFallback>
               </Avatar>
-              <div>
-                <h3 className="text-xl font-semibold">
+              <div className="flex-1">
+                <h3 className="text-2xl font-bold text-gray-900">
                   {profile.firstName} {profile.lastName}
                 </h3>
-                <Badge className={`${getRoleBadgeColor(profile.role)} border mt-1`}>
-                  {profile.role}
-                </Badge>
+                <div className="flex items-center gap-2 mt-2">
+                  <div className={`p-1.5 rounded-lg ${getRoleBadgeColor(profile.role).replace('text-', 'bg-').replace('bg-', 'bg-').replace('-100', '-200/50')}`}>
+                    {getRoleIcon(profile.role)}
+                  </div>
+                  <Badge className={`${getRoleBadgeColor(profile.role)} border font-semibold`}>
+                    {profile.role}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2 mt-2 text-gray-600">
+                  <Mail className="h-4 w-4" />
+                  <span className="text-sm">{profile.email}</span>
+                </div>
               </div>
             </div>
 
@@ -318,6 +359,194 @@ export default function ProfilePage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Role-Specific Information Card */}
+        {profile.profile && Object.keys(profile.profile).length > 0 && (
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                {getRoleIcon(profile.role)}
+                {profile.role} Information
+              </CardTitle>
+              <CardDescription>Role-specific details and information</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Student Profile */}
+                {profile.role === 'STUDENT' && (
+                  <>
+                    {profile.profile.studentIdNumber && (
+                      <div className="space-y-1 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                          <IdCard className="h-4 w-4" />
+                          <Label className="text-xs font-medium">Student ID</Label>
+                        </div>
+                        <p className="text-gray-900 font-semibold">{profile.profile.studentIdNumber}</p>
+                      </div>
+                    )}
+                    {profile.profile.dateOfBirth && (
+                      <div className="space-y-1 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                          <Calendar className="h-4 w-4" />
+                          <Label className="text-xs font-medium">Date of Birth</Label>
+                        </div>
+                        <p className="text-gray-900 font-semibold">
+                          {new Date(profile.profile.dateOfBirth).toLocaleDateString()}
+                        </p>
+                      </div>
+                    )}
+                    {profile.profile.address && (
+                      <div className="space-y-1 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                          <MapPin className="h-4 w-4" />
+                          <Label className="text-xs font-medium">Address</Label>
+                        </div>
+                        <p className="text-gray-900 font-semibold">{profile.profile.address}</p>
+                      </div>
+                    )}
+                    {profile.profile.emergencyContact && (
+                      <div className="space-y-1 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                          <Phone className="h-4 w-4" />
+                          <Label className="text-xs font-medium">Emergency Contact</Label>
+                        </div>
+                        <p className="text-gray-900 font-semibold">{profile.profile.emergencyContact}</p>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Teacher Profile */}
+                {profile.role === 'TEACHER' && (
+                  <>
+                    {profile.profile.employeeId && (
+                      <div className="space-y-1 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                          <IdCard className="h-4 w-4" />
+                          <Label className="text-xs font-medium">Employee ID</Label>
+                        </div>
+                        <p className="text-gray-900 font-semibold">{profile.profile.employeeId}</p>
+                      </div>
+                    )}
+                    {profile.profile.hireDate && (
+                      <div className="space-y-1 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                          <Calendar className="h-4 w-4" />
+                          <Label className="text-xs font-medium">Hire Date</Label>
+                        </div>
+                        <p className="text-gray-900 font-semibold">
+                          {new Date(profile.profile.hireDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                    )}
+                    {profile.profile.qualifications && (
+                      <div className="space-y-1 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                          <Award className="h-4 w-4" />
+                          <Label className="text-xs font-medium">Qualifications</Label>
+                        </div>
+                        <p className="text-gray-900 font-semibold">{profile.profile.qualifications}</p>
+                      </div>
+                    )}
+                    {profile.profile.yearsOfExperience && (
+                      <div className="space-y-1 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                          <Clock className="h-4 w-4" />
+                          <Label className="text-xs font-medium">Experience</Label>
+                        </div>
+                        <p className="text-gray-900 font-semibold">{profile.profile.yearsOfExperience} years</p>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Parent Profile */}
+                {profile.role === 'PARENT' && (
+                  <>
+                    {profile.profile.phone && (
+                      <div className="space-y-1 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                          <Phone className="h-4 w-4" />
+                          <Label className="text-xs font-medium">Phone Number</Label>
+                        </div>
+                        <p className="text-gray-900 font-semibold">{profile.profile.phone}</p>
+                      </div>
+                    )}
+                    {profile.profile.address && (
+                      <div className="space-y-1 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                          <MapPin className="h-4 w-4" />
+                          <Label className="text-xs font-medium">Address</Label>
+                        </div>
+                        <p className="text-gray-900 font-semibold">{profile.profile.address}</p>
+                      </div>
+                    )}
+                    {profile.profile.emergencyContact && (
+                      <div className="space-y-1 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                          <Phone className="h-4 w-4" />
+                          <Label className="text-xs font-medium">Emergency Contact</Label>
+                        </div>
+                        <p className="text-gray-900 font-semibold">{profile.profile.emergencyContact}</p>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Principal Profile */}
+                {profile.role === 'PRINCIPAL' && (
+                  <>
+                    {profile.profile.employeeId && (
+                      <div className="space-y-1 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                          <IdCard className="h-4 w-4" />
+                          <Label className="text-xs font-medium">Employee ID</Label>
+                        </div>
+                        <p className="text-gray-900 font-semibold">{profile.profile.employeeId}</p>
+                      </div>
+                    )}
+                    {profile.profile.phone && (
+                      <div className="space-y-1 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                          <Phone className="h-4 w-4" />
+                          <Label className="text-xs font-medium">Phone Number</Label>
+                        </div>
+                        <p className="text-gray-900 font-semibold">{profile.profile.phone}</p>
+                      </div>
+                    )}
+                    {profile.profile.qualifications && (
+                      <div className="space-y-1 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                          <Award className="h-4 w-4" />
+                          <Label className="text-xs font-medium">Qualifications</Label>
+                        </div>
+                        <p className="text-gray-900 font-semibold">{profile.profile.qualifications}</p>
+                      </div>
+                    )}
+                    {profile.profile.yearsOfExperience && (
+                      <div className="space-y-1 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                          <Clock className="h-4 w-4" />
+                          <Label className="text-xs font-medium">Experience</Label>
+                        </div>
+                        <p className="text-gray-900 font-semibold">{profile.profile.yearsOfExperience} years</p>
+                      </div>
+                    )}
+                    {profile.profile.administrativeArea && (
+                      <div className="space-y-1 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                          <Building2 className="h-4 w-4" />
+                          <Label className="text-xs font-medium">Administrative Area</Label>
+                        </div>
+                        <p className="text-gray-900 font-semibold">{profile.profile.administrativeArea}</p>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Account Status Card */}
         <div className="space-y-6">

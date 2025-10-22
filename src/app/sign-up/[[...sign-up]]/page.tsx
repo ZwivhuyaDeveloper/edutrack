@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, ArrowLeft, UserPlus, Users, UserCheck, Building2, Search, Mail, Lock, User as UserIcon, Eye, EyeOff } from 'lucide-react'
+import { Loader2, ArrowLeft, UserPlus, Users, UserCheck, Building2, Search, Mail, Lock, User as UserIcon, Eye, EyeOff, GraduationCap, Briefcase, Shield } from 'lucide-react'
 import { toast } from 'sonner'
 import { createUser, validateUserData } from '@/lib/user-creation'
 import logo from '@/assets/logo_teal.png'
@@ -1030,69 +1030,167 @@ export default function Page() {
 
   if (step === 'role') {
     return (
-      <div className="font-sans min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <Card className="w-full font-sans max-w-md">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Choose Your Role</CardTitle>
-            <CardDescription className="text-center">
-              Select the role that best describes you to continue registration
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4">
-              <Button
-                variant="outline"
-                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-blue-50 hover:border-blue-200"
-                onClick={() => handleRoleSelect('STUDENT')}
-              >
-                <Image 
-                  src="/logo_white.png" 
-                  alt="EduTrack AI Logo" 
-                  width={32} 
-                  height={32} 
-                  className="object-contain"
-                />
-                <span className="font-semibold">Student/Learner</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-green-50 hover:border-green-200"
-                onClick={() => handleRoleSelect('PARENT')}
-              >
-                <Users className="h-8 w-8 text-green-600" />
-                <span className="font-semibold">Parent/Guardian</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-purple-50 hover:border-purple-200"
-                onClick={() => handleRoleSelect('TEACHER')}
-              >
-                <UserCheck className="h-8 w-8 text-purple-600" />
-                <span className="font-semibold">Teacher</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-red-50 hover:border-red-200"
-                onClick={() => handleRoleSelect('PRINCIPAL')}
-              >
-                <UserCheck className="h-8 w-8 text-orange-600" />
-                <span className="font-semibold">Principal/Admin</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-indigo-50 hover:border-indigo-200"
-                onClick={() => handleRoleSelect('SCHOOL')}
-              >
-                <Building2 className="h-8 w-8 text-indigo-600" />
-                <span className="font-semibold">School Administrator</span>
-              </Button>
+      <div className="font-sans min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-gray-50 to-white py-12 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-4xl">
+          {/* Header Section */}
+          <div className="text-center mb-8">
+            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <UserPlus className="h-8 w-8 text-primary" />
             </div>
-          </CardContent>
-        </Card>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+              Choose Your Role
+            </h1>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              Select the role that best describes you. This helps us personalize your experience and provide relevant features.
+            </p>
+          </div>
+
+          {/* Role Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {/* Student Role */}
+            <button
+              onClick={() => handleRoleSelect('STUDENT')}
+              className="group relative bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-blue-400 hover:shadow-lg transition-all duration-300 text-left"
+            >
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                  <GraduationCap className="h-8 w-8 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">Student</h3>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Access courses, track progress, submit assignments, and view grades
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full">Learning</span>
+                    <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full">Assignments</span>
+                    <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full">Progress</span>
+                  </div>
+                </div>
+                <ArrowLeft className="h-5 w-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all rotate-180" />
+              </div>
+            </button>
+
+            {/* Parent Role */}
+            <button
+              onClick={() => handleRoleSelect('PARENT')}
+              className="group relative bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-green-400 hover:shadow-lg transition-all duration-300 text-left"
+            >
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                  <Users className="h-8 w-8 text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">Parent/Guardian</h3>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Monitor children&apos;s progress, communicate with teachers, view reports
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded-full">Monitoring</span>
+                    <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded-full">Reports</span>
+                    <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded-full">Communication</span>
+                  </div>
+                </div>
+                <ArrowLeft className="h-5 w-5 text-gray-400 group-hover:text-green-600 group-hover:translate-x-1 transition-all rotate-180" />
+              </div>
+            </button>
+
+            {/* Teacher Role */}
+            <button
+              onClick={() => handleRoleSelect('TEACHER')}
+              className="group relative bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-purple-400 hover:shadow-lg transition-all duration-300 text-left"
+            >
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
+                  <Briefcase className="h-8 w-8 text-purple-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">Teacher</h3>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Manage classes, create assignments, grade work, track attendance
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-xs px-2 py-1 bg-purple-50 text-purple-700 rounded-full">Classes</span>
+                    <span className="text-xs px-2 py-1 bg-purple-50 text-purple-700 rounded-full">Grading</span>
+                    <span className="text-xs px-2 py-1 bg-purple-50 text-purple-700 rounded-full">Attendance</span>
+                  </div>
+                </div>
+                <ArrowLeft className="h-5 w-5 text-gray-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all rotate-180" />
+              </div>
+            </button>
+
+            {/* Principal Role */}
+            <button
+              onClick={() => handleRoleSelect('PRINCIPAL')}
+              className="group relative bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-orange-400 hover:shadow-lg transition-all duration-300 text-left"
+            >
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-orange-100 rounded-lg group-hover:bg-orange-200 transition-colors">
+                  <Shield className="h-8 w-8 text-orange-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">Principal/Admin</h3>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Oversee school operations, manage staff, view analytics and reports
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-xs px-2 py-1 bg-orange-50 text-orange-700 rounded-full">Management</span>
+                    <span className="text-xs px-2 py-1 bg-orange-50 text-orange-700 rounded-full">Analytics</span>
+                    <span className="text-xs px-2 py-1 bg-orange-50 text-orange-700 rounded-full">Oversight</span>
+                  </div>
+                </div>
+                <ArrowLeft className="h-5 w-5 text-gray-400 group-hover:text-orange-600 group-hover:translate-x-1 transition-all rotate-180" />
+              </div>
+            </button>
+          </div>
+
+          {/* School Administrator - Full Width */}
+          <button
+            onClick={() => handleRoleSelect('SCHOOL')}
+            className="group relative w-full bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-200 p-6 hover:border-indigo-400 hover:shadow-lg transition-all duration-300 text-left"
+          >
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
+                <Building2 className="h-8 w-8 text-indigo-600" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-xl font-bold text-gray-900">School Administrator</h3>
+                  <span className="text-xs px-2 py-1 bg-indigo-600 text-white rounded-full font-semibold">New School</span>
+                </div>
+                <p className="text-sm text-gray-600 mb-3">
+                  Register your school on EduTrack AI. Set up your institution, manage all users, configure settings, and access full administrative controls.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">School Setup</span>
+                  <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">Full Access</span>
+                  <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">User Management</span>
+                  <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">Configuration</span>
+                </div>
+              </div>
+              <ArrowLeft className="h-5 w-5 text-gray-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all rotate-180" />
+            </div>
+          </button>
+
+          {/* Info Section */}
+          <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Mail className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-1">Need help choosing?</h4>
+                <p className="text-sm text-gray-600">
+                  Your role determines your dashboard features and permissions. You can contact support at{' '}
+                  <a href="mailto:support@edutrack.ai" className="text-primary hover:underline font-medium">
+                    support@edutrack.ai
+                  </a>
+                  {' '}if you&apos;re unsure which role to select.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
