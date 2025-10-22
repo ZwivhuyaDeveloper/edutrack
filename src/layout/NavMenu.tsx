@@ -147,7 +147,7 @@ export default function Navbar({ className }: { className?: string }) {
                 <Button
                   variant="default"
                   className="text-sm md:text-base font-semibold bg-primary px-4 py-2"
-                  onClick={() => window.location.replace('/profile')}
+                  onClick={() => window.location.replace('/dashboard/profile')}
                 >
                   Profile
                 </Button>
@@ -302,7 +302,7 @@ export default function Navbar({ className }: { className?: string }) {
                   className="w-full text-base font-semibold bg-primary py-3 transition-all duration-200 hover:bg-primary hover:shadow-md transform hover:scale-[1.02] active:scale-[0.98]"
                   onClick={() => {
                     setIsMenuOpen(false);
-                    window.location.replace('/profile');
+                    window.location.replace('/dashboard/profile');
                   }}
                 >
                   Profile

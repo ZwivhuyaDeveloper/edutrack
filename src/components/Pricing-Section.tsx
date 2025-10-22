@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Check, X, Star, ArrowRight, Globe } from 'lucide-react';
+import { Button } from './ui/button';
 
 interface FlagProps {
   countryCode: string;
@@ -401,12 +402,12 @@ const PricingSection: React.FC = () => {
             budget, and integration requirements.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors">
-              Schedule a Demo
-            </button>
-            <button className="border border-primary text-primary px-8 py-3 rounded-lg font-semibold hover:bg-primary/10 transition-colors">
+            <Button className="bg-primary text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors">
+              Explore Demo
+            </Button>
+            <Button className="border bg-transparent border-primary text-primary px-8 py-3 rounded-lg font-semibold hover:bg-primary/10 transition-colors">
               Contact Our Team
-            </button>
+            </Button>
           </div>
         </div>
 

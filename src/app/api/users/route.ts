@@ -3,6 +3,8 @@ import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 import { User } from '@prisma/client'
 import { z } from 'zod'
+import { RateLimiters } from '@/lib/rate-limit'
+import { getCurrentUser } from '@/lib/auth'
 
 // Helper function to create or update user profile based on role
 async function createOrUpdateUserProfile(user: User, validatedData: CreateUserType) {
@@ -189,32 +191,20 @@ type CreateUserType = z.infer<typeof createUserSchema>
 
 export async function GET(request: NextRequest) {
   try {
+    // Apply rate limiting
+    const rateLimitResult = await RateLimiters.api(request)
+    if (!rateLimitResult.success) {
+      return rateLimitResult.response
+    }
+
     const { userId } = await auth()
     
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get current user to check permissions
-    let currentUser
-    try {
-      currentUser = await prisma.user.findUnique({
-        where: { clerkId: userId },
-        include: { school: true }
-      })
-    } catch (error) {
-      console.error('Database connection error in GET:', error)
-      if (error instanceof Error && error.message.includes('Server has closed the connection')) {
-        // Retry once
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        currentUser = await prisma.user.findUnique({
-          where: { clerkId: userId },
-          include: { school: true }
-        })
-      } else {
-        throw error
-      }
-    }
+    // Get current user using cached function
+    const currentUser = await getCurrentUser()
 
     if (!currentUser) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
@@ -228,6 +218,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const role = searchParams.get('role')
     const search = searchParams.get('search')
+
+    // Add pagination to prevent loading too many records
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100) // Max 100
+    const skip = (page - 1) * limit
 
     const users = await prisma.user.findMany({
       where: {
@@ -257,7 +252,9 @@ export async function GET(request: NextRequest) {
       orderBy: [
         { lastName: 'asc' },
         { firstName: 'asc' }
-      ]
+      ],
+      take: limit,
+      skip: skip
     })
 
     return NextResponse.json({ users })
@@ -272,6 +269,12 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    // Apply rate limiting
+    const rateLimitResult = await RateLimiters.write(request)
+    if (!rateLimitResult.success) {
+      return rateLimitResult.response
+    }
+
     const { userId } = await auth()
     
     console.log(`PUT /api/users - Auth userId: ${userId} (type: ${typeof userId}, length: ${userId?.length})`)
@@ -338,6 +341,12 @@ export async function PUT(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply rate limiting
+    const rateLimitResult = await RateLimiters.write(request)
+    if (!rateLimitResult.success) {
+      return rateLimitResult.response
+    }
+
     const { userId } = await auth()
     
     console.log(`POST /api/users - Auth userId: ${userId} (type: ${typeof userId}, length: ${userId?.length})`)
@@ -353,25 +362,8 @@ export async function POST(request: NextRequest) {
     console.log('Validated data:', JSON.stringify(validatedData, null, 2))
 
     // Check if this is a self-registration (user doesn't exist yet)
-    let currentUser
-    try {
-      currentUser = await prisma.user.findUnique({
-        where: { clerkId: userId },
-        include: { school: true }
-      })
-    } catch (error) {
-      console.error('Database connection error:', error)
-      if (error instanceof Error && error.message.includes('Server has closed the connection')) {
-        // Retry once
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        currentUser = await prisma.user.findUnique({
-          where: { clerkId: userId },
-          include: { school: true }
-        })
-      } else {
-        throw error
-      }
-    }
+    // Use getCurrentUser which has caching
+    const currentUser = await getCurrentUser()
 
     // If user doesn't exist, this is self-registration - allow it
     const isSelfRegistration = !currentUser

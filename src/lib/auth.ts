@@ -1,9 +1,11 @@
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 import { UserRole } from '@prisma/client'
+import { cache, CacheKeys, CacheTTL } from '@/lib/cache'
 
 /**
  * Get the current authenticated user with their profile and school info
+ * Uses caching to reduce database load
  */
 export async function getCurrentUser() {
   const { userId } = await auth()
@@ -15,37 +17,11 @@ export async function getCurrentUser() {
     return null
   }
 
-  let user
-  try {
-    user = await prisma.user.findUnique({
-      where: { clerkId: userId },
-      include: {
-        school: {
-          select: {
-            id: true,
-            name: true,
-            city: true,
-            state: true,
-            country: true,
-            logo: true,
-            isActive: true,
-            clerkOrganizationId: true,
-          }
-        },
-        studentProfile: true,
-        teacherProfile: true,
-        parentProfile: true,
-        principalProfile: true,
-        clerkProfile: true
-      }
-    })
-  } catch (error) {
-    console.error('[getCurrentUser] Database connection error:', error)
-    if (error instanceof Error && error.message.includes('Server has closed the connection')) {
-      console.log('[getCurrentUser] Retrying database connection...')
-      // Retry once after 1 second delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      user = await prisma.user.findUnique({
+  // Use cache to reduce database queries
+  const user = await cache.getOrSet(
+    CacheKeys.user(userId),
+    async () => {
+      return await prisma.user.findUnique({
         where: { clerkId: userId },
         include: {
           school: {
@@ -67,12 +43,9 @@ export async function getCurrentUser() {
           clerkProfile: true
         }
       })
-      console.log('[getCurrentUser] Retry successful')
-    } else {
-      console.error('[getCurrentUser] Non-connection error, rethrowing:', error)
-      throw error
-    }
-  }
+    },
+    CacheTTL.MEDIUM // Cache for 1 minute
+  )
 
   console.log('[getCurrentUser] User found in DB:', user ? `Yes (${user.email})` : 'No')
 
@@ -336,11 +309,17 @@ export async function canManageUser(targetUserId: string): Promise<boolean> {
     return true
   }
 
-  // Get target user
-  const targetUser = await prisma.user.findUnique({
-    where: { id: targetUserId },
-    select: { schoolId: true, role: true }
-  })
+  // Get target user with caching
+  const targetUser = await cache.getOrSet(
+    CacheKeys.userById(targetUserId),
+    async () => {
+      return await prisma.user.findUnique({
+        where: { id: targetUserId },
+        select: { schoolId: true, role: true }
+      })
+    },
+    CacheTTL.MEDIUM
+  )
 
   if (!targetUser) {
     return false
