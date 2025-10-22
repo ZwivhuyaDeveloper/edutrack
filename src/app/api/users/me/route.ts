@@ -4,6 +4,7 @@ import { getCurrentUser, getDashboardRoute, PERMISSIONS } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { RateLimiters } from '@/lib/rate-limit'
 import { cache, CacheKeys } from '@/lib/cache'
+import { secureLog } from '@/lib/secure-logger'
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,19 +16,19 @@ export async function GET(request: NextRequest) {
     // First check if user is authenticated with Clerk
     const { userId } = await auth()
     
-    console.log('[/api/users/me] Clerk userId:', userId)
+    secureLog.auth('GET /api/users/me', userId)
     
     if (!userId) {
-      console.log('[/api/users/me] No Clerk userId found - returning 401')
+      secureLog.auth('No userId found - returning 401')
       return NextResponse.json({ error: 'Unauthorized - Not authenticated with Clerk' }, { status: 401 })
     }
     
     const user = await getCurrentUser()
     
-    console.log('[/api/users/me] Database user found:', user ? 'Yes' : 'No')
+    secureLog.db('User lookup', { found: !!user })
     
     if (!user) {
-      console.log('[/api/users/me] User authenticated with Clerk but not found in database')
+      secureLog.auth('User authenticated but not in database', userId)
       return NextResponse.json({ error: 'User not found in database' }, { status: 404 })
     }
 

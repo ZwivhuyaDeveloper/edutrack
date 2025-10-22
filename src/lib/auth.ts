@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
 import { UserRole } from '@prisma/client'
 import { cache, CacheKeys, CacheTTL } from '@/lib/cache'
+import { secureLog } from '@/lib/secure-logger'
 
 /**
  * Get the current authenticated user with their profile and school info
@@ -10,10 +11,10 @@ import { cache, CacheKeys, CacheTTL } from '@/lib/cache'
 export async function getCurrentUser() {
   const { userId } = await auth()
   
-  console.log('[getCurrentUser] Clerk userId:', userId)
+  secureLog.auth('getCurrentUser called', userId)
   
   if (!userId) {
-    console.log('[getCurrentUser] No userId from Clerk auth()')
+    secureLog.auth('No userId from Clerk')
     return null
   }
 
@@ -47,7 +48,7 @@ export async function getCurrentUser() {
     CacheTTL.MEDIUM // Cache for 1 minute
   )
 
-  console.log('[getCurrentUser] User found in DB:', user ? `Yes (${user.email})` : 'No')
+  secureLog.db('User lookup complete', { found: !!user })
 
   return user
 }

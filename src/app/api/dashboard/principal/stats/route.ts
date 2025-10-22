@@ -1,9 +1,17 @@
 import { auth } from '@clerk/nextjs/server'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { RateLimiters } from '@/lib/rate-limit'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Apply rate limiting (30 requests per minute)
+    const rateLimitResult = await RateLimiters.api(request)
+    if (!rateLimitResult.success) {
+      console.warn('[Principal Stats] Rate limit exceeded')
+      return rateLimitResult.response
+    }
+    
     const { userId } = await auth()
 
     if (!userId) {

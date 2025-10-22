@@ -7,7 +7,12 @@ const globalForPrisma = globalThis as unknown as {
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    // SECURITY: Only log errors in production, never queries or warnings
+    log: process.env.NODE_ENV === 'production' 
+      ? ['error'] // Production: Only critical errors
+      : process.env.PRISMA_QUERY_LOG === 'true'
+        ? ['query', 'error', 'warn'] // Development with explicit query logging
+        : ['error', 'warn'], // Development default: No query logging
     // Connection pooling configuration to prevent rate limiting
     datasources: {
       db: {
