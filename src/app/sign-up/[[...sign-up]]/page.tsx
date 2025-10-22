@@ -27,7 +27,7 @@ interface School {
 
 export default function Page() {
   const [step, setStep] = useState<'role' | 'profile' | 'relationship' | 'school' | 'school-setup' | 'complete'>('role')
-  const [selectedRole, setSelectedRole] = useState<'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL' | 'SCHOOL'>('STUDENT')
+  const [selectedRole, setSelectedRole] = useState<'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL' | 'CLERK'>('STUDENT')
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null)
   const [schools, setSchools] = useState<School[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -35,6 +35,7 @@ export default function Page() {
   const [error, setError] = useState('')
   const [recheckProfile, setRecheckProfile] = useState(0)
   const [isRedirecting, setIsRedirecting] = useState(false)
+  const [hasCheckedProfile, setHasCheckedProfile] = useState(false)
   const [relationshipData, setRelationshipData] = useState({
     searchTerm: '',
     selectedRelationship: null as { id: string; name: string; email: string; role: string } | null,
@@ -99,15 +100,52 @@ export default function Page() {
     }
   })
 
-  // Check if user is authenticated and has completed profile
+  // Handle CAPTCHA errors gracefully
+  useEffect(() => {
+    // Listen for CAPTCHA errors and handle them without breaking the app
+    const handleCaptchaError = (event: ErrorEvent) => {
+      const errorMessage = event.message?.toLowerCase() || ''
+      
+      if (errorMessage.includes('captcha') || errorMessage.includes('clerk-captcha')) {
+        console.warn('[CAPTCHA] Non-critical error caught:', event.message)
+        // Prevent error from breaking the app
+        event.preventDefault()
+        event.stopPropagation()
+        return false
+      }
+    }
+    
+    window.addEventListener('error', handleCaptchaError)
+    return () => window.removeEventListener('error', handleCaptchaError)
+  }, [])
+
+  // Check if user is authenticated and has completed profile - Optimized with loop prevention
   useEffect(() => {
     async function checkUserProfile() {
+      // Prevent infinite loops - only check once per mount or when explicitly requested
+      if (hasCheckedProfile && recheckProfile === 0) {
+        console.log('[sign-up] Skipping duplicate profile check')
+        return
+      }
+      
       console.log('[sign-up] useEffect triggered - isLoaded:', isLoaded, 'user:', !!user)
       
-      if (isLoaded && user) {
+      if (isLoaded && user && !isRedirecting) {
+        setHasCheckedProfile(true)
+        
         try {
           console.log('[sign-up] Checking user profile for:', user.primaryEmailAddress?.emailAddress)
-          const response = await fetch('/api/users/me')
+          
+          // Use AbortController for faster timeout
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 5000) // 5s timeout
+          
+          const response = await fetch('/api/users/me', { 
+            signal: controller.signal,
+            cache: 'no-store' // Ensure fresh data
+          })
+          clearTimeout(timeoutId)
+          
           console.log('[sign-up] Response status:', response.status)
           
           if (response.ok) {
@@ -134,16 +172,21 @@ export default function Page() {
             setStep('role')
           }
         } catch (error) {
-          console.error('[sign-up] Error checking user profile:', error)
+          if (error instanceof Error && error.name === 'AbortError') {
+            console.warn('[sign-up] Profile check timed out, showing role selection')
+          } else {
+            console.error('[sign-up] Error checking user profile:', error)
+          }
           setStep('role')
         }
       } else if (isLoaded && !user) {
         console.log('[sign-up] User not authenticated, staying on sign-up page')
+        setHasCheckedProfile(true)
       }
     }
 
     checkUserProfile()
-  }, [isLoaded, user, recheckProfile])
+  }, [isLoaded, user, recheckProfile, hasCheckedProfile, isRedirecting])
 
   // Fetch schools when school selection step is reached
   useEffect(() => {
@@ -183,15 +226,13 @@ export default function Page() {
     }
   }
 
-  const handleRoleSelect = (role: 'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL' | 'SCHOOL') => {
+  const handleRoleSelect = (role: 'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL' | 'CLERK') => {
     console.log('Role selected:', role)
     setSelectedRole(role)
-    if (role === 'SCHOOL') {
-      setStep('school-setup')
-    } else {
-      // All other roles need profile information
-      setStep('profile')
-    }
+    // All roles go to profile form first to collect their details
+    // PRINCIPAL will then go to school-setup after profile
+    // Other roles will go to school selection after profile
+    setStep('profile')
   }
 
   const handleProfileSubmit = async () => {
@@ -693,22 +734,82 @@ export default function Page() {
     }
   }
 
-  // Handle OAuth sign-up (Google, LinkedIn, etc.)
-  const handleOAuthSignUp = async (provider: 'oauth_google' | 'oauth_linkedin') => {
-    if (!signUpLoaded || !signUp) return
+  // Handle OAuth sign-up (Google, LinkedIn, etc.) - Optimized for speed
+  const handleOAuthSignUp = async (provider: 'google' | 'linkedin') => {
+    console.log('[OAuth] Starting OAuth flow for:', provider)
+    
+    // Quick validation checks
+    if (!signUpLoaded) {
+      console.warn('[OAuth] SignUp not loaded yet, waiting...')
+      toast.loading('Initializing authentication...')
+      // Wait a bit for Clerk to load
+      await new Promise(resolve => setTimeout(resolve, 500))
+      if (!signUpLoaded) {
+        toast.error('Authentication not ready. Please refresh the page.')
+        return
+      }
+    }
+    
+    if (!signUp) {
+      console.error('[OAuth] SignUp object is null')
+      toast.error('Authentication not ready. Please refresh the page.')
+      return
+    }
     
     try {
-      await signUp.authenticateWithRedirect({
-        strategy: provider,
+      const strategy = provider === 'google' ? 'oauth_google' : 'oauth_linkedin'
+      console.log('[OAuth] Initiating redirect with strategy:', strategy)
+      
+      // Show immediate feedback
+      setIsLoading(true)
+      toast.loading(`Connecting to ${provider === 'google' ? 'Google' : 'LinkedIn'}...`)
+      
+      // Start OAuth flow - this will redirect, so no need to wait
+      signUp.authenticateWithRedirect({
+        strategy: strategy as 'oauth_google' | 'oauth_linkedin',
         redirectUrl: '/sso-callback',
         redirectUrlComplete: '/sign-up',
+      }).catch((err) => {
+        // Handle errors that occur before redirect
+        console.error('[OAuth] Pre-redirect error:', err)
+        const error = err as { errors?: Array<{ message: string; code?: string }> }
+        
+        if (error.errors && error.errors.length > 0) {
+          const firstError = error.errors[0]
+          const errorMessage = firstError.message || 'Failed to start OAuth'
+          const errorCode = firstError.code || 'unknown'
+          
+          console.error('[OAuth] Error:', errorCode, '-', errorMessage)
+          
+          // Handle specific error codes
+          if (errorCode === 'captcha_invalid' || errorCode === 'captcha_required') {
+            toast.error('Please complete the CAPTCHA verification')
+            setSignUpError('CAPTCHA verification required. Please try again.')
+          } else if (errorCode === 'oauth_access_denied') {
+            toast.error('Access denied. Please try again.')
+            setSignUpError('OAuth access denied')
+          } else {
+            toast.error(errorMessage)
+            setSignUpError(errorMessage)
+          }
+        } else {
+          console.error('[OAuth] Unknown error:', err)
+          toast.error('Failed to connect. Please try again.')
+          setSignUpError('Failed to connect with OAuth provider')
+        }
+        
+        setIsLoading(false)
       })
+      
+      // Don't wait for redirect - it will happen automatically
+      console.log('[OAuth] Redirect initiated')
+      
     } catch (err: unknown) {
-      console.error('OAuth error:', err)
-      const error = err as { errors?: Array<{ message: string }> }
-      const errorMessage = error.errors?.[0]?.message || 'Failed to sign up with OAuth'
-      setSignUpError(errorMessage)
-      toast.error('Failed to connect. Please try again.')
+      // This catch is for synchronous errors only
+      console.error('[OAuth] Synchronous error:', err)
+      toast.error('Failed to start OAuth flow. Please try again.')
+      setSignUpError('Failed to start OAuth flow')
+      setIsLoading(false)
     }
   }
 
@@ -796,7 +897,7 @@ export default function Page() {
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => handleOAuthSignUp('oauth_google')}
+                        onClick={() => handleOAuthSignUp('google')}
                         className="w-full border-gray-300 hover:bg-gray-50 hover:border-gray-400 rounded-lg transition-all duration-200 font-medium py-2.5"
                       >
                         <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -823,7 +924,7 @@ export default function Page() {
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => handleOAuthSignUp('oauth_linkedin')}
+                        onClick={() => handleOAuthSignUp('linkedin')}
                         className="w-full border-gray-300 hover:bg-gray-50 hover:border-gray-400 rounded-lg transition-all duration-200 font-medium py-2.5"
                       >
                         <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="#0A66C2">
@@ -947,6 +1048,9 @@ export default function Page() {
                         Use 8+ characters with uppercase, lowercase, numbers, and symbols
                       </p>
                     </div>
+                    
+                    {/* Clerk CAPTCHA container - positioned for optimal UX */}
+                    <div id="clerk-captcha" className="flex justify-center my-4 min-h-[78px]" aria-live="polite" aria-label="Security verification"></div>
                     
                     <Button
                       type="submit"
@@ -1144,9 +1248,9 @@ export default function Page() {
             </button>
           </div>
 
-          {/* School Administrator - Full Width */}
+          {/* Administrative Staff (Clerk) - Full Width */}
           <button
-            onClick={() => handleRoleSelect('SCHOOL')}
+            onClick={() => handleRoleSelect('CLERK')}
             className="group relative w-full bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-200 p-6 hover:border-indigo-400 hover:shadow-lg transition-all duration-300 text-left"
           >
             <div className="flex items-start gap-4">
@@ -1155,17 +1259,17 @@ export default function Page() {
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-xl font-bold text-gray-900">School Administrator</h3>
-                  <span className="text-xs px-2 py-1 bg-indigo-600 text-white rounded-full font-semibold">New School</span>
+                  <h3 className="text-xl font-bold text-gray-900">Administrative Staff (Clerk)</h3>
+                  <span className="text-xs px-2 py-1 bg-indigo-600 text-white rounded-full font-semibold">Staff</span>
                 </div>
                 <p className="text-sm text-gray-600 mb-3">
-                  Register your school on EduTrack AI. Set up your institution, manage all users, configure settings, and access full administrative controls.
+                  Join as administrative staff. Manage student records, process fees and payments, handle registrations, and support school operations.
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">School Setup</span>
-                  <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">Full Access</span>
-                  <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">User Management</span>
-                  <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">Configuration</span>
+                  <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">Fee Management</span>
+                  <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">Records</span>
+                  <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">Payments</span>
+                  <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">Administration</span>
                 </div>
               </div>
               <ArrowLeft className="h-5 w-5 text-gray-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all rotate-180" />

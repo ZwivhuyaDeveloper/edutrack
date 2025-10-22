@@ -33,7 +33,8 @@ import {
   Award,
   Clock,
   FileText,
-  IdCard
+  IdCard,
+  ArrowLeft
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -66,6 +67,8 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
   const [editedData, setEditedData] = useState({
     firstName: '',
     lastName: '',
@@ -74,7 +77,16 @@ export default function ProfilePage() {
   useEffect(() => {
     async function fetchProfile() {
       try {
-        const response = await fetch('/api/users/me')
+        setError(null)
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s timeout
+        
+        const response = await fetch('/api/users/me', {
+          signal: controller.signal,
+          cache: 'no-store'
+        })
+        clearTimeout(timeoutId)
+        
         if (response.ok) {
           const data = await response.json()
           setProfile(data.user)
@@ -82,12 +94,29 @@ export default function ProfilePage() {
             firstName: data.user.firstName,
             lastName: data.user.lastName,
           })
+          setError(null)
+          toast.success('Profile loaded successfully')
+        } else if (response.status === 404) {
+          setError('Profile not found. Please complete your registration.')
+          toast.error('Profile not found')
+        } else if (response.status === 401) {
+          setError('Session expired. Please sign in again.')
+          toast.error('Session expired')
+          setTimeout(() => router.push('/sign-in'), 2000)
         } else {
-          toast.error('Failed to load profile')
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+          setError(errorData.error || 'Failed to load profile')
+          toast.error(errorData.error || 'Failed to load profile')
         }
       } catch (error) {
-        console.error('Error fetching profile:', error)
-        toast.error('Failed to load profile')
+        if (error instanceof Error && error.name === 'AbortError') {
+          setError('Request timed out. Please check your connection and try again.')
+          toast.error('Request timed out')
+        } else {
+          console.error('Error fetching profile:', error)
+          setError('Failed to load profile. Please try again.')
+          toast.error('Failed to load profile')
+        }
       } finally {
         setIsLoading(false)
       }
@@ -95,8 +124,11 @@ export default function ProfilePage() {
 
     if (isLoaded && clerkUser) {
       fetchProfile()
+    } else if (isLoaded && !clerkUser) {
+      setError('Not authenticated. Redirecting to sign in...')
+      setTimeout(() => router.push('/sign-in'), 2000)
     }
-  }, [isLoaded, clerkUser])
+  }, [isLoaded, clerkUser, retryCount, router])
 
   const handleLogout = async () => {
     try {
@@ -109,12 +141,18 @@ export default function ProfilePage() {
   }
 
   const handleSave = async () => {
+    // Validate input
+    if (!editedData.firstName.trim() || !editedData.lastName.trim()) {
+      toast.error('First name and last name are required')
+      return
+    }
+
     setIsSaving(true)
     try {
-      // Update Clerk user
+      // Update Clerk user first
       await clerkUser?.update({
-        firstName: editedData.firstName,
-        lastName: editedData.lastName,
+        firstName: editedData.firstName.trim(),
+        lastName: editedData.lastName.trim(),
       })
 
       // Update database
@@ -122,8 +160,8 @@ export default function ProfilePage() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          firstName: editedData.firstName,
-          lastName: editedData.lastName,
+          firstName: editedData.firstName.trim(),
+          lastName: editedData.lastName.trim(),
         }),
       })
 
@@ -131,13 +169,15 @@ export default function ProfilePage() {
         const data = await response.json()
         setProfile(data.user)
         setIsEditing(false)
-        toast.success('Profile updated successfully')
+        toast.success('Profile updated successfully! ✓')
       } else {
-        throw new Error('Failed to update profile')
+        const errorData = await response.json().catch(() => ({ error: 'Failed to update profile' }))
+        throw new Error(errorData.error || 'Failed to update profile')
       }
     } catch (error) {
       console.error('Error updating profile:', error)
-      toast.error('Failed to update profile')
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile'
+      toast.error(errorMessage)
     } finally {
       setIsSaving(false)
     }
@@ -186,22 +226,120 @@ export default function ProfilePage() {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
   }
 
+  // Loading skeleton
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex flex-1 flex-col gap-6 p-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse" />
+            <div className="h-4 w-64 bg-gray-200 rounded animate-pulse" />
+          </div>
+          <div className="h-10 w-32 bg-gray-200 rounded animate-pulse" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="h-6 w-48 bg-gray-200 rounded animate-pulse" />
+                <div className="h-4 w-32 bg-gray-200 rounded animate-pulse mt-2" />
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="h-24 w-24 bg-gray-200 rounded-full animate-pulse" />
+                  <div className="space-y-2 flex-1">
+                    <div className="h-6 w-48 bg-gray-200 rounded animate-pulse" />
+                    <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="h-20 bg-gray-200 rounded animate-pulse" />
+                  <div className="h-20 bg-gray-200 rounded animate-pulse" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="h-6 w-32 bg-gray-200 rounded animate-pulse" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="h-16 bg-gray-200 rounded animate-pulse" />
+                  <div className="h-16 bg-gray-200 rounded animate-pulse" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     )
   }
 
-  if (!profile) {
+  // Enhanced error state with retry
+  if (error || !profile) {
     return (
-      <div className="flex items-center justify-center h-full min-h-[400px]">
-        <Card className="max-w-md">
+      <div className="flex items-center justify-center h-full min-h-[600px] p-6">
+        <Card className="max-w-lg w-full">
           <CardHeader>
-            <CardTitle className="text-red-600">Error</CardTitle>
-            <CardDescription>Failed to load profile</CardDescription>
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-red-100 rounded-full">
+                <AlertCircle className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <CardTitle className="text-red-600">Unable to Load Profile</CardTitle>
+                <CardDescription className="mt-1">
+                  {error || 'Failed to load your profile information'}
+                </CardDescription>
+              </div>
+            </div>
           </CardHeader>
+          <CardContent className="space-y-4">
+            <Alert className="border-yellow-200 bg-yellow-50">
+              <AlertCircle className="h-4 w-4 text-yellow-600" />
+              <AlertDescription className="text-yellow-800">
+                This could be due to a network issue or your session may have expired.
+              </AlertDescription>
+            </Alert>
+            
+            <div className="flex flex-col gap-2">
+              <Button 
+                onClick={() => {
+                  setIsLoading(true)
+                  setRetryCount(prev => prev + 1)
+                }}
+                className="w-full gap-2"
+              >
+                <Loader2 className="h-4 w-4" />
+                Retry Loading Profile
+              </Button>
+              
+              <Button 
+                variant="outline"
+                onClick={() => router.push('/dashboard')}
+                className="w-full gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Dashboard
+              </Button>
+              
+              <Button 
+                variant="ghost"
+                onClick={handleLogout}
+                className="w-full gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
+            </div>
+            
+            {retryCount > 0 && (
+              <p className="text-xs text-gray-500 text-center">
+                Retry attempt: {retryCount}
+              </p>
+            )}
+          </CardContent>
         </Card>
       </div>
     )

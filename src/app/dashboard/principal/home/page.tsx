@@ -201,63 +201,135 @@ export default function PrincipalHomePage() {
   const [retryCount, setRetryCount] = useState(0)
   const [hasPartialData, setHasPartialData] = useState(false)
   
+  // Rate limiting and loop prevention
+  const [hasFetchedData, setHasFetchedData] = useState(false)
+  const [lastFetchTime, setLastFetchTime] = useState<number>(0)
+  const [isFetching, setIsFetching] = useState(false)
+  const MIN_FETCH_INTERVAL = 30000 // 30 seconds minimum between fetches
+  
   // Activity pagination and filtering
   const [activityPeriod, setActivityPeriod] = useState<string>('7')
   const [activityPage, setActivityPage] = useState(1)
   const activitiesPerPage = 6
 
   useEffect(() => {
-    // Use requestIdleCallback for non-critical data fetching
-    const timeoutId = setTimeout(() => {
-      fetchDashboardData()
-    }, 0)
+    // Prevent infinite loops and duplicate fetches
+    if (hasFetchedData) {
+      console.log('[Principal Dashboard] Skipping duplicate fetch')
+      return
+    }
     
-    return () => clearTimeout(timeoutId)
-  }, [])
+    if (isFetching) {
+      console.log('[Principal Dashboard] Already fetching, skipping')
+      return
+    }
+    
+    // Rate limiting check
+    const now = Date.now()
+    if (lastFetchTime && (now - lastFetchTime) < MIN_FETCH_INTERVAL) {
+      console.log('[Principal Dashboard] Rate limited, skipping fetch')
+      return
+    }
+    
+    console.log('[Principal Dashboard] Initial data fetch')
+    setHasFetchedData(true)
+    
+    // Create AbortController for cleanup
+    const abortController = new AbortController()
+    fetchDashboardData(abortController.signal)
+    
+    // Cleanup function
+    return () => {
+      console.log('[Principal Dashboard] Cleaning up - aborting requests')
+      abortController.abort()
+    }
+  }, [hasFetchedData, isFetching, lastFetchTime])
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (signal?: AbortSignal) => {
+    // Prevent concurrent fetches
+    if (isFetching) {
+      console.log('[Principal Dashboard] Fetch already in progress')
+      return
+    }
+    
+    // Rate limiting
+    const now = Date.now()
+    if (lastFetchTime && (now - lastFetchTime) < MIN_FETCH_INTERVAL) {
+      console.log('[Principal Dashboard] Rate limited, please wait')
+      toast.warning('Please wait before refreshing data')
+      return
+    }
+    
     try {
+      setIsFetching(true)
       setIsLoading(true)
       setError(null)
       setHasPartialData(false)
+      setLastFetchTime(Date.now())
+      
+      console.log('[Principal Dashboard] Fetching data...')
       
       // Fetch stats first (priority), then others in parallel
       const statsRes = await fetch('/api/dashboard/principal/stats', {
-        // Add cache control for better performance
-        next: { revalidate: 60 } // Cache for 60 seconds
+        signal,
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
       })
       
       // Fetch non-critical data in parallel
+      // Note: Using cache: 'no-store' for client-side fetches (next.revalidate only works in Server Components)
       const [activityRes, trendsRes, attendanceTrendsRes, teachersRes, feeRecordsRes, paymentTrendsRes, eventsRes, messagesRes, classesRes, staffRes] = await Promise.all([
         fetch('/api/dashboard/principal/activity', {
-          next: { revalidate: 30 }
+          signal,
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' }
         }),
         fetch('/api/dashboard/principal/enrollment-trends', {
-          next: { revalidate: 300 } // Cache trends for 5 minutes
+          signal,
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' }
         }),
         fetch('/api/dashboard/principal/attendance-trends', {
-          next: { revalidate: 300 } // Cache trends for 5 minutes
+          signal,
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' }
         }),
         fetch('/api/dashboard/principal/teachers', {
-          next: { revalidate: 60 } // Cache teachers for 1 minute
+          signal,
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' }
         }),
         fetch('/api/dashboard/principal/fee-records', {
-          next: { revalidate: 60 } // Cache fee records for 1 minute
+          signal,
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' }
         }),
         fetch('/api/dashboard/principal/payment-trends', {
-          next: { revalidate: 300 } // Cache payment trends for 5 minutes
+          signal,
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' }
         }),
         fetch('/api/dashboard/principal/events', {
-          next: { revalidate: 60 } // Cache events for 1 minute
+          signal,
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' }
         }),
         fetch('/api/dashboard/principal/messages', {
-          next: { revalidate: 30 } // Cache messages for 30 seconds
+          signal,
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' }
         }),
         fetch('/api/dashboard/principal/classes', {
-          next: { revalidate: 300 } // Cache classes for 5 minutes
+          signal,
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' }
         }),
         fetch('/api/dashboard/principal/staff', {
-          next: { revalidate: 300 } // Cache staff for 5 minutes
+          signal,
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' }
         })
       ])
 
@@ -401,16 +473,34 @@ export default function PrincipalHomePage() {
         setHasPartialData(true)
       }
     } catch (error) {
-      console.error('Error fetching dashboard data:', error)
+      // Don't show error if request was aborted (component unmounted)
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('[Principal Dashboard] Fetch aborted (component unmounted)')
+        return
+      }
+      
+      console.error('[Principal Dashboard] Error fetching data:', error)
       setError('Network error. Please check your connection and try again.')
       toast.error('Failed to load dashboard data. Please check your connection.')
     } finally {
       setIsLoading(false)
+      setIsFetching(false)
+      console.log('[Principal Dashboard] Fetch complete')
     }
   }
 
   const handleRetry = () => {
+    // Check rate limiting before retry
+    const now = Date.now()
+    if (lastFetchTime && (now - lastFetchTime) < MIN_FETCH_INTERVAL) {
+      const waitTime = Math.ceil((MIN_FETCH_INTERVAL - (now - lastFetchTime)) / 1000)
+      toast.warning(`Please wait ${waitTime} seconds before retrying`)
+      return
+    }
+    
+    console.log('[Principal Dashboard] Manual retry triggered')
     setRetryCount(prev => prev + 1)
+    setHasFetchedData(false) // Allow refetch
     fetchDashboardData()
   }
 
