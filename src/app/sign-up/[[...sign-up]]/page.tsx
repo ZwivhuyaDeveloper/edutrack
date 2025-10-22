@@ -695,21 +695,57 @@ export default function Page() {
 
   // Handle OAuth sign-up (Google, LinkedIn, etc.)
   const handleOAuthSignUp = async (provider: 'google' | 'linkedin') => {
-    if (!signUpLoaded || !signUp) return
+    console.log('[OAuth] Starting OAuth flow for:', provider)
+    
+    if (!signUpLoaded) {
+      console.error('[OAuth] SignUp not loaded yet')
+      toast.error('Please wait, loading...')
+      return
+    }
+    
+    if (!signUp) {
+      console.error('[OAuth] SignUp object is null')
+      toast.error('Authentication not ready. Please refresh the page.')
+      return
+    }
     
     try {
       const strategy = provider === 'google' ? 'oauth_google' : 'oauth_linkedin'
+      console.log('[OAuth] Using strategy:', strategy)
+      console.log('[OAuth] Redirect URL:', '/sso-callback')
+      console.log('[OAuth] Redirect URL Complete:', '/sign-up')
+      
+      setIsLoading(true)
+      
       await signUp.authenticateWithRedirect({
         strategy: strategy as 'oauth_google' | 'oauth_linkedin',
         redirectUrl: '/sso-callback',
         redirectUrlComplete: '/sign-up',
       })
+      
+      console.log('[OAuth] Redirect initiated successfully')
     } catch (err: unknown) {
-      console.error('OAuth error:', err)
-      const error = err as { errors?: Array<{ message: string }> }
-      const errorMessage = error.errors?.[0]?.message || 'Failed to sign up with OAuth'
-      setSignUpError(errorMessage)
-      toast.error('Failed to connect. Please try again.')
+      console.error('[OAuth] Error occurred:', err)
+      const error = err as { errors?: Array<{ message: string; code?: string }> }
+      
+      if (error.errors && error.errors.length > 0) {
+        console.error('[OAuth] Error details:', error.errors)
+        const firstError = error.errors[0]
+        const errorMessage = firstError.message || 'Failed to sign up with OAuth'
+        const errorCode = firstError.code || 'unknown'
+        
+        console.error('[OAuth] Error message:', errorMessage)
+        console.error('[OAuth] Error code:', errorCode)
+        
+        setSignUpError(errorMessage)
+        toast.error(`OAuth failed: ${errorMessage}`)
+      } else {
+        console.error('[OAuth] Unknown error format:', err)
+        setSignUpError('Failed to connect with OAuth provider')
+        toast.error('Failed to connect. Please try again.')
+      }
+    } finally {
+      setIsLoading(false)
     }
   }
 
