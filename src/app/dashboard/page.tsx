@@ -819,7 +819,7 @@ function DashboardContent() {
 
         {/* Header */}
         <header className="flex h-auto max-w-full md:h-14 lg:h-16 shrink-0 bg-white rounded-2xl md:rounded-3xl shadow-none 
-        mx-2 sm:mx-3 md:mx-4 mt-3 md:mt-5 lg:mt-7 mb-0 items-center px-3 md:px-4 lg:px-6 py-3 md:py-0 transition-[width,height] 
+        mx-2 sm:mx-3 md:mx-4 mt-3 md:mt-5 lg:mt-7 mb-0 items-center px-3 md:px-4 lg:px-6 py-3 md:py-0  md:justify-between transition-[width,height] 
         ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-16 font-sans overflow-hidden">
           {/* Left section - Sidebar trigger */}
           <div className="flex items-center gap-1.5 md:gap-2 flex-1 md:flex-initial min-w-0">
