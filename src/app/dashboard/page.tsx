@@ -815,7 +815,7 @@ function DashboardContent() {
         />
       </div>
       
-      <SidebarInset className="bg-zinc-100 h-full w-full pb-16 md:pb-0 overflow-x-hidden">
+      <SidebarInset className="bg-zinc-100 h-full w-full max-w-full pb-16 md:pb-0 overflow-x-hidden">
 
         {/* Header */}
         <header className="flex h-auto max-w-full md:h-14 lg:h-16 shrink-0 bg-white rounded-2xl md:rounded-3xl shadow-none 
@@ -917,11 +917,11 @@ function DashboardContent() {
         </header>
 
         {/* Main content area */}
-        <div className="flex flex-1 bg-zinc-100 flex-col gap-4 px-2 sm:px-4 pb-4 md:pb-4 pt-0 font-sans">
+        <div className="flex flex-1 bg-zinc-100 flex-col gap-4 px-2 sm:px-4 pb-4 md:pb-4 pt-0 font-sans max-w-full overflow-x-hidden">
           {/* Role-specific alert banner */}
           {roleAlert?.show && (
-            <div className="pt-4">
-              <Alert className={`relative flex flex-col shadow-sm p-0 overflow-hidden ${
+            <div className="pt-4 max-w-full overflow-x-hidden">
+              <Alert className={`relative flex flex-col shadow-sm p-0 overflow-hidden max-w-full ${
                 roleAlert.type === 'warning' 
                   ? 'border-l-4 border-l-amber-500 border-amber-200 bg-gradient-to-r from-amber-50 to-amber-50/50' 
                   : roleAlert.type === 'error'
@@ -1035,7 +1035,7 @@ function DashboardContent() {
 export default function DashboardPage() {
   return (
     <>
-    <div className="min-h-screen min-w-screen">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden">
       <DashboardContent />
     </div>
     </>

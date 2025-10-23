@@ -145,8 +145,8 @@ export function StaffOverviewCard({
       <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
         <CardHeader className="flex flex-row items-center border-b justify-between space-y-0 px-6 pt-6 pb-3">
           <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-            <GraduationCap strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-            <CardTitle className="text-md sm:text-md font-semibold text-primary">Staff Overview</CardTitle>
+            <GraduationCap strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <CardTitle className="text-sm sm:text-sm font-semibold text-primary">Staff Overview</CardTitle>
           </div>
           <Button 
             variant="default" 
