@@ -317,19 +317,19 @@ export function AppSidebar({ onNavigate, activePage, userRole = "student", ...pr
       className="border-r border-border/40 bg-white backdrop-blur-sm"
     >
       {/* Header with Logo */}
-      <SidebarHeader className="border-b border-border/40 px-4 py-6">
+      <SidebarHeader className="border-b border-border/40 px-2 md:px-3 lg:px-4 py-4 md:py-5 lg:py-6">
         <Link href="/" className="flex items-center justify-center">
           <TeamSwitcher teams={data.teams} />
         </Link>
       </SidebarHeader>
 
       {/* Main Navigation */}
-      <SidebarContent className="flex-1 px-2 py-4">
+      <SidebarContent className="flex-1 px-1.5 md:px-2 py-3 md:py-4">
         <NavMain items={navItems} onNavigate={onNavigate} activePage={activePage} />
       </SidebarContent>
 
       {/* Footer with User */}
-      <SidebarFooter className="border-t border-border/40 px-4 py-4">
+      <SidebarFooter className="border-t border-border/40 px-2 md:px-3 lg:px-4 py-3 md:py-4">
         
       </SidebarFooter>
       

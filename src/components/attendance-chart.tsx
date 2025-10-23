@@ -112,7 +112,7 @@ export function AttendanceChart({
         </CardContent>
         <CardFooter className="flex-col items-start gap-2 px-6">
           <div className="flex w-full flex-col gap-1">
-            <div className="text-lg sm:text-xl font-bold text-muted-foreground/50">
+            <div className="text-lg sm:text-lg font-bold text-muted-foreground/50">
               Attendance Rate: <span className="text-primary/50">---%</span>
             </div>
             <p className="text-xs sm:text-sm font-medium text-muted-foreground">
@@ -159,7 +159,7 @@ export function AttendanceChart({
         </CardContent>
         <CardFooter className="flex-col items-start gap-2 px-6">
           <div className="flex w-full flex-col gap-1">
-            <div className="text-lg sm:text-xl font-bold text-muted-foreground/50">
+            <div className="text-lg sm:text-lg font-bold text-muted-foreground/50">
               Attendance Rate: <span className="text-primary/50">---%</span>
             </div>
             <p className="text-xs sm:text-sm font-medium text-muted-foreground">
@@ -198,7 +198,7 @@ export function AttendanceChart({
         </CardContent>
         <CardFooter className="flex-col items-start gap-2 px-6">
           <div className="flex w-full h-fit flex-col gap-0">
-            <div className="text-lg sm:text-xl font-bold">
+            <div className="text-lg sm:text-lg font-bold">
               Attendance Rate: <span className="text-primary">0%</span>
             </div>
             <p className="text-xs sm:text-sm font-medium text-muted-foreground">
@@ -296,7 +296,7 @@ export function AttendanceChart({
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 px-6 pb-0">
         <div className="flex w-full flex-col gap-1">
-          <div className="text-lg sm:text-xl font-bold">
+          <div className="text-lg sm:text-lg font-bold">
             Attendance Rate: <span className="text-primary">{averageRate}%</span>
           </div>
           <p className="text-xs sm:text-sm font-medium text-muted-foreground">
