@@ -48,59 +48,24 @@ export const getRoleBasedNavigation = (userRole: string) => {
           isActive: true,
         },
         {
-          title: "Classes",
+          title: "Academic",
           url: "#",
-          icon: GraduationCap,
+          icon: BookOpen,
         },
         {
-          title: "Assignments",
-          url: "#",
-          icon: PaperclipIcon,
-        },
-        {
-          title: "Gradebook",
-          url: "#",
-          icon: Award,
-        },
-        {
-          title: "Schedule",
-          url: "#",
-          icon: Calendar,
-        },
-        {
-          title: "Attendance",
+          title: "People",
           url: "#",
           icon: Users,
         },
         {
-          title: "Messages",
+          title: "Communication",
           url: "#",
           icon: MessageCirclePlus,
         },
         {
-          title: "Announcements",
+          title: "Operations",
           url: "#",
-          icon: Bell,
-        },
-        {
-          title: "Resources",
-          url: "#",
-          icon: FileText,
-        },
-        {
-          title: "Events",
-          url: "#",
-          icon: CalendarDays,
-        },
-        {
-          title: "Finance",
-          url: "#",
-          icon: TrendingUp,
-        },
-        {
-          title: "Reports",
-          url: "#",
-          icon: Newspaper,
+          icon: Settings,
         },
       ]
     
@@ -113,67 +78,22 @@ export const getRoleBasedNavigation = (userRole: string) => {
           isActive: true,
         },
         {
-          title: "Students",
-          url: "#",
-          icon: Users,
-        },
-        {
-          title: "Assignments",
-          url: "#",
-          icon: PaperclipIcon,
-        },
-        {
-          title: "Classes",
-          url: "#",
-          icon: GraduationCap,
-        },
-        {
-          title: "Gradebook",
-          url: "#",
-          icon: Award,
-        },
-        {
-          title: "Timetable",
-          url: "#",
-          icon: Calendar,
-        },
-        {
-          title: "Attendance",
-          url: "#",
-          icon: CalendarDays,
-        },
-        {
-          title: "Lessons",
+          title: "Academic",
           url: "#",
           icon: BookOpen,
         },
         {
-          title: "Announcements",
+          title: "People",
           url: "#",
-          icon: Bell,
+          icon: Users,
         },
         {
-          title: "Resources",
-          url: "#",
-          icon: FileText,
-        },
-        {
-          title: "Analytics",
-          url: "#",
-          icon: BarChart3,
-        },
-        {
-          title: "Reports",
-          url: "#",
-          icon: Newspaper,
-        },
-        {
-          title: "Messages",
+          title: "Communication",
           url: "#",
           icon: MessageCirclePlus,
         },
         {
-          title: "Settings",
+          title: "Operations",
           url: "#",
           icon: Settings,
         },
@@ -188,19 +108,14 @@ export const getRoleBasedNavigation = (userRole: string) => {
           isActive: true,
         },
         {
+          title: "Academic",
+          url: "#",
+          icon: BookOpen,
+        },
+        {
           title: "People",
           url: "#",
           icon: Users,
-        },
-        {
-          title: "Academic",
-          url: "#",
-          icon: GraduationCap,
-        },
-        {
-          title: "Operations",
-          url: "#",
-          icon: CalendarDays,
         },
         {
           title: "Communication",
@@ -208,17 +123,37 @@ export const getRoleBasedNavigation = (userRole: string) => {
           icon: MessageCirclePlus,
         },
         {
-          title: "Events",
+          title: "Operations",
           url: "#",
-          icon: Calendar,
+          icon: Settings,
+        },
+      ]
+    
+    case "principal":
+      return [
+        {
+          title: "Dashboard",
+          url: "#",
+          icon: BlocksIcon,
+          isActive: true,
         },
         {
-          title: "Finance",
+          title: "Academic",
           url: "#",
-          icon: TrendingUp,
+          icon: BookOpen,
         },
         {
-          title: "Settings",
+          title: "People",
+          url: "#",
+          icon: Users,
+        },
+        {
+          title: "Communication",
+          url: "#",
+          icon: MessageCirclePlus,
+        },
+        {
+          title: "Operations",
           url: "#",
           icon: Settings,
         },
@@ -227,25 +162,30 @@ export const getRoleBasedNavigation = (userRole: string) => {
     case "parent":
       return [
         {
-          title: "Parent Dashboard",
+          title: "Dashboard",
           url: "#",
           icon: BlocksIcon,
           isActive: true,
         },
         {
-          title: "Assignments",
+          title: "Academic",
           url: "#",
-          icon: PaperclipIcon,
+          icon: BookOpen,
         },
         {
-          title: "Reports",
+          title: "People",
           url: "#",
-          icon: Newspaper,
+          icon: Users,
         },
         {
-          title: "Messages",
+          title: "Communication",
           url: "#",
           icon: MessageCirclePlus,
+        },
+        {
+          title: "Operations",
+          url: "#",
+          icon: Settings,
         },
       ]
     

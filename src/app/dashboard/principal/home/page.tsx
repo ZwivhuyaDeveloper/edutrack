@@ -23,7 +23,8 @@ import {
   ActivitySquareIcon,
   MousePointer,
   MouseIcon,
-  ActivityIcon
+  ActivityIcon,
+  Settings
 } from 'lucide-react'
 import {
   Select,
@@ -41,6 +42,8 @@ import { ClassesOverviewCard } from "@/components/classes-overview-card"
 import { StaffOverviewCard } from "@/components/staff-overview-card"
 import { UpcomingEventsCard } from "@/components/upcoming-events-card"
 import { UnreadMessagesCard } from "@/components/unread-messages-card"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu'
+import router from 'next/router'
 
 interface DashboardStats {
   totalStudents: number
@@ -760,14 +763,40 @@ export default function PrincipalHomePage() {
       )}
  
       {/* Header */}
-      <div className="items-center hidden p-2 justify-between">
-        <div className="space-y-1">
-          <h1 className="text-3xl text-primary font-bold tracking-tight">Principal Dashboard</h1>
-          <p className="text-muted-foreground">
+      <header className="items-center hidden  space-x-2 md:grid-cols-2 lg:grid-cols-2 p-2 justify-between">
+        <div className="space-y-1 bg-white h-full">
+          <h1 className="text-xl md:text-2xl lg:text-3xl text-primary font-bold tracking-tight">Principal Dashboard</h1>
+          <p className="text-xs md:text-sm lg:text-base text-muted-foreground">
             Welcome back! Here&apos;s what&apos;s happening at your school today.
           </p>
         </div>
-      </div>
+      {/* Quick Actions */}
+      <Card className="border-none  shadow-none bg-white">
+        <CardHeader className="p-3 border-b sm:p-6">
+          <CardTitle className="text-base sm:text-base lg:text-lg font-semibold flex flex-row items-center gap-2 text-primary">
+            <MouseIcon strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+            Quick Actions</CardTitle>
+          <CardDescription className="text-sm sm:text-md font-medium text-muted-foreground">
+            Frequently used actions
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-3 sm:p-6 pt-0">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+            {quickActions.map((action, index) => (
+              <Button
+                key={index}
+                variant={action.variant}
+                className={`h-16 sm:h-20 flex flex-col border-none shadow-none items-center justify-center gap-1 sm:gap-2 ${action.variant === 'outline' ? 'bg-zinc-100 hover:bg-zinc-200' : ''}`}
+                onClick={() => window.location.href = action.href}
+              >
+                <action.icon strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="text-xs sm:text-sm">{action.label}</span>
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+      </header>
 
       {/* Content Container */}
 
@@ -850,32 +879,6 @@ export default function PrincipalHomePage() {
 
       </div>
 
-      {/* Quick Actions */}
-      <Card className="border-none hidden shadow-none bg-white">
-        <CardHeader className="p-3 border-b sm:p-6">
-          <CardTitle className="text-base sm:text-base lg:text-lg font-semibold flex flex-row items-center gap-2 text-primary">
-            <MouseIcon strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-            Quick Actions</CardTitle>
-          <CardDescription className="text-sm sm:text-md font-medium text-muted-foreground">
-            Frequently used actions
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-3 sm:p-6 pt-0">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
-            {quickActions.map((action, index) => (
-              <Button
-                key={index}
-                variant={action.variant}
-                className={`h-16 sm:h-20 flex flex-col border-none shadow-none items-center justify-center gap-1 sm:gap-2 ${action.variant === 'outline' ? 'bg-zinc-100 hover:bg-zinc-200' : ''}`}
-                onClick={() => window.location.href = action.href}
-              >
-                <action.icon strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="text-xs sm:text-sm">{action.label}</span>
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Main Content */}
       <div className="grid gap-6 lg:grid-cols-1">

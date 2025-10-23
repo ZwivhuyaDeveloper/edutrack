@@ -833,7 +833,7 @@ function DashboardContent() {
                 <p className="font-medium hidden lg:inline">
                   Welcome back,
                 </p>
-                <p className="font-semibold text-primary truncate max-w-[120px] md:max-w-[150px] lg:max-w-none">
+                <p className="font-semibold text-background-muted truncate max-w-[120px] md:max-w-[150px] lg:max-w-none">
                   {dbUser.firstName} {dbUser.lastName}
                 </p>
               </span>
