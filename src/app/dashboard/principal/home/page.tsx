@@ -760,7 +760,7 @@ export default function PrincipalHomePage() {
       )}
  
       {/* Header */}
-      <div className="items-center hidden justify-between">
+      <div className="items-center hidden p-2 justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl text-primary font-bold tracking-tight">Principal Dashboard</h1>
           <p className="text-muted-foreground">
@@ -774,7 +774,7 @@ export default function PrincipalHomePage() {
       <div className="grid space-y-3 sm:space-y-4 bg-transparent rounded-2xl sm:rounded-3xl lg:grid-cols-1">
 
       {/* Stats Cards */}
-      <div className="grid gap-3 sm:gap-3 md:gap-3  grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-3 md:gap-3 h-fit grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="border-none shadow-none gap-5 pb-0 pt-0 mb-0 bg-white">
             <StudentEnrollmentChart
               data={enrollmentTrends}
@@ -851,7 +851,7 @@ export default function PrincipalHomePage() {
       </div>
 
       {/* Quick Actions */}
-      <Card className="border-none shadow-none bg-white">
+      <Card className="border-none hidden shadow-none bg-white">
         <CardHeader className="p-3 sm:p-6">
           <CardTitle className="text-base sm:text-lg font-semibold flex flex-row items-center gap-2 text-primary">
             <MouseIcon strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />

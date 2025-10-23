@@ -141,20 +141,22 @@ export function PendingFeesCard({
   // Enhanced Empty State
   if (!feeRecords || feeRecords.length === 0) {
     return (
-      <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6">
-          <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-            <DollarSign strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-            <CardTitle className="text-md sm:text-md font-bold text-primary">Pending Fees</CardTitle>
+      <Card className="border-none shadow-none justify-between gap-5 h-full ">
+        <CardHeader className="flex flex-col  justify-between items-stretch space-y-0 border-b p-0 sm:flex-row">
+          <div className="flex flex-1 flex-row items-center justify-start gap-2 pl-4 py-1 sm:py-1">
+            <DollarSign strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <CardTitle className="text-sm sm:text-md font-semibold text-primary">Pending Fees</CardTitle>
           </div>
-          <Button 
-            variant="default" 
-            size="sm" 
-            className="border-primary text-xs h-7 px-2 sm:px-3"
-            onClick={onSeeAll}
+          <div className="flex flex-row w-fit pr-4 items-center justify-end">
+            <Button 
+              variant="default" 
+              size="sm" 
+              className="border-primary hidden w-fit text-xs h-7 px-2 sm:px-3"
+              onClick={onSeeAll}
           >
             Transactions
           </Button>
+          </div>
         </CardHeader>
         <CardContent className="sm:px-6 h-fit flex flex-col">
           <div className="h-[150px] flex flex-col items-center justify-center gap-3 text-center">

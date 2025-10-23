@@ -46,10 +46,10 @@ export function UpcomingEventsCard({
   if (isLoading) {
     return (
       <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6 pb-3">
+        <CardHeader className="flex flex-row items-center border-b border-zinc-200 justify-between space-y-0 px-6 pt-6 pb-3">
           <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-            <Calendar strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-            <CardTitle className="text-sm sm:text-md font-semibold text-primary">Upcoming Events</CardTitle>
+            <Calendar strokeWidth={3} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <CardTitle className="text-sm sm:text-sm font-semibold text-primary">Upcoming Events</CardTitle>
           </div>
           <Button 
             variant="default" 
@@ -85,7 +85,7 @@ export function UpcomingEventsCard({
   if (error) {
     return (
       <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6 pb-3">
+        <CardHeader className="flex flex-row items-center border-b border-zinc-200 justify-between space-y-0 px-6 pt-6 pb-3">
           <div className="flex flex-row items-center gap-1.5 sm:gap-2">
             <Calendar strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             <CardTitle className="text-sm sm:text-md font-semibold text-primary">Upcoming Events</CardTitle>

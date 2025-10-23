@@ -127,8 +127,8 @@ export function FeePaymentsChart({
       <Card className="border-none shadow-none bg-transparent h-full">
         <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
           <div className="flex flex-1 flex-row items-center justify-start gap-2 pl-4 py-1 sm:py-1">
-            <IconMoneybagPlus strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-            <CardTitle className="text-primary">Fee Payments Trend</CardTitle>
+            <IconMoneybagPlus strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <CardTitle className="text-primary text-sm font-semibold">Fee Payments Trend</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-10 p-0 justify-between h-full">
@@ -172,8 +172,8 @@ export function FeePaymentsChart({
       <Card className="border-none shadow-none bg-transparent h-full">
         <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
           <div className="flex flex-1 flex-row items-center justify-start gap-2 pl-4 py-1 sm:py-1">
-            <IconMoneybagPlus strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-            <CardTitle className="text-primary">Fee Payments Trend</CardTitle>
+            <IconMoneybagPlus strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <CardTitle className="text-primary text-sm font-semibold">Fee Payments Trend</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-10 p-0 justify-between h-full">
@@ -190,9 +190,9 @@ export function FeePaymentsChart({
           </div>
         </CardContent>
         <CardFooter className="flex-col items-start gap-2 px-3">
-          <div className="flex flex-col gap-1 px-3">
-            <div className="text-lg sm:text-xl font-bold">
-              Total Paid: <span className="text-primary">$0.00</span>
+          <div className="flex flex-col h-fit gap-0 px-3">
+            <div className="text-md sm:text-xl font-bold">
+              Total Paid: <span className="text-primary text-md">$0.00</span>
             </div>
             <p className="text-xs sm:text-sm font-medium text-muted-foreground">
               No collections recorded
