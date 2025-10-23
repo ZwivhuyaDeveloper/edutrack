@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, ArrowLeft, UserPlus, Users, UserCheck, Building2, Search, Mail, Lock, User as UserIcon, Eye, EyeOff, GraduationCap, Briefcase, Shield } from 'lucide-react'
 import { toast } from 'sonner'
@@ -1304,7 +1304,7 @@ export default function Page() {
     console.log('Current step:', step)
     return (
       <div className="min-h-screen font-sans flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <Card className="w-full font-sans max-w-2xl">
+        <Card className="w-full font-sans max-w-2xl p-2">
           <CardHeader className="space-y-1">
             <div className="flex items-center gap-2">
               <Button
@@ -1336,20 +1336,31 @@ export default function Page() {
 
             {/* Display Clerk User Info */}
             {user && (
-              <div className="bg-blue-50 font-sans border border-blue-200 rounded-lg p-4">
-                <h4 className="font-semibold text-blue-900 mb-2">Account Information (from Clerk)</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-blue-800">
+              <Card className="bg-blue-50 font-sans border border-blue-200 rounded-lg p-4">
+                <CardHeader>
+                  <CardTitle>Account Information (from Clerk)</CardTitle>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-blue-800">
                   <div>
+                    <Image
+                      src={user.imageUrl}
+                      alt="User Logo"
+                      width={20}
+                      height={20}
+                      className="object-contain"
+                    />
                     <span className="font-medium">Name:</span> {user.firstName} {user.lastName}
                   </div>
                   <div>
                     <span className="font-medium">Email:</span> {user.primaryEmailAddress?.emailAddress}
                   </div>
-                </div>
-                <p className="text-xs text-blue-600 mt-2">
-                  ℹ️ This information is managed by your Clerk account and cannot be changed here.
-                </p>
-              </div>
+                </CardContent>
+                <CardFooter>
+                  <p className="text-xs text-blue-600 mt-2">
+                    ℹ️ This information is managed by your Clerk account and cannot be changed here.
+                  </p>
+                </CardFooter>
+              </Card>
             )}
 
             {/* Student Fields */}
