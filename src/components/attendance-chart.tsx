@@ -95,8 +95,8 @@ export function AttendanceChart({
       <Card className="bg-transparent border-none shadow-none h-full">
         <CardHeader className="flex flex-col items-stretch space-y-0 border-b px-1 sm:flex-row">
           <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
-            <TrendingUp strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-            <CardDescription className="text-sm sm:text-sm w-30 font-bold text-primary">
+            <TrendingUp strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <CardDescription className="text-sm sm:text-sm w-full font-bold text-primary">
               Attendance Trend
             </CardDescription>
           </div>
@@ -128,10 +128,10 @@ export function AttendanceChart({
   if (error) {
     return (
       <Card className="bg-transparent border-none shadow-none h-full">
-        <CardHeader className="flex flex-col items-stretch space-y-0 border-b px-1 sm:flex-row">
+        <CardHeader className="flex flex-col w-full items-stretch space-y-0 border-b px-1 sm:flex-row">
           <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
-            <TrendingUp strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-            <CardDescription className="text-sm sm:text-sm w-30 font-bold text-primary">
+            <TrendingUp strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <CardDescription className="text-sm sm:text-sm w-full font-bold text-primary">
               Attendance Trend
             </CardDescription>
           </div>
@@ -177,8 +177,8 @@ export function AttendanceChart({
       <Card className="bg-transparent border-none shadow-none h-full">
         <CardHeader className="flex flex-col items-stretch space-y-0 border-b px-1 sm:flex-row">
           <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
-            <TrendingUp strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-            <CardDescription className="text-sm sm:text-sm w-30 font-bold text-primary">
+            <TrendingUp strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <CardDescription className="text-sm sm:text-sm w-full font-semibold text-primary">
               Attendance Trend
             </CardDescription>
           </div>
@@ -197,7 +197,7 @@ export function AttendanceChart({
           </div>
         </CardContent>
         <CardFooter className="flex-col items-start gap-2 px-6">
-          <div className="flex w-full flex-col gap-1">
+          <div className="flex w-full h-fit flex-col gap-0">
             <div className="text-lg sm:text-xl font-bold">
               Attendance Rate: <span className="text-primary">0%</span>
             </div>
@@ -212,15 +212,15 @@ export function AttendanceChart({
 
   return (
     <Card className="bg-transparent border-none shadow-none h-full">
-      <CardHeader className="flex flex-col items-stretch space-y-0 border-b px-1 sm:flex-row">
+      <CardHeader className="flex flex-col w-full items-stretch space-y-0 border-b px-1 sm:flex-row">
         <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
-          <TrendingUp strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-          <CardDescription className="text-sm sm:text-sm w-30 font-bold text-primary">
+          <TrendingUp strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+          <CardDescription className="text-sm sm:text-sm w-full font-bold text-primary">
             Attendance Trend
           </CardDescription>
         </div>
-        <div className="flex">
-          <div className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-1 py-1 sm:border-l sm:border-t-0 sm:px-2 sm:py-1">
+        <div className="flex w-fit">
+          <div className="relative z-30 flex flex-1 flex-col w-fit justify-center gap-1 border-t px-1 py-1 sm:border-l sm:border-t-0 sm:px-2 sm:py-1">
             <Select value={timeRange} onValueChange={setTimeRange}>
               <SelectTrigger
                 className="w-fit justify-center border-none shadow-none bg-primary hover:bg-primary/80 text-xs text-white rounded-lg"
