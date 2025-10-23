@@ -3,6 +3,7 @@ import { Webhook } from 'svix'
 import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
+import { secureLog, sanitizeForLog } from '@/lib/secure-logger'
 
 export async function POST(request: NextRequest) {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET
@@ -41,7 +42,7 @@ export async function POST(request: NextRequest) {
       'svix-signature': svix_signature,
     }) as WebhookEvent
   } catch (err) {
-    console.error('Error verifying webhook:', err)
+    secureLog.error('Error verifying webhook', err)
     return new Response('Error occured', {
       status: 400,
     })
@@ -49,53 +50,53 @@ export async function POST(request: NextRequest) {
 
   // Handle the webhook
   const eventType = evt.type
-  console.log('Webhook received:', eventType)
+  secureLog.info('Webhook received', sanitizeForLog({ eventType }))
 
   // Handle organization events
   if (eventType === 'organization.created') {
     const { id, name, slug } = evt.data
-    console.log('Organization created:', { id, name, slug })
+    secureLog.info('Organization created', sanitizeForLog({ id, name, slug }))
     // School creation is handled by our /api/schools route to keep logic consistent.
     // We only log this event here.
   }
 
   if (eventType === 'organization.updated') {
     const { id, name } = evt.data
-    console.log('Organization updated:', { id, name })
+    secureLog.info('Organization updated', sanitizeForLog({ id, name }))
 
     try {
       await prisma.school.update({
         where: { clerkOrganizationId: id },
         data: { name }
       })
-      console.log('School updated in database by clerkOrganizationId:', id)
+      secureLog.info('School updated in database by clerkOrganizationId', sanitizeForLog({ id }))
     } catch (error) {
-      console.error('Error updating school (by clerkOrganizationId):', error)
+      secureLog.error('Error updating school (by clerkOrganizationId)', error)
     }
   }
 
   if (eventType === 'organization.deleted') {
     const { id } = evt.data
-    console.log('Organization deleted:', id)
+    secureLog.info('Organization deleted', sanitizeForLog({ id }))
 
     try {
       await prisma.school.update({
         where: { clerkOrganizationId: id },
         data: { isActive: false }
       })
-      console.log('School deactivated in database by clerkOrganizationId:', id)
+      secureLog.info('School deactivated in database by clerkOrganizationId', sanitizeForLog({ id }))
     } catch (error) {
-      console.error('Error deactivating school (by clerkOrganizationId):', error)
+      secureLog.error('Error deactivating school (by clerkOrganizationId)', error)
     }
   }
 
   // Handle organization membership events
   if (eventType === 'organizationMembership.created') {
     const { organization, public_user_data } = evt.data
-    console.log('Organization membership created:', {
+    secureLog.info('Organization membership created', sanitizeForLog({
       orgId: organization.id,
       userId: public_user_data.user_id
-    })
+    }))
 
     // User will be linked to school through the sign-up flow
     // This webhook just logs the membership for now
@@ -103,8 +104,8 @@ export async function POST(request: NextRequest) {
 
   // Handle user events
   if (eventType === 'user.created') {
-    const { id, email_addresses, first_name, last_name } = evt.data
-    console.log('User created in Clerk:', { id, email: email_addresses[0]?.email_address })
+    const { id, email_addresses } = evt.data
+    secureLog.info('User created in Clerk', sanitizeForLog({ id, email: email_addresses[0]?.email_address }))
 
     // Don't create user in database yet - wait for profile completion
     // The sign-up flow will create the user with role and school
@@ -112,7 +113,7 @@ export async function POST(request: NextRequest) {
 
   if (eventType === 'user.updated') {
     const { id, email_addresses, first_name, last_name } = evt.data
-    console.log('User updated in Clerk:', { id })
+    secureLog.info('User updated in Clerk', sanitizeForLog({ id }))
 
     try {
       // Only update if user exists in database
@@ -129,25 +130,25 @@ export async function POST(request: NextRequest) {
             lastName: last_name || existingUser.lastName
           }
         })
-        console.log('User updated in database:', id)
+        secureLog.info('User updated in database', sanitizeForLog({ id }))
       }
     } catch (error) {
-      console.error('Error updating user:', error)
+      secureLog.error('Error updating user', error)
     }
   }
 
   if (eventType === 'user.deleted') {
     const { id } = evt.data
-    console.log('User deleted in Clerk:', id)
+    secureLog.info('User deleted in Clerk', sanitizeForLog({ id }))
 
     try {
       await prisma.user.update({
         where: { clerkId: id },
         data: { isActive: false }
       })
-      console.log('User deactivated in database:', id)
+      secureLog.info('User deactivated in database', sanitizeForLog({ id }))
     } catch (error) {
-      console.error('Error deactivating user:', error)
+      secureLog.error('Error deactivating user', error)
     }
   }
 

@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { RateLimiters } from '@/lib/rate-limit'
+import { secureLog, sanitizeForLog } from '@/lib/secure-logger'
 
 export async function GET(request: NextRequest) {
   try {
@@ -33,38 +34,26 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get school statistics
+    // Get school statistics (optimize payloads and push aggregation to DB)
     const [
       allStudents,
       teacherCount,
       classCount,
       subjectCount,
-      attendanceData,
-      schoolStudents,
-      upcomingEventsData,
+      totalAttendanceRecords,
+      presentAttendanceRecords,
+      upcomingEvents,
       unreadNotifications
     ] = await Promise.all([
-      // Get detailed student information
+      // Students: only minimal fields for stats
       prisma.user.findMany({
         where: { schoolId: user.schoolId, role: 'STUDENT' },
         select: {
           id: true,
-          firstName: true,
-          lastName: true,
           isActive: true,
-          createdAt: true,
           enrollments: {
-            where: {
-              status: 'ACTIVE'
-            },
-            include: {
-              class: {
-                select: {
-                  name: true,
-                  grade: true
-                }
-              }
-            }
+            where: { status: 'ACTIVE' },
+            select: { id: true }
           }
         }
       }),
@@ -77,77 +66,51 @@ export async function GET(request: NextRequest) {
       prisma.subject.count({
         where: { schoolId: user.schoolId }
       }),
-      
-      // Real attendance rate calculation (last 30 days)
-      prisma.attendance.findMany({
+      // Attendance counts (last 30 days) - avoid fetching all rows
+      prisma.attendance.count({
         where: {
-          session: {
-            classSubject: {
-              class: {
-                schoolId: user.schoolId
-              }
-            }
-          },
-          createdAt: {
-            gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Last 30 days
-          }
-        },
-        select: {
-          status: true
+          session: { classSubject: { class: { schoolId: user.schoolId } } },
+          createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
         }
       }),
-      
-      // Real pending fees calculation - get student IDs first, then query invoices
-      prisma.user.findMany({
-        where: { schoolId: user.schoolId, role: 'STUDENT' },
-        select: { id: true }
+      prisma.attendance.count({
+        where: {
+          session: { classSubject: { class: { schoolId: user.schoolId } } },
+          createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+          status: { in: ['PRESENT', 'LATE'] }
+        }
       }),
-      
       // Real upcoming events (next 7 days)
       prisma.event.count({
         where: {
           schoolId: user.schoolId,
           startDate: {
             gte: new Date(),
-            lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Next 7 days
+            lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
           }
         }
       }),
-      
       // Real unread notifications for principal
       prisma.notification.count({
-        where: {
-          userId: user.id,
-          isRead: false
-        }
+        where: { userId: user.id, isRead: false }
       })
     ])
 
     // Calculate real attendance rate
-    const totalAttendanceRecords = attendanceData.length
-    const presentRecords = attendanceData.filter(record => 
-      record.status === 'PRESENT' || record.status === 'LATE'
-    ).length
     const attendanceRate = totalAttendanceRecords > 0 
-      ? Math.round((presentRecords / totalAttendanceRecords) * 100 * 10) / 10 
+      ? Math.round((presentAttendanceRecords / totalAttendanceRecords) * 100 * 10) / 10 
       : 0
 
-    // Get student IDs for pending fees calculation
-    const studentIds = schoolStudents.map(student => student.id)
+    // Get student IDs for pending/paid fees calculation
+    const studentIds = allStudents.map(student => student.id)
     
-    // Query pending invoices for school students
-    const pendingInvoices = await prisma.invoice.findMany({
+    // Sum pending invoices for school students (DB-side aggregation)
+    const pendingInvoicesAgg = await prisma.invoice.aggregate({
       where: {
         status: 'PENDING',
-        account: {
-          studentId: {
-            in: studentIds
-          }
-        }
+        account: { studentId: { in: studentIds } }
       },
-      select: {
-        total: true
-      }
+      _sum: { total: true }
     })
 
     // Calculate student statistics
@@ -156,27 +119,19 @@ export async function GET(request: NextRequest) {
     const enrolledStudents = allStudents.filter(student => student.enrollments.length > 0).length
 
     // Calculate total pending fees
-    const pendingFees = pendingInvoices.reduce((sum: number, invoice: { total: number }) => sum + invoice.total, 0)
+    const pendingFees = pendingInvoicesAgg._sum.total ?? 0
     
-    // Calculate total paid fees
-    const paidFees = await prisma.fee_records.findMany({
-      where: {
-        paid: true,
-        studentId: {
-          in: allStudents.map(s => s.id)
-        }
-      },
-      select: {
-        amount: true
-      }
+    // Calculate total paid fees (DB-side aggregation)
+    const totalPaidAgg = await prisma.fee_records.aggregate({
+      where: { paid: true, studentId: { in: studentIds } },
+      _sum: { amount: true }
     })
-    const totalPaidFees = paidFees.reduce((sum, fee) => sum + fee.amount, 0)
+    const totalPaidFees = totalPaidAgg._sum.amount ?? 0
     
-    const upcomingEvents = upcomingEventsData
     const unreadMessages = unreadNotifications
 
-    // Log the stats for debugging
-    console.log('Principal Dashboard Stats:', {
+    // Log the stats for debugging using secure logger (sanitized and dev-only)
+    secureLog.info('Principal Dashboard Stats:', sanitizeForLog({
       schoolId: user.schoolId,
       totalStudents,
       activeStudents,
@@ -187,9 +142,8 @@ export async function GET(request: NextRequest) {
       attendanceRate,
       pendingFees,
       upcomingEvents,
-      unreadMessages,
-      studentDetails: allStudents.slice(0, 3) // Log first 3 students for debugging
-    })
+      unreadMessages
+    }))
 
     return NextResponse.json({
       totalStudents,

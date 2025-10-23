@@ -54,7 +54,7 @@ export const secureLog = {
   /**
    * Log general information (development only)
    */
-  info: (...args: any[]) => {
+  info: (...args: unknown[]) => {
     if (IS_DEVELOPMENT) {
       console.log('[INFO]', ...args)
     }
@@ -63,29 +63,34 @@ export const secureLog = {
   /**
    * Log warnings (always logged)
    */
-  warn: (...args: any[]) => {
+  warn: (...args: unknown[]) => {
     console.warn('[WARN]', ...args)
   },
   
   /**
    * Log errors (always logged, but sanitized)
    */
-  error: (message: string, error?: any) => {
+  error: (message: string, error?: unknown) => {
     console.error('[ERROR]', message)
     
     if (IS_DEVELOPMENT && error) {
       console.error('[ERROR Details]', error)
     } else if (IS_PRODUCTION && error) {
       // In production, only log error type and message, not full stack
-      console.error('[ERROR Type]', error?.name || 'Unknown')
-      console.error('[ERROR Message]', error?.message || 'No message')
+      if (error instanceof Error) {
+        console.error('[ERROR Type]', error.name)
+        console.error('[ERROR Message]', error.message)
+      } else {
+        console.error('[ERROR Type]', typeof error)
+        console.error('[ERROR Message]', String(error))
+      }
     }
   },
   
   /**
    * Log with user ID (masked in production)
    */
-  user: (action: string, userId: string | null | undefined, details?: any) => {
+  user: (action: string, userId: string | null | undefined, details?: Record<string, unknown>) => {
     if (IS_DEVELOPMENT) {
       console.log(`[USER] ${action}`, {
         userId: maskSensitive(userId),
@@ -115,7 +120,7 @@ export const secureLog = {
   /**
    * Log database operations (development only)
    */
-  db: (operation: string, details?: any) => {
+  db: (operation: string, details?: unknown) => {
     if (IS_DEVELOPMENT) {
       console.log(`[DB] ${operation}`, details)
     }
@@ -124,7 +129,7 @@ export const secureLog = {
   /**
    * Log authentication events (sanitized)
    */
-  auth: (event: string, userId?: string | null, details?: any) => {
+  auth: (event: string, userId?: string | null, details?: Record<string, unknown>) => {
     if (IS_DEVELOPMENT) {
       console.log(`[AUTH] ${event}`, {
         userId: maskSensitive(userId),

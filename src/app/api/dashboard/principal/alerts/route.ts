@@ -37,55 +37,54 @@ export async function GET() {
     const alerts: Alert[] = []
 
     // Check for low attendance classes (last 7 days)
-    const classAttendanceData = await prisma.class.findMany({
+    // Use lightweight selection over attendance records and compute per-class in memory
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    const recentAttendances = await prisma.attendance.findMany({
       where: {
-        schoolId: user.schoolId
+        session: {
+          classSubject: { class: { schoolId: user.schoolId } },
+          createdAt: { gte: sevenDaysAgo }
+        }
       },
-      include: {
-        subjects: {
-          include: {
-            attendanceSessions: {
-              where: {
-                createdAt: {
-                  gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Last 7 days
-                }
-              },
-              include: {
-                records: true
-              }
-            }
+      select: {
+        status: true,
+        session: { select: { classSubject: { select: { classId: true } } } }
+      }
+    })
+
+    // Tally per-class totals and present counts
+    const classAttendanceMap = new Map<string, { total: number; present: number }>()
+    for (const rec of recentAttendances) {
+      const classId = rec.session.classSubject.classId
+      const entry = classAttendanceMap.get(classId) || { total: 0, present: 0 }
+      entry.total += 1
+      if (rec.status === 'PRESENT' || rec.status === 'LATE') entry.present += 1
+      classAttendanceMap.set(classId, entry)
+    }
+
+    if (classAttendanceMap.size > 0) {
+      const classIds = Array.from(classAttendanceMap.keys())
+      const classes = await prisma.class.findMany({
+        where: { id: { in: classIds } },
+        select: { id: true, name: true }
+      })
+      const classNameById = new Map(classes.map(c => [c.id, c.name]))
+
+      for (const [classId, { total, present }] of classAttendanceMap) {
+        if (total > 0) {
+          const attendanceRate = (present / total) * 100
+          if (attendanceRate < 85) {
+            alerts.push({
+              id: `attendance-${classId}`,
+              type: 'warning',
+              title: 'Low Attendance Alert',
+              message: `${classNameById.get(classId) || 'Class'} has ${attendanceRate.toFixed(1)}% attendance this week`,
+              priority: attendanceRate < 75 ? 'high' : 'medium'
+            })
           }
         }
       }
-    })
-
-    // Calculate attendance rates for each class
-    classAttendanceData.forEach(classData => {
-      let totalRecords = 0
-      let presentRecords = 0
-
-      classData.subjects.forEach(subject => {
-        subject.attendanceSessions.forEach(session => {
-          totalRecords += session.records.length
-          presentRecords += session.records.filter(record => 
-            record.status === 'PRESENT' || record.status === 'LATE'
-          ).length
-        })
-      })
-
-      if (totalRecords > 0) {
-        const attendanceRate = (presentRecords / totalRecords) * 100
-        if (attendanceRate < 85) {
-          alerts.push({
-            id: `attendance-${classData.id}`,
-            type: 'warning',
-            title: 'Low Attendance Alert',
-            message: `${classData.name} has ${attendanceRate.toFixed(1)}% attendance this week`,
-            priority: attendanceRate < 75 ? 'high' : 'medium'
-          })
-        }
-      }
-    })
+    }
 
     // Check for pending fees
     const studentIds = await prisma.user.findMany({
@@ -141,49 +140,48 @@ export async function GET() {
     })
 
     // Check for overdue assignments (assignments past due date with low submission rates)
+    // Limit result set and use DB-side counts to avoid loading full arrays
     const overdueAssignments = await prisma.assignment.findMany({
       where: {
-        class: {
-          schoolId: user.schoolId
-        },
-        dueDate: {
-          lt: new Date() // Past due date
-        }
+        class: { schoolId: user.schoolId },
+        dueDate: { lt: new Date() }
       },
-      include: {
-        submissions: true,
-        class: {
-          include: {
-            enrollments: {
-              where: {
-                status: 'ACTIVE'
-              }
-            }
-          }
-        },
-        subject: {
-          select: {
-            name: true
-          }
+      select: {
+        id: true,
+        title: true,
+        classId: true,
+        subject: { select: { name: true } },
+        _count: { select: { submissions: true } }
+      },
+      orderBy: { dueDate: 'desc' },
+      take: 50
+    })
+
+    if (overdueAssignments.length > 0) {
+      const classIds = Array.from(new Set(overdueAssignments.map(a => a.classId)))
+      const enrollmentCounts = await prisma.enrollment.groupBy({
+        by: ['classId'],
+        where: { classId: { in: classIds }, status: 'ACTIVE' },
+        _count: { _all: true }
+      })
+      const activeEnrollmentsByClass = new Map(enrollmentCounts.map(ec => [ec.classId, ec._count._all]))
+
+      for (const assignment of overdueAssignments) {
+        const totalStudents = activeEnrollmentsByClass.get(assignment.classId) || 0
+        const submissions = assignment._count.submissions
+        const submissionRate = totalStudents > 0 ? (submissions / totalStudents) * 100 : 0
+
+        if (submissionRate < 70 && totalStudents > 0) {
+          alerts.push({
+            id: `assignment-${assignment.id}`,
+            type: 'warning',
+            title: 'Low Assignment Submission',
+            message: `${assignment.subject.name} assignment "${assignment.title}" has only ${submissionRate.toFixed(1)}% submission rate`,
+            priority: submissionRate < 50 ? 'high' : 'medium'
+          })
         }
       }
-    })
-
-    overdueAssignments.forEach(assignment => {
-      const totalStudents = assignment.class.enrollments.length
-      const submissions = assignment.submissions.length
-      const submissionRate = totalStudents > 0 ? (submissions / totalStudents) * 100 : 0
-
-      if (submissionRate < 70 && totalStudents > 0) {
-        alerts.push({
-          id: `assignment-${assignment.id}`,
-          type: 'warning',
-          title: 'Low Assignment Submission',
-          message: `${assignment.subject.name} assignment "${assignment.title}" has only ${submissionRate.toFixed(1)}% submission rate`,
-          priority: submissionRate < 50 ? 'high' : 'medium'
-        })
-      }
-    })
+    }
 
     // Sort alerts by priority (high first, then medium)
     alerts.sort((a, b) => {
