@@ -700,7 +700,21 @@ export default function Page() {
         code: code.trim(),
       })
       
+      console.log('[Verification] Complete sign-up response:', {
+        status: completeSignUp.status,
+        createdSessionId: completeSignUp.createdSessionId,
+        hasSession: !!completeSignUp.createdSessionId
+      })
+      
       if (completeSignUp.status === 'complete') {
+        // Check if session was created
+        if (!completeSignUp.createdSessionId) {
+          console.error('[Verification] No session ID in response')
+          setSignUpError('Session creation failed. Please try signing in.')
+          toast.error('Please try signing in with your credentials')
+          return
+        }
+        
         // Set the active session
         await setActive({ session: completeSignUp.createdSessionId })
         
@@ -714,21 +728,68 @@ export default function Page() {
           password: '',
         })
         setCode('')
+        setVerifying(false)
         
         // Trigger profile check to show role selection
         setRecheckProfile(prev => prev + 1)
+      } else if (completeSignUp.status === 'missing_requirements') {
+        console.error('[Verification] Missing requirements:', {
+          status: completeSignUp.status,
+          missingFields: completeSignUp.missingFields,
+          unverifiedFields: completeSignUp.unverifiedFields,
+          fullResponse: completeSignUp
+        })
+        
+        // Check what's missing
+        const signUpResponse = completeSignUp as { missingFields?: string[]; unverifiedFields?: string[] }
+        const missingFields = signUpResponse.missingFields || []
+        const unverifiedFields = signUpResponse.unverifiedFields || []
+        
+        if (missingFields.length > 0 || unverifiedFields.length > 0) {
+          setSignUpError(`Missing: ${[...missingFields, ...unverifiedFields].join(', ')}`)
+          toast.error('Additional information required')
+        } else {
+          // If no specific fields mentioned, might be a Clerk configuration issue
+          console.warn('[Verification] Missing requirements but no fields specified. This might be a Clerk configuration issue.')
+          setSignUpError('Sign-up configuration issue. Please contact support.')
+          toast.error('Configuration error')
+        }
+      } else if (completeSignUp.status === 'abandoned') {
+        console.error('[Verification] Sign-up abandoned:', completeSignUp)
+        setSignUpError('Sign-up session expired. Please start over.')
+        toast.error('Session expired')
+        setVerifying(false)
       } else {
-        console.error('Sign-up not complete:', completeSignUp)
-        setSignUpError('Verification incomplete. Please try again.')
+        console.error('[Verification] Sign-up not complete. Status:', completeSignUp.status, 'Full response:', JSON.stringify(completeSignUp, null, 2))
+        setSignUpError(`Verification incomplete (${completeSignUp.status}). Please try again.`)
+        toast.error('Verification incomplete')
       }
     } catch (err: unknown) {
-      console.error('Verification error:', err)
-      const error = err as { errors?: Array<{ message: string }> }
+      console.error('[Verification] Error:', err)
+      const error = err as { errors?: Array<{ message: string; code?: string }> }
       const errorMessage = error.errors?.[0]?.message || 'Invalid verification code'
+      const errorCode = error.errors?.[0]?.code
       
-      // Generic error message for security
-      setSignUpError('Invalid or expired verification code. Please try again.')
-      toast.error('Verification failed')
+      console.error('[Verification] Error details:', { errorCode, errorMessage })
+      
+      // Handle specific error codes
+      if (errorCode === 'form_code_incorrect') {
+        setSignUpError('Incorrect verification code. Please check and try again.')
+        toast.error('Incorrect code')
+      } else if (errorCode === 'verification_expired') {
+        setSignUpError('Verification code expired. Please request a new one.')
+        toast.error('Code expired')
+      } else if (errorMessage?.includes('already been verified')) {
+        // User already verified - move to next step
+        console.log('[Verification] Already verified, moving to role selection')
+        setVerifying(false)
+        setCode('')
+        toast.info('Email already verified. Please continue.')
+        setRecheckProfile(prev => prev + 1)
+      } else {
+        setSignUpError('Invalid or expired verification code. Please try again.')
+        toast.error('Verification failed')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -1090,6 +1151,9 @@ export default function Page() {
                         placeholder="000000"
                         maxLength={6}
                       />
+                      <p className="text-xs text-gray-500 text-center">
+                        Check your email for the 6-digit verification code
+                      </p>
                     </div>
                     
                     <Button
@@ -1107,13 +1171,45 @@ export default function Page() {
                       )}
                     </Button>
                     
-                    <div className="text-center">
+                    <div className="flex items-center justify-between text-sm">
                       <button
                         type="button"
                         onClick={() => setVerifying(false)}
-                        className="text-sm text-primary hover:text-primary/80 font-medium"
+                        className="text-primary hover:text-primary/80 font-medium"
                       >
                         Back to sign up
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!signUp) return
+                          try {
+                            setIsLoading(true)
+                            await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
+                            toast.success('New code sent to your email!')
+                          } catch (err) {
+                            console.error('Resend error:', err)
+                            const error = err as { errors?: Array<{ message: string }> }
+                            const errorMessage = error.errors?.[0]?.message || ''
+                            
+                            // Check if already verified
+                            if (errorMessage?.includes('already been verified')) {
+                              console.log('[Resend] Already verified, moving to role selection')
+                              setVerifying(false)
+                              setCode('')
+                              toast.info('Email already verified. Please continue.')
+                              setRecheckProfile(prev => prev + 1)
+                            } else {
+                              toast.error('Failed to resend code')
+                            }
+                          } finally {
+                            setIsLoading(false)
+                          }
+                        }}
+                        disabled={isLoading}
+                        className="text-primary hover:text-primary/80 font-medium disabled:opacity-50"
+                      >
+                        Resend code
                       </button>
                     </div>
                   </form>

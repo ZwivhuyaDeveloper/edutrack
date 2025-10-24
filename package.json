@@ -11,10 +11,10 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
-    "db:seed": "tsx prisma/seed.ts",
-    "db:seed-extended": "tsx prisma/seed-extended.ts",
-    "db:seed-students": "tsx prisma/seed-students.ts",
-    "db:seed-all": "tsx prisma/seed.ts && tsx prisma/seed-extended.ts"
+    "db:seed": "npx tsx prisma/seed.ts",
+    "db:seed-extended": "npx tsx prisma/seed-extended.ts",
+    "db:seed-students": "npx tsx prisma/seed-students.ts",
+    "db:seed-all": "npx tsx prisma/seed.ts && npx tsx prisma/seed-extended.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.34.0",

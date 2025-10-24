@@ -127,7 +127,7 @@ export default function PrincipalOperationsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
-  const [selectedItem, setSelectedItem] = useState<any>(null)
+  const [selectedItem, setSelectedItem] = useState<Room | Period | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
 
@@ -595,7 +595,7 @@ export default function PrincipalOperationsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.attendanceRate}%</div>
-            <p className="text-xs text-muted-foreground">Today's attendance</p>
+            <p className="text-xs text-muted-foreground">Today&apos;s attendance</p>
           </CardContent>
         </Card>
 
@@ -756,7 +756,7 @@ export default function PrincipalOperationsPage() {
                 <Building className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No rooms found</h3>
                 <p className="text-muted-foreground text-center mb-4">
-                  Add rooms to manage your school's physical spaces.
+                  Add rooms to manage your school&apos;s physical spaces.
                 </p>
                 <Button onClick={() => setIsCreateModalOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
