@@ -1,18 +1,15 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { useUser, useSignUp } from '@clerk/nextjs'
+import { useUser, SignUp } from '@clerk/nextjs'
 import Image from 'next/image'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, ArrowLeft, UserPlus, Users, UserCheck, Building2, Search, Mail, Lock, User as UserIcon, Eye, EyeOff, GraduationCap, Briefcase, Shield } from 'lucide-react'
+import { Loader2, ArrowLeft, UserPlus, Users, UserCheck, Building2, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { createUser, validateUserData } from '@/lib/user-creation'
-import logo from '@/assets/logo_teal.png'
-import banner from '@/assets/bottom_hero.png'
 
 interface School {
   id: string
@@ -27,7 +24,7 @@ interface School {
 
 export default function Page() {
   const [step, setStep] = useState<'role' | 'profile' | 'relationship' | 'school' | 'school-setup' | 'complete'>('role')
-  const [selectedRole, setSelectedRole] = useState<'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL' | 'CLERK'>('STUDENT')
+  const [selectedRole, setSelectedRole] = useState<'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL' | 'SCHOOL'>('STUDENT')
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null)
   const [schools, setSchools] = useState<School[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -35,7 +32,6 @@ export default function Page() {
   const [error, setError] = useState('')
   const [recheckProfile, setRecheckProfile] = useState(0)
   const [isRedirecting, setIsRedirecting] = useState(false)
-  const [hasCheckedProfile, setHasCheckedProfile] = useState(false)
   const [relationshipData, setRelationshipData] = useState({
     searchTerm: '',
     selectedRelationship: null as { id: string; name: string; email: string; role: string } | null,
@@ -43,22 +39,6 @@ export default function Page() {
     searchResults: [] as { id: string; name: string; email: string; role: string }[]
   })
   const { user, isLoaded } = useUser()
-  const { signUp, isLoaded: signUpLoaded, setActive } = useSignUp()
-  
-  // Sign-up form state
-  const [signUpForm, setSignUpForm] = useState({
-    firstName: '',
-    lastName: '',
-    emailAddress: '',
-    password: '',
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [verifying, setVerifying] = useState(false)
-  const [code, setCode] = useState('')
-  const [signUpError, setSignUpError] = useState('')
-  const [passwordStrength, setPasswordStrength] = useState<'weak' | 'medium' | 'strong' | null>(null)
-  const [attemptCount, setAttemptCount] = useState(0)
-  const [isRateLimited, setIsRateLimited] = useState(false)
 
   // Role-specific profile data (name and email come from Clerk, not here)
   const [profileData, setProfileData] = useState({
@@ -100,52 +80,15 @@ export default function Page() {
     }
   })
 
-  // Handle CAPTCHA errors gracefully
-  useEffect(() => {
-    // Listen for CAPTCHA errors and handle them without breaking the app
-    const handleCaptchaError = (event: ErrorEvent) => {
-      const errorMessage = event.message?.toLowerCase() || ''
-      
-      if (errorMessage.includes('captcha') || errorMessage.includes('clerk-captcha')) {
-        console.warn('[CAPTCHA] Non-critical error caught:', event.message)
-        // Prevent error from breaking the app
-        event.preventDefault()
-        event.stopPropagation()
-        return false
-      }
-    }
-    
-    window.addEventListener('error', handleCaptchaError)
-    return () => window.removeEventListener('error', handleCaptchaError)
-  }, [])
-
-  // Check if user is authenticated and has completed profile - Optimized with loop prevention
+  // Check if user is authenticated and has completed profile
   useEffect(() => {
     async function checkUserProfile() {
-      // Prevent infinite loops - only check once per mount or when explicitly requested
-      if (hasCheckedProfile && recheckProfile === 0) {
-        console.log('[sign-up] Skipping duplicate profile check')
-        return
-      }
-      
       console.log('[sign-up] useEffect triggered - isLoaded:', isLoaded, 'user:', !!user)
       
-      if (isLoaded && user && !isRedirecting) {
-        setHasCheckedProfile(true)
-        
+      if (isLoaded && user) {
         try {
           console.log('[sign-up] Checking user profile for:', user.primaryEmailAddress?.emailAddress)
-          
-          // Use AbortController for faster timeout
-          const controller = new AbortController()
-          const timeoutId = setTimeout(() => controller.abort(), 5000) // 5s timeout
-          
-          const response = await fetch('/api/users/me', { 
-            signal: controller.signal,
-            cache: 'no-store' // Ensure fresh data
-          })
-          clearTimeout(timeoutId)
-          
+          const response = await fetch('/api/users/me')
           console.log('[sign-up] Response status:', response.status)
           
           if (response.ok) {
@@ -172,21 +115,16 @@ export default function Page() {
             setStep('role')
           }
         } catch (error) {
-          if (error instanceof Error && error.name === 'AbortError') {
-            console.warn('[sign-up] Profile check timed out, showing role selection')
-          } else {
-            console.error('[sign-up] Error checking user profile:', error)
-          }
+          console.error('[sign-up] Error checking user profile:', error)
           setStep('role')
         }
       } else if (isLoaded && !user) {
         console.log('[sign-up] User not authenticated, staying on sign-up page')
-        setHasCheckedProfile(true)
       }
     }
 
     checkUserProfile()
-  }, [isLoaded, user, recheckProfile, hasCheckedProfile, isRedirecting])
+  }, [isLoaded, user, recheckProfile])
 
   // Fetch schools when school selection step is reached
   useEffect(() => {
@@ -226,13 +164,15 @@ export default function Page() {
     }
   }
 
-  const handleRoleSelect = (role: 'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL' | 'CLERK') => {
+  const handleRoleSelect = (role: 'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL' | 'SCHOOL') => {
     console.log('Role selected:', role)
     setSelectedRole(role)
-    // All roles go to profile form first to collect their details
-    // PRINCIPAL will then go to school-setup after profile
-    // Other roles will go to school selection after profile
-    setStep('profile')
+    if (role === 'SCHOOL') {
+      setStep('school-setup')
+    } else {
+      // All other roles need profile information
+      setStep('profile')
+    }
   }
 
   const handleProfileSubmit = async () => {
@@ -566,314 +506,6 @@ export default function Page() {
     await completeUserRegistration()
   }
 
-  // Input sanitization helper
-  const sanitizeInput = (input: string): string => {
-    return input.trim().replace(/[<>"']/g, '')
-  }
-
-  // Password strength checker
-  const checkPasswordStrength = (password: string): 'weak' | 'medium' | 'strong' => {
-    const hasUpperCase = /[A-Z]/.test(password)
-    const hasLowerCase = /[a-z]/.test(password)
-    const hasNumbers = /\d/.test(password)
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password)
-    const isLongEnough = password.length >= 8
-    
-    const strength = [hasUpperCase, hasLowerCase, hasNumbers, hasSpecialChar, isLongEnough].filter(Boolean).length
-    
-    if (strength <= 2) return 'weak'
-    if (strength <= 4) return 'medium'
-    return 'strong'
-  }
-
-  // Handle sign-up form submission with security measures
-  const handleSignUpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!signUpLoaded || !signUp) return
-    
-    // Rate limiting check (client-side)
-    if (isRateLimited) {
-      toast.error('Too many attempts. Please wait a moment before trying again.')
-      return
-    }
-    
-    if (attemptCount >= 5) {
-      setIsRateLimited(true)
-      toast.error('Too many sign-up attempts. Please wait 5 minutes.')
-      setTimeout(() => {
-        setIsRateLimited(false)
-        setAttemptCount(0)
-      }, 300000) // 5 minutes
-      return
-    }
-    
-    // Input validation
-    const firstName = sanitizeInput(signUpForm.firstName)
-    const lastName = sanitizeInput(signUpForm.lastName)
-    const emailAddress = signUpForm.emailAddress.trim().toLowerCase()
-    
-    if (!firstName || firstName.length < 2) {
-      setSignUpError('First name must be at least 2 characters')
-      return
-    }
-    
-    if (!lastName || lastName.length < 2) {
-      setSignUpError('Last name must be at least 2 characters')
-      return
-    }
-    
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(emailAddress)) {
-      setSignUpError('Please enter a valid email address')
-      return
-    }
-    
-    // Password strength validation
-    const strength = checkPasswordStrength(signUpForm.password)
-    if (strength === 'weak') {
-      setSignUpError('Password is too weak. Use at least 8 characters with uppercase, lowercase, numbers, and special characters.')
-      return
-    }
-    
-    setIsLoading(true)
-    setSignUpError('')
-    setAttemptCount(prev => prev + 1)
-    
-    try {
-      // Start the sign-up process with sanitized inputs
-      await signUp.create({
-        firstName,
-        lastName,
-        emailAddress,
-        password: signUpForm.password,
-      })
-      
-      // Send email verification code
-      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
-      
-      // Show verification step
-      setVerifying(true)
-      setAttemptCount(0) // Reset on success
-      toast.success('Verification code sent to your email!')
-    } catch (err: unknown) {
-      console.error('Sign-up error:', err)
-      const error = err as { errors?: Array<{ message: string; code?: string }> }
-      const errorMessage = error.errors?.[0]?.message || 'Failed to create account'
-      const errorCode = error.errors?.[0]?.code
-      
-      // Don't expose sensitive error details
-      if (errorCode === 'form_password_pwned') {
-        setSignUpError('This password has been compromised in a data breach. Please choose a different password.')
-      } else if (errorMessage.toLowerCase().includes('email')) {
-        setSignUpError('This email is already registered or invalid. Please use a different email.')
-      } else {
-        setSignUpError('Unable to create account. Please check your information and try again.')
-      }
-      
-      toast.error(errorMessage)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-  
-  // Handle email verification with security measures
-  const handleVerifyEmail = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!signUpLoaded || !signUp) return
-    
-    // Validate code format (6 digits)
-    const codeRegex = /^\d{6}$/
-    if (!codeRegex.test(code)) {
-      setSignUpError('Verification code must be 6 digits')
-      return
-    }
-    
-    setIsLoading(true)
-    setSignUpError('')
-    
-    try {
-      // Verify the email code
-      const completeSignUp = await signUp.attemptEmailAddressVerification({
-        code: code.trim(),
-      })
-      
-      console.log('[Verification] Complete sign-up response:', {
-        status: completeSignUp.status,
-        createdSessionId: completeSignUp.createdSessionId,
-        hasSession: !!completeSignUp.createdSessionId
-      })
-      
-      if (completeSignUp.status === 'complete') {
-        // Check if session was created
-        if (!completeSignUp.createdSessionId) {
-          console.error('[Verification] No session ID in response')
-          setSignUpError('Session creation failed. Please try signing in.')
-          toast.error('Please try signing in with your credentials')
-          return
-        }
-        
-        // Set the active session
-        await setActive({ session: completeSignUp.createdSessionId })
-        
-        toast.success('Account created successfully!')
-        
-        // Clear sensitive form data
-        setSignUpForm({
-          firstName: '',
-          lastName: '',
-          emailAddress: '',
-          password: '',
-        })
-        setCode('')
-        setVerifying(false)
-        
-        // Trigger profile check to show role selection
-        setRecheckProfile(prev => prev + 1)
-      } else if (completeSignUp.status === 'missing_requirements') {
-        console.error('[Verification] Missing requirements:', {
-          status: completeSignUp.status,
-          missingFields: completeSignUp.missingFields,
-          unverifiedFields: completeSignUp.unverifiedFields,
-          fullResponse: completeSignUp
-        })
-        
-        // Check what's missing
-        const signUpResponse = completeSignUp as { missingFields?: string[]; unverifiedFields?: string[] }
-        const missingFields = signUpResponse.missingFields || []
-        const unverifiedFields = signUpResponse.unverifiedFields || []
-        
-        if (missingFields.length > 0 || unverifiedFields.length > 0) {
-          setSignUpError(`Missing: ${[...missingFields, ...unverifiedFields].join(', ')}`)
-          toast.error('Additional information required')
-        } else {
-          // If no specific fields mentioned, might be a Clerk configuration issue
-          console.warn('[Verification] Missing requirements but no fields specified. This might be a Clerk configuration issue.')
-          setSignUpError('Sign-up configuration issue. Please contact support.')
-          toast.error('Configuration error')
-        }
-      } else if (completeSignUp.status === 'abandoned') {
-        console.error('[Verification] Sign-up abandoned:', completeSignUp)
-        setSignUpError('Sign-up session expired. Please start over.')
-        toast.error('Session expired')
-        setVerifying(false)
-      } else {
-        console.error('[Verification] Sign-up not complete. Status:', completeSignUp.status, 'Full response:', JSON.stringify(completeSignUp, null, 2))
-        setSignUpError(`Verification incomplete (${completeSignUp.status}). Please try again.`)
-        toast.error('Verification incomplete')
-      }
-    } catch (err: unknown) {
-      console.error('[Verification] Error:', err)
-      const error = err as { errors?: Array<{ message: string; code?: string }> }
-      const errorMessage = error.errors?.[0]?.message || 'Invalid verification code'
-      const errorCode = error.errors?.[0]?.code
-      
-      console.error('[Verification] Error details:', { errorCode, errorMessage })
-      
-      // Handle specific error codes
-      if (errorCode === 'form_code_incorrect') {
-        setSignUpError('Incorrect verification code. Please check and try again.')
-        toast.error('Incorrect code')
-      } else if (errorCode === 'verification_expired') {
-        setSignUpError('Verification code expired. Please request a new one.')
-        toast.error('Code expired')
-      } else if (errorMessage?.includes('already been verified')) {
-        // User already verified - move to next step
-        console.log('[Verification] Already verified, moving to role selection')
-        setVerifying(false)
-        setCode('')
-        toast.info('Email already verified. Please continue.')
-        setRecheckProfile(prev => prev + 1)
-      } else {
-        setSignUpError('Invalid or expired verification code. Please try again.')
-        toast.error('Verification failed')
-      }
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Handle OAuth sign-up (Google, LinkedIn, etc.) - Optimized for speed
-  const handleOAuthSignUp = async (provider: 'google' | 'linkedin') => {
-    console.log('[OAuth] Starting OAuth flow for:', provider)
-    
-    // Quick validation checks
-    if (!signUpLoaded) {
-      console.warn('[OAuth] SignUp not loaded yet, waiting...')
-      toast.loading('Initializing authentication...')
-      // Wait a bit for Clerk to load
-      await new Promise(resolve => setTimeout(resolve, 500))
-      if (!signUpLoaded) {
-        toast.error('Authentication not ready. Please refresh the page.')
-        return
-      }
-    }
-    
-    if (!signUp) {
-      console.error('[OAuth] SignUp object is null')
-      toast.error('Authentication not ready. Please refresh the page.')
-      return
-    }
-    
-    try {
-      const strategy = provider === 'google' ? 'oauth_google' : 'oauth_linkedin'
-      console.log('[OAuth] Initiating redirect with strategy:', strategy)
-      
-      // Show immediate feedback
-      setIsLoading(true)
-      toast.loading(`Connecting to ${provider === 'google' ? 'Google' : 'LinkedIn'}...`)
-      
-      // Start OAuth flow - this will redirect, so no need to wait
-      signUp.authenticateWithRedirect({
-        strategy: strategy as 'oauth_google' | 'oauth_linkedin',
-        redirectUrl: '/sso-callback',
-        redirectUrlComplete: '/',  // Let SSO callback handle the redirect logic
-      }).catch((err) => {
-        // Handle errors that occur before redirect
-        console.error('[OAuth] Pre-redirect error:', err)
-        const error = err as { errors?: Array<{ message: string; code?: string }> }
-        
-        if (error.errors && error.errors.length > 0) {
-          const firstError = error.errors[0]
-          const errorMessage = firstError.message || 'Failed to start OAuth'
-          const errorCode = firstError.code || 'unknown'
-          
-          console.error('[OAuth] Error:', errorCode, '-', errorMessage)
-          
-          // Handle specific error codes
-          if (errorCode === 'captcha_invalid' || errorCode === 'captcha_required') {
-            toast.error('Please complete the CAPTCHA verification')
-            setSignUpError('CAPTCHA verification required. Please try again.')
-          } else if (errorCode === 'oauth_access_denied') {
-            toast.error('Access denied. Please try again.')
-            setSignUpError('OAuth access denied')
-          } else {
-            toast.error(errorMessage)
-            setSignUpError(errorMessage)
-          }
-        } else {
-          console.error('[OAuth] Unknown error:', err)
-          toast.error('Failed to connect. Please try again.')
-          setSignUpError('Failed to connect with OAuth provider')
-        }
-        
-        setIsLoading(false)
-      })
-      
-      // Don't wait for redirect - it will happen automatically
-      console.log('[OAuth] Redirect initiated')
-      
-    } catch (err: unknown) {
-      // This catch is for synchronous errors only
-      console.error('[OAuth] Synchronous error:', err)
-      toast.error('Failed to start OAuth flow. Please try again.')
-      setSignUpError('Failed to start OAuth flow')
-      setIsLoading(false)
-    }
-  }
-
   const filteredSchools = schools.filter(school =>
     school.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     school.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -894,334 +526,108 @@ export default function Page() {
   // Show Clerk SignUp if user is not authenticated
   if (!user) {
     return (
-      <div className="font-sans min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/20 via-zinc-50 to-white py-12 px-4 sm:px-6 lg:px-8">
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 justify-center items-center">
-
-          <div className='w-full hidden md:block lg:block h-full'>
-            <div className='w-full bg-primary hidden rounded-3xl h-200'/>
-            <Image
-              src={banner}
-              alt="EduTrack AI Logo"
-              width={1000}
-              height={1000}
-              quality={100}
-              className="object-cover w-full  h-200 rounded-3xl"
-            />
-          </div>
-
-          <div className="text-center font-sans pb-10 bg-primary backdrop-blur-sm p-7 rounded-3xl left-0 lg:left-60 relative md:absolute lg:absolute justify-center items-center mb-8">
-
-            <div className="mx-auto w-18 h-18 p-2 bg-white rounded-lg flex items-center justify-center mb-4">
+      <div className="font-sans min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md flex flex-col justify-center items-center">
+          <div className="text-center justify-center items-center mb-8">
+            <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4">
               <Image 
-                src={logo} 
+                src="/logo_white.png" 
                 alt="EduTrack AI Logo" 
-                width={45} 
-                height={45} 
+                width={40} 
+                height={40} 
                 className="object-contain"
               />
             </div>
-            <h1 className="text-3xl font-bold text-gray-100 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Join EduTrack AI Software
             </h1>
-            <p className="text-gray-200">
+            <p className="text-gray-600">
               Create your account to get started with the application process.
             </p>
-
           </div>
 
-          <div className="max-w-md mx-auto flex flex-col justify-center items-center">
-            <Card className="w-full shadow-none border bg-white border-zinc-200 rounded-2xl">
-              <CardHeader className="px-8 py-3 space-y-0">
-                <CardTitle className="text-2xl font-bold text-primary">
-                  {verifying ? 'Verify your email' : 'Create your account'}
-                </CardTitle>
-                <CardDescription className="text-gray-600 font-medium text-sm mt-2">
-                  {verifying 
-                    ? 'Enter the verification code sent to your email' 
-                    : 'Sign up to get started with EduTrack AI Software'}
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent className="px-8 py-6 space-y-3">
-                {signUpError && (
-                  <Alert variant="destructive">
-                    <AlertDescription className="text-red-600 text-sm">
-                      {signUpError}
-                    </AlertDescription>
-                  </Alert>
-                )}
+          <SignUp 
+            appearance={{
+              elements: {
+                // Root card styling
+                rootBox: 'w-full',
+                card: 'shadow-2xl border border-gray-200 rounded-2xl bg-white',
                 
-                {!verifying ? (
-                  <form onSubmit={handleSignUpSubmit} className="space-y-4 font-sans">
-                    {/* OAuth Buttons */}
-                    <div className="space-y-3">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => handleOAuthSignUp('google')}
-                        className="w-full border-gray-300 hover:bg-gray-50 hover:border-gray-400 rounded-lg transition-all duration-200 font-medium py-2.5"
-                      >
-                        <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                          <path
-                            fill="#4285F4"
-                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                          />
-                          <path
-                            fill="#34A853"
-                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                          />
-                          <path
-                            fill="#FBBC05"
-                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                          />
-                          <path
-                            fill="#EA4335"
-                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                          />
-                        </svg>
-                        Continue with Google
-                      </Button>
-                      
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => handleOAuthSignUp('linkedin')}
-                        className="w-full border-gray-300 hover:bg-gray-50 hover:border-gray-400 rounded-lg transition-all duration-200 font-medium py-2.5"
-                      >
-                        <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="#0A66C2">
-                          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                        </svg>
-                        Continue with LinkedIn
-                      </Button>
-                    </div>
-                    
-                    {/* Divider */}
-                    <div className="relative">
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-gray-300"></div>
-                      </div>
-                      <div className="relative flex justify-center text-sm">
-                        <span className="px-2 bg-white text-gray-500">Or continue with email</span>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4 font-sans">
-                      <div className="space-y-2">
-                        <label htmlFor="firstName" className="text-sm font-medium text-gray-700">
-                          First name
-                        </label>
-                        <div className="relative">
-                          <UserIcon className="absolute hidden left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                          <Input
-                            id="firstName"
-                            type="text"
-                            required
-                            value={signUpForm.firstName}
-                            onChange={(e) => setSignUpForm(prev => ({ ...prev, firstName: e.target.value }))}
-                            className="pl-10 border-gray-300 placeholder:text-gray-400 font-medium  focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg px-4 py-2.5 transition-all duration-200"
-                            placeholder="John"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <label htmlFor="lastName" className="text-sm font-medium text-gray-700">
-                          Last name
-                        </label>
-                        <div className="relative">
-                          <UserIcon className="absolute hidden left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                          <Input
-                            id="lastName"
-                            type="text"
-                            required
-                            value={signUpForm.lastName}
-                            onChange={(e) => setSignUpForm(prev => ({ ...prev, lastName: e.target.value }))}
-                            className="pl-10 border-gray-300 placeholder:text-gray-400 font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg px-4 py-2.5 transition-all duration-200"
-                            placeholder="Doe"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label htmlFor="email" className="text-sm font-medium text-gray-700">
-                        Email address
-                      </label>
-                      <div className="relative">
-                        <Mail className="absolute hidden left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                        <Input
-                          id="email"
-                          type="email"
-                          required
-                          value={signUpForm.emailAddress}
-                          onChange={(e) => setSignUpForm(prev => ({ ...prev, emailAddress: e.target.value }))}
-                          className="pl-10 border-gray-300 placeholder:text-gray-400  font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg px-4 py-2.5 transition-all duration-200"
-                          placeholder="john.doe@example.com"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <label htmlFor="password" className="text-sm font-medium text-gray-700">
-                        Password
-                      </label>
-                      <div className="relative">
-                        <Lock className="absolute hidden left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                        <Input
-                          id="password"
-                          type={showPassword ? 'text' : 'password'}
-                          required
-                          minLength={8}
-                          value={signUpForm.password}
-                          onChange={(e) => {
-                            const newPassword = e.target.value
-                            setSignUpForm(prev => ({ ...prev, password: newPassword }))
-                            if (newPassword.length > 0) {
-                              setPasswordStrength(checkPasswordStrength(newPassword))
-                            } else {
-                              setPasswordStrength(null)
-                            }
-                          }}
-                          className="pl-10 pr-10 border-gray-300 placeholder:text-gray-400 font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg px-4 py-2.5 transition-all duration-200"
-                          placeholder="••••••••"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                        >
-                          {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                        </button>
-                      </div>
-                      {passwordStrength && (
-                        <div className="space-y-1">
-                          <div className="flex gap-1">
-                            <div className={`h-1 flex-1 rounded ${passwordStrength === 'weak' ? 'bg-red-500' : passwordStrength === 'medium' ? 'bg-yellow-500' : 'bg-green-500'}`} />
-                            <div className={`h-1 flex-1 rounded ${passwordStrength === 'medium' || passwordStrength === 'strong' ? passwordStrength === 'medium' ? 'bg-yellow-500' : 'bg-green-500' : 'bg-gray-200'}`} />
-                            <div className={`h-1 flex-1 rounded ${passwordStrength === 'strong' ? 'bg-green-500' : 'bg-gray-200'}`} />
-                          </div>
-                          <p className={`text-xs ${passwordStrength === 'weak' ? 'text-red-600' : passwordStrength === 'medium' ? 'text-yellow-600' : 'text-green-600'}`}>
-                            Password strength: {passwordStrength}
-                          </p>
-                        </div>
-                      )}
-                      <p className="text-xs text-gray-500">
-                        Use 8+ characters with uppercase, lowercase, numbers, and symbols
-                      </p>
-                    </div>
-                    
-                    {/* Clerk CAPTCHA container - positioned for optimal UX */}
-                    <div id="clerk-captcha" className="flex justify-center my-4 min-h-[78px]" aria-live="polite" aria-label="Security verification"></div>
-                    
-                    <Button
-                      type="submit"
-                      disabled={isLoading}
-                      className="w-full bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg py-2.5 transition-all duration-200 shadow-sm hover:shadow-md"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Creating account...
-                        </>
-                      ) : (
-                        'Continue'
-                      )}
-                    </Button>
-                    
-                    <div className="text-center text-sm mt-4">
-                      <span className="text-gray-600">Already have an account? </span>
-                      <Link href="/sign-in" className="text-primary hover:text-primary/80 font-semibol transition-colors duration-200">
-                        Sign in
-                      </Link>
-                    </div>
-                  </form>
-                ) : (
-                  <form onSubmit={handleVerifyEmail} className="space-y-4">
-                    <div className="space-y-2">
-                      <label htmlFor="code" className="text-sm font-medium text-gray-700">
-                        Verification code
-                      </label>
-                      <Input
-                        id="code"
-                        type="text"
-                        required
-                        value={code}
-                        onChange={(e) => setCode(e.target.value)}
-                        className="border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg px-4 py-2.5 transition-all duration-200 text-center text-lg tracking-widest"
-                        placeholder="000000"
-                        maxLength={6}
-                      />
-                      <p className="text-xs text-gray-500 text-center">
-                        Check your email for the 6-digit verification code
-                      </p>
-                    </div>
-                    
-                    <Button
-                      type="submit"
-                      disabled={isLoading}
-                      className="w-full bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg py-2.5 transition-all duration-200 shadow-sm hover:shadow-md"
-                    >
-                      {isLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Verifying...
-                        </>
-                      ) : (
-                        'Verify email'
-                      )}
-                    </Button>
-                    
-                    <div className="flex items-center justify-between text-sm">
-                      <button
-                        type="button"
-                        onClick={() => setVerifying(false)}
-                        className="text-primary hover:text-primary/80 font-medium"
-                      >
-                        Back to sign up
-                      </button>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          if (!signUp) return
-                          try {
-                            setIsLoading(true)
-                            await signUp.prepareEmailAddressVerification({ strategy: 'email_code' })
-                            toast.success('New code sent to your email!')
-                          } catch (err) {
-                            console.error('Resend error:', err)
-                            const error = err as { errors?: Array<{ message: string }> }
-                            const errorMessage = error.errors?.[0]?.message || ''
-                            
-                            // Check if already verified
-                            if (errorMessage?.includes('already been verified')) {
-                              console.log('[Resend] Already verified, moving to role selection')
-                              setVerifying(false)
-                              setCode('')
-                              toast.info('Email already verified. Please continue.')
-                              setRecheckProfile(prev => prev + 1)
-                            } else {
-                              toast.error('Failed to resend code')
-                            }
-                          } finally {
-                            setIsLoading(false)
-                          }
-                        }}
-                        disabled={isLoading}
-                        className="text-primary hover:text-primary/80 font-medium disabled:opacity-50"
-                      >
-                        Resend code
-                      </button>
-                    </div>
-                  </form>
-                )}
-              </CardContent>
-            </Card>
+                // Header styling
+                headerTitle: 'text-2xl font-bold text-gray-900',
+                headerSubtitle: 'text-gray-600 text-sm mt-2',
+                
+                // Form container
+                formContainer: 'space-y-4',
+                
+                // Form fields
+                formFieldLabel: 'text-sm font-medium text-gray-700 mb-1.5',
+                formFieldInput: 'border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg px-4 py-2.5 transition-all duration-200',
+                formFieldInputShowPasswordButton: 'text-gray-500 hover:text-gray-700',
+                
+                // Primary button (Sign Up)
+                formButtonPrimary: 'bg-primary hover:bg-primary/90 text-white font-semibold normal-case rounded-lg py-2.5 transition-all duration-200 shadow-sm hover:shadow-md',
+                
+                // Social buttons
+                socialButtonsBlockButton: 'border-gray-300 hover:bg-gray-50 hover:border-gray-400 rounded-lg transition-all duration-200 normal-case font-medium',
+                socialButtonsBlockButtonText: 'text-gray-700 font-medium',
+                socialButtonsProviderIcon: 'w-5 h-5',
+                
+                // Profile image upload styling
+                avatarBox: 'w-24 h-24 mx-auto mb-4',
+                avatarImage: 'rounded-full border-4 border-primary/20',
+                fileDropAreaBox: 'border-2 border-dashed border-primary/30 rounded-lg p-4 hover:border-primary/50 transition-colors',
+                fileDropAreaButtonPrimary: 'bg-primary hover:bg-primary/90 text-white rounded-lg px-4 py-2 normal-case font-medium',
+                fileDropAreaIcon: 'text-primary',
+                fileDropAreaFooterHint: 'text-xs text-gray-500',
+                fileDropAreaButtonSecondary: 'text-red-600 hover:text-red-700 text-sm font-medium',
+                
+                // Divider
+                dividerLine: 'bg-gray-300',
+                dividerText: 'text-gray-500 text-sm',
+                
+                // Footer links
+                footer: 'mt-6',
+                footerAction: 'text-sm',
+                footerActionText: 'text-gray-600',
+                footerActionLink: 'text-primary hover:text-primary/80 font-semibold transition-colors duration-200',
+                
+                // Form field row
+                formFieldRow: 'space-y-2',
+                
+                // Error messages
+                formFieldErrorText: 'text-red-600 text-sm mt-1',
+                
+                // OTP input (for verification)
+                otpCodeFieldInput: 'border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg',
+                
+                // Verification
+                identityPreviewText: 'text-gray-700',
+                identityPreviewEditButton: 'text-primary hover:text-primary/80',
+                
+                // Form buttons
+                formResendCodeLink: 'text-primary hover:text-primary/80 font-medium',
+                
+                // Internal card
+                main: 'px-8 py-6',
+              },
+              layout: {
+                socialButtonsPlacement: 'top',
+                socialButtonsVariant: 'blockButton',
+                termsPageUrl: '/terms',
+                privacyPageUrl: '/privacy',
+              },
+            }}
+            routing="path"
+            path="/sign-up"
+            signInUrl="/sign-in"
+            forceRedirectUrl="/sign-up" // Force redirect to continue profile setup after Clerk auth
+          />
 
-          <div className="mt-6 p-4 bg-primary/10 rounded-lg border border-primary/20">
-            <p className="text-sm text-primary text-center">
+          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-sm text-blue-800 text-center">
               <strong>Next Steps:</strong> After creating your account, you&apos;ll select your role and complete your profile.
             </p>
-          </div>
           </div>
         </div>
       </div>
@@ -1230,169 +636,69 @@ export default function Page() {
 
   if (step === 'role') {
     return (
-      <div className="font-sans min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-gray-50 to-white py-12 px-4 sm:px-6 lg:px-8">
-        {/* Clerk CAPTCHA element for bot protection */}
-        <div id="clerk-captcha"></div>
-        <div className="w-full max-w-4xl">
-          {/* Header Section */}
-          <div className="text-center mb-8">
-            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-              <UserPlus className="h-8 w-8 text-primary" />
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-              Choose Your Role
-            </h1>
-            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-              Select the role that best describes you. This helps us personalize your experience and provide relevant features.
-            </p>
-          </div>
+      <div className="font-sans min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <Card className="w-full font-sans max-w-md">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">Choose Your Role</CardTitle>
+            <CardDescription className="text-center">
+              Select the role that best describes you to continue registration
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4">
+              <Button
+                variant="outline"
+                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-blue-50 hover:border-blue-200"
+                onClick={() => handleRoleSelect('STUDENT')}
+              >
+                <Image 
+                  src="/logo_white.png" 
+                  alt="EduTrack AI Logo" 
+                  width={32} 
+                  height={32} 
+                  className="object-contain"
+                />
+                <span className="font-semibold">Student/Learner</span>
+              </Button>
 
-          {/* Role Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            {/* Student Role */}
-            <button
-              onClick={() => handleRoleSelect('STUDENT')}
-              className="group relative bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-blue-400 hover:shadow-lg transition-all duration-300 text-left"
-            >
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                  <GraduationCap className="h-8 w-8 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-gray-900 mb-1">Student</h3>
-                  <p className="text-sm text-gray-600 mb-3">
-                    Access courses, track progress, submit assignments, and view grades
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full">Learning</span>
-                    <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full">Assignments</span>
-                    <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full">Progress</span>
-                  </div>
-                </div>
-                <ArrowLeft className="h-5 w-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all rotate-180" />
-              </div>
-            </button>
+              <Button
+                variant="outline"
+                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-green-50 hover:border-green-200"
+                onClick={() => handleRoleSelect('PARENT')}
+              >
+                <Users className="h-8 w-8 text-green-600" />
+                <span className="font-semibold">Parent/Guardian</span>
+              </Button>
 
-            {/* Parent Role */}
-            <button
-              onClick={() => handleRoleSelect('PARENT')}
-              className="group relative bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-green-400 hover:shadow-lg transition-all duration-300 text-left"
-            >
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
-                  <Users className="h-8 w-8 text-green-600" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-gray-900 mb-1">Parent/Guardian</h3>
-                  <p className="text-sm text-gray-600 mb-3">
-                    Monitor children&apos;s progress, communicate with teachers, view reports
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded-full">Monitoring</span>
-                    <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded-full">Reports</span>
-                    <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded-full">Communication</span>
-                  </div>
-                </div>
-                <ArrowLeft className="h-5 w-5 text-gray-400 group-hover:text-green-600 group-hover:translate-x-1 transition-all rotate-180" />
-              </div>
-            </button>
+              <Button
+                variant="outline"
+                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-purple-50 hover:border-purple-200"
+                onClick={() => handleRoleSelect('TEACHER')}
+              >
+                <UserCheck className="h-8 w-8 text-purple-600" />
+                <span className="font-semibold">Teacher</span>
+              </Button>
 
-            {/* Teacher Role */}
-            <button
-              onClick={() => handleRoleSelect('TEACHER')}
-              className="group relative bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-purple-400 hover:shadow-lg transition-all duration-300 text-left"
-            >
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-                  <Briefcase className="h-8 w-8 text-purple-600" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-gray-900 mb-1">Teacher</h3>
-                  <p className="text-sm text-gray-600 mb-3">
-                    Manage classes, create assignments, grade work, track attendance
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="text-xs px-2 py-1 bg-purple-50 text-purple-700 rounded-full">Classes</span>
-                    <span className="text-xs px-2 py-1 bg-purple-50 text-purple-700 rounded-full">Grading</span>
-                    <span className="text-xs px-2 py-1 bg-purple-50 text-purple-700 rounded-full">Attendance</span>
-                  </div>
-                </div>
-                <ArrowLeft className="h-5 w-5 text-gray-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all rotate-180" />
-              </div>
-            </button>
+              <Button
+                variant="outline"
+                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-red-50 hover:border-red-200"
+                onClick={() => handleRoleSelect('PRINCIPAL')}
+              >
+                <UserCheck className="h-8 w-8 text-orange-600" />
+                <span className="font-semibold">Principal/Admin</span>
+              </Button>
 
-            {/* Principal Role */}
-            <button
-              onClick={() => handleRoleSelect('PRINCIPAL')}
-              className="group relative bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-orange-400 hover:shadow-lg transition-all duration-300 text-left"
-            >
-              <div className="flex items-start gap-4">
-                <div className="p-3 bg-orange-100 rounded-lg group-hover:bg-orange-200 transition-colors">
-                  <Shield className="h-8 w-8 text-orange-600" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-gray-900 mb-1">Principal/Admin</h3>
-                  <p className="text-sm text-gray-600 mb-3">
-                    Oversee school operations, manage staff, view analytics and reports
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="text-xs px-2 py-1 bg-orange-50 text-orange-700 rounded-full">Management</span>
-                    <span className="text-xs px-2 py-1 bg-orange-50 text-orange-700 rounded-full">Analytics</span>
-                    <span className="text-xs px-2 py-1 bg-orange-50 text-orange-700 rounded-full">Oversight</span>
-                  </div>
-                </div>
-                <ArrowLeft className="h-5 w-5 text-gray-400 group-hover:text-orange-600 group-hover:translate-x-1 transition-all rotate-180" />
-              </div>
-            </button>
-          </div>
-
-          {/* Administrative Staff (Clerk) - Full Width */}
-          <button
-            onClick={() => handleRoleSelect('CLERK')}
-            className="group relative w-full bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-200 p-6 hover:border-indigo-400 hover:shadow-lg transition-all duration-300 text-left"
-          >
-            <div className="flex items-start gap-4">
-              <div className="p-3 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
+              <Button
+                variant="outline"
+                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-indigo-50 hover:border-indigo-200"
+                onClick={() => handleRoleSelect('SCHOOL')}
+              >
                 <Building2 className="h-8 w-8 text-indigo-600" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-xl font-bold text-gray-900">Administrative Staff (Clerk)</h3>
-                  <span className="text-xs px-2 py-1 bg-indigo-600 text-white rounded-full font-semibold">Staff</span>
-                </div>
-                <p className="text-sm text-gray-600 mb-3">
-                  Join as administrative staff. Manage student records, process fees and payments, handle registrations, and support school operations.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">Fee Management</span>
-                  <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">Records</span>
-                  <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">Payments</span>
-                  <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">Administration</span>
-                </div>
-              </div>
-              <ArrowLeft className="h-5 w-5 text-gray-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all rotate-180" />
+                <span className="font-semibold">School Administrator</span>
+              </Button>
             </div>
-          </button>
-
-          {/* Info Section */}
-          <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-start gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Mail className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-1">Need help choosing?</h4>
-                <p className="text-sm text-gray-600">
-                  Your role determines your dashboard features and permissions. You can contact support at{' '}
-                  <a href="mailto:support@edutrack.ai" className="text-primary hover:underline font-medium">
-                    support@edutrack.ai
-                  </a>
-                  {' '}if you&apos;re unsure which role to select.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -1402,9 +708,7 @@ export default function Page() {
     console.log('Current step:', step)
     return (
       <div className="min-h-screen font-sans flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        {/* Clerk CAPTCHA element for bot protection */}
-        <div id="clerk-captcha"></div>
-        <Card className="w-full font-sans max-w-2xl p-2">
+        <Card className="w-full font-sans max-w-2xl">
           <CardHeader className="space-y-1">
             <div className="flex items-center gap-2">
               <Button
@@ -1436,31 +740,20 @@ export default function Page() {
 
             {/* Display Clerk User Info */}
             {user && (
-              <Card className="bg-blue-50 font-sans border border-blue-200 rounded-lg p-4">
-                <CardHeader>
-                  <CardTitle>Account Information (from Clerk)</CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-blue-800">
+              <div className="bg-blue-50 font-sans border border-blue-200 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-900 mb-2">Account Information (from Clerk)</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-blue-800">
                   <div>
-                    <Image
-                      src={user.imageUrl}
-                      alt="User Logo"
-                      width={20}
-                      height={20}
-                      className="object-contain"
-                    />
                     <span className="font-medium">Name:</span> {user.firstName} {user.lastName}
                   </div>
                   <div>
                     <span className="font-medium">Email:</span> {user.primaryEmailAddress?.emailAddress}
                   </div>
-                </CardContent>
-                <CardFooter>
-                  <p className="text-xs text-blue-600 mt-2">
-                    ℹ️ This information is managed by your Clerk account and cannot be changed here.
-                  </p>
-                </CardFooter>
-              </Card>
+                </div>
+                <p className="text-xs text-blue-600 mt-2">
+                  ℹ️ This information is managed by your Clerk account and cannot be changed here.
+                </p>
+              </div>
             )}
 
             {/* Student Fields */}
@@ -1969,8 +1262,6 @@ export default function Page() {
     
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        {/* Clerk CAPTCHA element for bot protection */}
-        <div id="clerk-captcha"></div>
         <Card className="w-full max-w-2xl">
           <CardHeader className="space-y-1">
             <div className="flex items-center gap-2">
@@ -2148,8 +1439,6 @@ export default function Page() {
   if (step === 'school-setup') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        {/* Clerk CAPTCHA element for bot protection */}
-        <div id="clerk-captcha"></div>
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
             <div className="flex items-center gap-2">
@@ -2208,8 +1497,6 @@ export default function Page() {
   if (step === 'school') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        {/* Clerk CAPTCHA element for bot protection */}
-        <div id="clerk-captcha"></div>
         <Card className="w-full max-w-2xl">
           <CardHeader className="space-y-1">
             <div className="flex items-center gap-2">
@@ -2311,8 +1598,6 @@ export default function Page() {
   if (step === 'complete') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        {/* Clerk CAPTCHA element for bot protection */}
-        <div id="clerk-captcha"></div>
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1 text-center">
             <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
