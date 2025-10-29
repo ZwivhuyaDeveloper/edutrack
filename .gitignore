@@ -58,3 +58,7 @@ next-env.d.ts
 /Guides/*
 /Guides/**
 
+/prisma
+/prisma/
+/prisma/*
+/prisma/**
