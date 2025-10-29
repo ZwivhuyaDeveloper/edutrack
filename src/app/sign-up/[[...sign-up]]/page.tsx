@@ -7,9 +7,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, ArrowLeft, UserPlus, Users, UserCheck, Building2, Search } from 'lucide-react'
+import { Loader2, ArrowLeft, UserPlus, Users, UserCheck, Building2, Search, Shield, Mail, Briefcase, GraduationCap } from 'lucide-react'
 import { toast } from 'sonner'
 import { createUser, validateUserData } from '@/lib/user-creation'
+import logo from '@/assets/logo_teal.png'
+
 
 interface School {
   id: string
@@ -24,7 +26,7 @@ interface School {
 
 export default function Page() {
   const [step, setStep] = useState<'role' | 'profile' | 'relationship' | 'school' | 'school-setup' | 'complete'>('role')
-  const [selectedRole, setSelectedRole] = useState<'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL' | 'SCHOOL'>('STUDENT')
+  const [selectedRole, setSelectedRole] = useState<'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL' | 'SCHOOL' | 'CLERK'>('STUDENT')
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null)
   const [schools, setSchools] = useState<School[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -32,6 +34,7 @@ export default function Page() {
   const [error, setError] = useState('')
   const [recheckProfile, setRecheckProfile] = useState(0)
   const [isRedirecting, setIsRedirecting] = useState(false)
+  const [hasCheckedProfile, setHasCheckedProfile] = useState(false)
   const [relationshipData, setRelationshipData] = useState({
     searchTerm: '',
     selectedRelationship: null as { id: string; name: string; email: string; role: string } | null,
@@ -39,6 +42,7 @@ export default function Page() {
     searchResults: [] as { id: string; name: string; email: string; role: string }[]
   })
   const { user, isLoaded } = useUser()
+  const [isRateLimited, setIsRateLimited] = useState(false)
 
   // Role-specific profile data (name and email come from Clerk, not here)
   const [profileData, setProfileData] = useState({
@@ -83,12 +87,26 @@ export default function Page() {
   // Check if user is authenticated and has completed profile
   useEffect(() => {
     async function checkUserProfile() {
+        if (hasCheckedProfile && recheckProfile === 0) {
+        console.log('[sign-up] Skipping duplicate profile check')
+        return
+      }
       console.log('[sign-up] useEffect triggered - isLoaded:', isLoaded, 'user:', !!user)
       
       if (isLoaded && user) {
         try {
           console.log('[sign-up] Checking user profile for:', user.primaryEmailAddress?.emailAddress)
-          const response = await fetch('/api/users/me')
+
+          // Use AbortController for faster timeout
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 5000) // 5s timeout
+          
+          const response = await fetch('/api/users/me', { 
+            signal: controller.signal,
+            cache: 'no-store' // Ensure fresh data
+          })
+          clearTimeout(timeoutId)
+
           console.log('[sign-up] Response status:', response.status)
           
           if (response.ok) {
@@ -115,16 +133,21 @@ export default function Page() {
             setStep('role')
           }
         } catch (error) {
-          console.error('[sign-up] Error checking user profile:', error)
+          if (error instanceof Error && error.name === 'AbortError') {
+            console.warn('[sign-up] Profile check timed out, showing role selection')
+          } else {
+            console.error('[sign-up] Error checking user profile:', error)
+          }
           setStep('role')
         }
       } else if (isLoaded && !user) {
         console.log('[sign-up] User not authenticated, staying on sign-up page')
+        setHasCheckedProfile(true)
       }
     }
 
     checkUserProfile()
-  }, [isLoaded, user, recheckProfile])
+  }, [isLoaded, user, recheckProfile, hasCheckedProfile, isRateLimited, isRedirecting])
 
   // Fetch schools when school selection step is reached
   useEffect(() => {
@@ -164,7 +187,7 @@ export default function Page() {
     }
   }
 
-  const handleRoleSelect = (role: 'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL' | 'SCHOOL') => {
+  const handleRoleSelect = (role: 'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL' | 'SCHOOL' | 'CLERK') => {
     console.log('Role selected:', role)
     setSelectedRole(role)
     if (role === 'SCHOOL') {
@@ -526,108 +549,149 @@ export default function Page() {
   // Show Clerk SignUp if user is not authenticated
   if (!user) {
     return (
-      <div className="font-sans min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md flex flex-col justify-center items-center">
-          <div className="text-center justify-center items-center mb-8">
-            <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4">
-              <Image 
-                src="/logo_white.png" 
-                alt="EduTrack AI Logo" 
-                width={40} 
-                height={40} 
-                className="object-contain"
-              />
+      <div className="font-sans min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/20 via-zinc-50 to-white py-12 px-4 sm:px-6 lg:px-8">
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3 h-full justify-center items-center">
+
+          <Card className="text-center h-full w-full font-sans border border-primary bg-primary p-7 rounded-3xl  justify-center items-center">
+            <div className="flex flex-col justify-center items-center">
+              <div className="mx-auto w-18 h-18 p-3 bg-white rounded-xl flex items-center justify-center mb-4">
+                <Image 
+                  src={logo} 
+                  alt="EduTrack AI Logo" 
+                  width={45} 
+                  height={45} 
+                  className="object-contain"
+                />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-100 mb-2">
+                Join EduTrack AI Software
+              </h1>
+              <p className="text-gray-200">
+                Create your account to get started with the application process.
+              </p>
+
+              <div className="mt-6 p-4 bg-white/20   rounded-lg border border-white/20">
+                <p className="text-sm text-white text-center">
+                  <strong>Next Steps:</strong> After creating your account, you&apos;ll select your role and complete your profile.
+                </p>
+              </div>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Join EduTrack AI Software
-            </h1>
-            <p className="text-gray-600">
-              Create your account to get started with the application process.
-            </p>
-          </div>
 
-          <SignUp 
-            appearance={{
-              elements: {
-                // Root card styling
-                rootBox: 'w-full',
-                card: 'shadow-2xl border border-gray-200 rounded-2xl bg-white',
-                
-                // Header styling
-                headerTitle: 'text-2xl font-bold text-gray-900',
-                headerSubtitle: 'text-gray-600 text-sm mt-2',
-                
-                // Form container
-                formContainer: 'space-y-4',
-                
-                // Form fields
-                formFieldLabel: 'text-sm font-medium text-gray-700 mb-1.5',
-                formFieldInput: 'border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg px-4 py-2.5 transition-all duration-200',
-                formFieldInputShowPasswordButton: 'text-gray-500 hover:text-gray-700',
-                
-                // Primary button (Sign Up)
-                formButtonPrimary: 'bg-primary hover:bg-primary/90 text-white font-semibold normal-case rounded-lg py-2.5 transition-all duration-200 shadow-sm hover:shadow-md',
-                
-                // Social buttons
-                socialButtonsBlockButton: 'border-gray-300 hover:bg-gray-50 hover:border-gray-400 rounded-lg transition-all duration-200 normal-case font-medium',
-                socialButtonsBlockButtonText: 'text-gray-700 font-medium',
-                socialButtonsProviderIcon: 'w-5 h-5',
-                
-                // Profile image upload styling
-                avatarBox: 'w-24 h-24 mx-auto mb-4',
-                avatarImage: 'rounded-full border-4 border-primary/20',
-                fileDropAreaBox: 'border-2 border-dashed border-primary/30 rounded-lg p-4 hover:border-primary/50 transition-colors',
-                fileDropAreaButtonPrimary: 'bg-primary hover:bg-primary/90 text-white rounded-lg px-4 py-2 normal-case font-medium',
-                fileDropAreaIcon: 'text-primary',
-                fileDropAreaFooterHint: 'text-xs text-gray-500',
-                fileDropAreaButtonSecondary: 'text-red-600 hover:text-red-700 text-sm font-medium',
-                
-                // Divider
-                dividerLine: 'bg-gray-300',
-                dividerText: 'text-gray-500 text-sm',
-                
-                // Footer links
-                footer: 'mt-6',
-                footerAction: 'text-sm',
-                footerActionText: 'text-gray-600',
-                footerActionLink: 'text-primary hover:text-primary/80 font-semibold transition-colors duration-200',
-                
-                // Form field row
-                formFieldRow: 'space-y-2',
-                
-                // Error messages
-                formFieldErrorText: 'text-red-600 text-sm mt-1',
-                
-                // OTP input (for verification)
-                otpCodeFieldInput: 'border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg',
-                
-                // Verification
-                identityPreviewText: 'text-gray-700',
-                identityPreviewEditButton: 'text-primary hover:text-primary/80',
-                
-                // Form buttons
-                formResendCodeLink: 'text-primary hover:text-primary/80 font-medium',
-                
-                // Internal card
-                main: 'px-8 py-6',
-              },
-              layout: {
-                socialButtonsPlacement: 'top',
-                socialButtonsVariant: 'blockButton',
-                termsPageUrl: '/terms',
-                privacyPageUrl: '/privacy',
-              },
-            }}
-            routing="path"
-            path="/sign-up"
-            signInUrl="/sign-in"
-            forceRedirectUrl="/sign-up" // Force redirect to continue profile setup after Clerk auth
-          />
+          </Card>
 
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-800 text-center">
-              <strong>Next Steps:</strong> After creating your account, you&apos;ll select your role and complete your profile.
-            </p>
+          <div className="max-w-md mx-auto flex h-full flex-col justify-center items-center">
+
+            <SignUp 
+              appearance={{
+                elements: {
+                  // Root card styling
+                  rootBox: {
+                    width: 'w-full',
+                    height: 'h-full',
+                    border: 'none',
+                  },
+                  // Card styling
+                  card: {
+                    shadow: 'shadow-sm',
+                    border: 'border',
+                    spaceY: 'space-y-1',
+                    borderColor: 'border-zinc-200',
+                    borderRadiusBottom: '0',
+                    backgroundColor: 'bg-white',
+                  },
+                  
+                  // Header styling
+                  headerTitle: {
+                    fontSize: '2xl',
+                    fontWeight: 'bold',
+                    color: '#006372',
+                  },
+                  headerSubtitle: 'text-gray-600 text-sm mt-2',
+                  
+                  // Form container
+                  formContainer: 'space-y-2',
+                  
+                  // Form fields
+                  formFieldLabel: 'text-sm font-medium text-gray-700',
+                  formFieldInput: 'border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg px-4 py-2.5 transition-all duration-200',
+                  formFieldInputShowPasswordButton: 'text-gray-500 hover:text-gray-700',
+                  
+                  // Primary button (Sign Up)
+                  formButtonPrimary: {
+                    borderBlockWidth: '0px',
+                    backgroundColor: '#006372',
+                    "&:hover": {
+                      backgroundColor: '#006372',
+                      opacity: 0.8,
+                    },
+                    color: '#FFFFFF',
+                  },
+                  
+                  // Social buttons
+                  socialButtonsBlockButton: {
+                    flexDirection: 'row',
+                    borderBlockWidth: '0px',
+                    backgroundColor: '#fff',
+                    "&:hover": {
+                      backgroundColor: '#fff',
+                      opacity: 0.8,
+                    },
+                    color: '#006372',
+                  },
+                  socialButtonsBlockButtonText: 'text-gray-700 font-medium',
+                  socialButtonsProviderIcon: 'w-5 h-5',
+                  
+                  // Profile image upload styling
+                  avatarBox: 'w-24 h-24 mx-auto mb-4',
+                  avatarImage: 'rounded-full border-4 border-primary/20',
+                  fileDropAreaBox: 'border-2 border-dashed border-primary/30 rounded-lg p-4 hover:border-primary/50 transition-colors',
+                  fileDropAreaButtonPrimary: 'bg-primary hover:bg-primary/90 text-white rounded-lg px-4 py-2 normal-case font-medium',
+                  fileDropAreaIcon: 'text-primary',
+                  fileDropAreaFooterHint: 'text-xs text-gray-500',
+                  fileDropAreaButtonSecondary: 'text-red-600 hover:text-red-700 text-sm font-medium',
+                  
+                  // Divider
+                  dividerLine: 'bg-gray-300',
+                  dividerText: 'text-gray-500 text-sm',
+                  
+                  // Footer links
+                  footer: 'mt-6',
+                  footerAction: 'text-sm',
+                  footerActionText: 'text-gray-600',
+                  footerActionLink: 'text-primary hover:text-primary/80 font-semibold transition-colors duration-200',
+                  
+                  // Form field row
+                  formFieldRow: 'space-y-2',
+                  
+                  // Error messages
+                  formFieldErrorText: 'text-red-600 text-sm mt-1',
+                  
+                  // OTP input (for verification)
+                  otpCodeFieldInput: 'border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg',
+                  
+                  // Verification
+                  identityPreviewText: 'text-gray-700',
+                  identityPreviewEditButton: 'text-primary hover:text-primary/80',
+                  
+                  // Form buttons
+                  formResendCodeLink: 'text-primary hover:text-primary/80 font-medium',
+                  
+                  // Internal card
+                  main: 'px-2 py-6',
+                },
+                layout: {
+                  socialButtonsPlacement: 'top',
+                  socialButtonsVariant: 'blockButton',
+                  termsPageUrl: '/terms',
+                  privacyPageUrl: '/privacy',
+                  unsafe_disableDevelopmentModeWarnings: true,
+                },
+              }}
+              routing="path"
+              path="/sign-up"
+              signInUrl="/sign-in"
+              forceRedirectUrl="/sign-up" // Force redirect to continue profile setup after Clerk auth
+            />
           </div>
         </div>
       </div>
@@ -636,69 +700,167 @@ export default function Page() {
 
   if (step === 'role') {
     return (
-      <div className="font-sans min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <Card className="w-full font-sans max-w-md">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Choose Your Role</CardTitle>
-            <CardDescription className="text-center">
-              Select the role that best describes you to continue registration
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4">
-              <Button
-                variant="outline"
-                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-blue-50 hover:border-blue-200"
-                onClick={() => handleRoleSelect('STUDENT')}
-              >
-                <Image 
-                  src="/logo_white.png" 
-                  alt="EduTrack AI Logo" 
-                  width={32} 
-                  height={32} 
-                  className="object-contain"
-                />
-                <span className="font-semibold">Student/Learner</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-green-50 hover:border-green-200"
-                onClick={() => handleRoleSelect('PARENT')}
-              >
-                <Users className="h-8 w-8 text-green-600" />
-                <span className="font-semibold">Parent/Guardian</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-purple-50 hover:border-purple-200"
-                onClick={() => handleRoleSelect('TEACHER')}
-              >
-                <UserCheck className="h-8 w-8 text-purple-600" />
-                <span className="font-semibold">Teacher</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-red-50 hover:border-red-200"
-                onClick={() => handleRoleSelect('PRINCIPAL')}
-              >
-                <UserCheck className="h-8 w-8 text-orange-600" />
-                <span className="font-semibold">Principal/Admin</span>
-              </Button>
-
-              <Button
-                variant="outline"
-                className="h-20 flex flex-col items-center justify-center space-y-2 hover:bg-indigo-50 hover:border-indigo-200"
-                onClick={() => handleRoleSelect('SCHOOL')}
-              >
-                <Building2 className="h-8 w-8 text-indigo-600" />
-                <span className="font-semibold">School Administrator</span>
-              </Button>
+      <div className="font-sans min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-gray-50 to-white py-12 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-4xl">
+          {/* Header Section */}
+          <div className="text-center mb-8">
+            <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <UserPlus className="h-8 w-8 text-primary" />
             </div>
-          </CardContent>
-        </Card>
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+              Choose Your Role
+            </h1>
+            <p className="text-gray-600 text-lg max-w-2xl mx-auto">
+              Select the role that best describes you. This helps us personalize your experience and provide relevant features.
+            </p>
+          </div>
+
+          {/* Role Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {/* Student Role */}
+            <button
+              onClick={() => handleRoleSelect('STUDENT')}
+              className="group relative bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-blue-400 hover:shadow-lg transition-all duration-300 text-left"
+            >
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                  <GraduationCap className="h-8 w-8 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">Student</h3>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Access courses, track progress, submit assignments, and view grades
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full">Learning</span>
+                    <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full">Assignments</span>
+                    <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full">Progress</span>
+                  </div>
+                </div>
+                <ArrowLeft className="h-5 w-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all rotate-180" />
+              </div>
+            </button>
+
+            {/* Parent Role */}
+            <button
+              onClick={() => handleRoleSelect('PARENT')}
+              className="group relative bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-green-400 hover:shadow-lg transition-all duration-300 text-left"
+            >
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-green-100 rounded-lg group-hover:bg-green-200 transition-colors">
+                  <Users className="h-8 w-8 text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">Parent/Guardian</h3>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Monitor children&apos;s progress, communicate with teachers, view reports
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded-full">Monitoring</span>
+                    <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded-full">Reports</span>
+                    <span className="text-xs px-2 py-1 bg-green-50 text-green-700 rounded-full">Communication</span>
+                  </div>
+                </div>
+                <ArrowLeft className="h-5 w-5 text-gray-400 group-hover:text-green-600 group-hover:translate-x-1 transition-all rotate-180" />
+              </div>
+            </button>
+
+            {/* Teacher Role */}
+            <button
+              onClick={() => handleRoleSelect('TEACHER')}
+              className="group relative bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-purple-400 hover:shadow-lg transition-all duration-300 text-left"
+            >
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
+                  <Briefcase className="h-8 w-8 text-purple-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">Teacher</h3>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Manage classes, create assignments, grade work, track attendance
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-xs px-2 py-1 bg-purple-50 text-purple-700 rounded-full">Classes</span>
+                    <span className="text-xs px-2 py-1 bg-purple-50 text-purple-700 rounded-full">Grading</span>
+                    <span className="text-xs px-2 py-1 bg-purple-50 text-purple-700 rounded-full">Attendance</span>
+                  </div>
+                </div>
+                <ArrowLeft className="h-5 w-5 text-gray-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all rotate-180" />
+              </div>
+            </button>
+
+            {/* Principal Role */}
+            <button
+              onClick={() => handleRoleSelect('PRINCIPAL')}
+              className="group relative bg-white rounded-xl border-2 border-gray-200 p-6 hover:border-orange-400 hover:shadow-lg transition-all duration-300 text-left"
+            >
+              <div className="flex items-start gap-4">
+                <div className="p-3 bg-orange-100 rounded-lg group-hover:bg-orange-200 transition-colors">
+                  <Shield className="h-8 w-8 text-orange-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">Principal/Admin</h3>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Oversee school operations, manage staff, view analytics and reports
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-xs px-2 py-1 bg-orange-50 text-orange-700 rounded-full">Management</span>
+                    <span className="text-xs px-2 py-1 bg-orange-50 text-orange-700 rounded-full">Analytics</span>
+                    <span className="text-xs px-2 py-1 bg-orange-50 text-orange-700 rounded-full">Oversight</span>
+                  </div>
+                </div>
+                <ArrowLeft className="h-5 w-5 text-gray-400 group-hover:text-orange-600 group-hover:translate-x-1 transition-all rotate-180" />
+              </div>
+            </button>
+          </div>
+
+          {/* Administrative Staff (Clerk) - Full Width */}
+          <button
+            onClick={() => handleRoleSelect('CLERK')}
+            className="group relative w-full bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-200 p-6 hover:border-indigo-400 hover:shadow-lg transition-all duration-300 text-left"
+          >
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
+                <Building2 className="h-8 w-8 text-indigo-600" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-xl font-bold text-gray-900">Administrative Staff (Clerk)</h3>
+                  <span className="text-xs px-2 py-1 bg-indigo-600 text-white rounded-full font-semibold">Staff</span>
+                </div>
+                <p className="text-sm text-gray-600 mb-3">
+                  Join as administrative staff. Manage student records, process fees and payments, handle registrations, and support school operations.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">Fee Management</span>
+                  <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">Records</span>
+                  <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">Payments</span>
+                  <span className="text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">Administration</span>
+                </div>
+              </div>
+              <ArrowLeft className="h-5 w-5 text-gray-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all rotate-180" />
+            </div>
+          </button>
+
+          {/* Info Section */}
+          <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Mail className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-1">Need help choosing?</h4>
+                <p className="text-sm text-gray-600">
+                  Your role determines your dashboard features and permissions. You can contact support at{' '}
+                  <a href="mailto:support@edutrack.ai" className="text-primary hover:underline font-medium">
+                    support@edutrack.ai
+                  </a>
+                  {' '}if you&apos;re unsure which role to select.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
@@ -1613,4 +1775,3 @@ export default function Page() {
     )
   }
 }
-

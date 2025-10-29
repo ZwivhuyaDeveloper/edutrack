@@ -158,7 +158,7 @@ async function main() {
     }
   })
   
-  const studentsToCreate = Math.max(0, 50 - existingStudents.length)
+  const studentsToCreate = Math.max(0, 100 - existingStudents.length)
   
   for (let i = 0; i < studentsToCreate; i++) {
     const firstName = faker.person.firstName()
@@ -200,7 +200,7 @@ async function main() {
     }
   })
   
-  const parentsToCreate = Math.max(0, 30 - existingParents.length)
+  const parentsToCreate = Math.max(0, 70 - existingParents.length)
   
   for (let i = 0; i < parentsToCreate; i++) {
     const firstName = faker.person.firstName()
