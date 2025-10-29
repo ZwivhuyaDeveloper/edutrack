@@ -480,6 +480,165 @@ async function seedAdditionalData() {
 
   console.log('📢 Created announcements')
 
+  // 21. Create Message Attachments
+  const messages = await prisma.message.findMany({ take: 50 })
+  
+  for (const message of messages) {
+    // 30% chance of having an attachment
+    if (faker.datatype.boolean(0.3)) {
+      await prisma.messageAttachment.create({
+        data: {
+          url: faker.internet.url(),
+          filename: faker.system.commonFileName(),
+          fileType: faker.helpers.arrayElement(['pdf', 'docx', 'jpg', 'png', 'xlsx']),
+          fileSize: faker.number.int({ min: 1000, max: 5000000 }),
+          messageId: message.id,
+        },
+      })
+    }
+  }
+
+  console.log('📎 Created message attachments')
+
+  // 22. Create Resources
+  const resourceTags = []
+  const tagNames = ['Math', 'Science', 'English', 'History', 'PE', 'Tutorial', 'Reference', 'Homework', 'Exam Prep']
+  
+  for (const name of tagNames) {
+    const tag = await prisma.resourceTag.create({
+      data: { name },
+    })
+    resourceTags.push(tag)
+  }
+
+  const resources = []
+  for (let i = 0; i < 50; i++) {
+    const owner = faker.helpers.arrayElement(users)
+    
+    const resource = await prisma.resource.create({
+      data: {
+        title: faker.lorem.words(3),
+        description: faker.lorem.sentence(),
+        url: faker.internet.url(),
+        type: faker.helpers.arrayElement(['DOCUMENT', 'VIDEO', 'LINK', 'PRESENTATION', 'SPREADSHEET', 'IMAGE', 'OTHER']),
+        visibility: faker.helpers.arrayElement(['SCHOOL', 'CLASS', 'SUBJECT', 'PRIVATE']),
+        fileSize: faker.number.int({ min: 1000, max: 5000000 }),
+        schoolId: SCHOOL_ID,
+        ownerId: owner.id,
+      },
+    })
+    resources.push(resource)
+
+    // Add tags to resource
+    const tagCount = faker.number.int({ min: 1, max: 3 })
+    const selectedTags = faker.helpers.arrayElements(resourceTags, tagCount)
+    
+    for (const tag of selectedTags) {
+      await prisma.resourceTagJoin.create({
+        data: {
+          resourceId: resource.id,
+          tagId: tag.id,
+        },
+      })
+    }
+
+    // Create resource links to class subjects (30% chance)
+    if (faker.datatype.boolean(0.3)) {
+      const classSubject = faker.helpers.arrayElement(classSubjects)
+      
+      await prisma.resourceLink.create({
+        data: {
+          resourceId: resource.id,
+          classSubjectId: classSubject.id,
+          termId: faker.helpers.arrayElement([null, terms[0].id]),
+        },
+      })
+    }
+  }
+
+  console.log('📚 Created resources and tags')
+
+  // 23. Create Event Attendees
+  const events = await prisma.event.findMany({ take: 20 })
+  
+  for (const event of events) {
+    const attendeeCount = faker.number.int({ min: 5, max: 20 })
+    const selectedUsers = faker.helpers.arrayElements(users, attendeeCount)
+    
+    for (const user of selectedUsers) {
+      await prisma.eventAttendee.create({
+        data: {
+          rsvpStatus: faker.helpers.arrayElement(['CONFIRMED', 'TENTATIVE', 'DECLINED']),
+          eventId: event.id,
+          userId: user.id,
+        },
+      })
+    }
+  }
+
+  console.log('🎟️ Created event attendees')
+
+  // 24. Create Lesson Plans
+  const lessonPlans = []
+  for (const classSubject of classSubjects) {
+    const lessonPlanCount = faker.number.int({ min: 5, max: 10 })
+    
+    for (let i = 0; i < lessonPlanCount; i++) {
+      const lessonPlan = await prisma.lessonPlan.create({
+        data: {
+          title: faker.lorem.words(3),
+          date: randomDate(new Date('2024-09-01'), new Date('2024-12-15')),
+          objectives: faker.lorem.paragraph(),
+          materials: faker.lorem.words(5),
+          activities: faker.lorem.paragraphs(2),
+          homework: faker.lorem.sentence(),
+          notes: faker.lorem.sentence(),
+          status: faker.helpers.arrayElement(['DRAFT', 'PUBLISHED', 'COMPLETED']),
+          classSubjectId: classSubject.id,
+          teacherId: classSubject.teacherId,
+        },
+      })
+      lessonPlans.push(lessonPlan)
+
+      // Create attachments for 30% of lesson plans
+      if (faker.datatype.boolean(0.3)) {
+        const attachmentCount = faker.number.int({ min: 1, max: 3 })
+        
+        for (let j = 0; j < attachmentCount; j++) {
+          await prisma.lessonPlanAttachment.create({
+            data: {
+              url: faker.internet.url(),
+              filename: faker.system.commonFileName(),
+              fileType: faker.helpers.arrayElement(['pdf', 'docx', 'pptx', 'xlsx']),
+              lessonPlanId: lessonPlan.id,
+            },
+          })
+        }
+      }
+    }
+  }
+
+  console.log('📝 Created lesson plans')
+
+  // 25. Create Audit Logs
+  for (let i = 0; i < 100; i++) {
+    const actor = faker.helpers.arrayElement(users)
+    
+    await prisma.auditLog.create({
+      data: {
+        entity: faker.helpers.arrayElement(['User', 'Class', 'Assignment', 'Grade', 'Resource', 'Event']),
+        entityId: faker.string.uuid(),
+        action: faker.helpers.arrayElement(['CREATE', 'UPDATE', 'DELETE']),
+        changes: { field: faker.lorem.word(), oldValue: faker.lorem.word(), newValue: faker.lorem.word() },
+        ipAddress: faker.internet.ipv4(),
+        userAgent: faker.internet.userAgent(),
+        actorId: actor.id,
+      },
+    })
+  }
+
+  console.log('📝 Created audit logs')
+
   console.log('✅ Extended database seeding completed successfully!')
 }
 
