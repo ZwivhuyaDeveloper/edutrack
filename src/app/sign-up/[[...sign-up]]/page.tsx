@@ -870,22 +870,47 @@ export default function Page() {
     console.log('Current step:', step)
     return (
       <div className="min-h-screen font-sans flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className='gap-3'>
+        <div className="mb-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setStep('role')}
+            className="p-1 gap-2 text-md text-semibold"
+          >
+            <ArrowLeft className="h-6 w-6" />
+            Back
+          </Button>
+
+        </div>
         <Card className="w-full font-sans max-w-2xl">
           <CardHeader className="space-y-1">
             <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setStep('role')}
-                className="p-1"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <CardTitle className="text-2xl font-bold">
-                {selectedRole === 'STUDENT' && 'Student Information'}
-                {selectedRole === 'TEACHER' && 'Teacher Information'}
-                {selectedRole === 'PARENT' && 'Parent Information'}
-                {selectedRole === 'PRINCIPAL' && 'Principal Information'}
+              <CardTitle className="text-2xl font-bold flex items-center">
+                {selectedRole === 'STUDENT' && (
+                  <>
+                    <GraduationCap className="h-7 w-7 text-blue-600 mr-2" />
+                    Student Information
+                  </>
+                )}
+                {selectedRole === 'TEACHER' && (
+                  <>
+                    <Briefcase className="h-7 w-7 text-purple-600 mr-2" />
+                    Teacher Information
+                  </>
+                )}
+                {selectedRole === 'PARENT' && (
+                  <>
+                    <Users className="h-7 w-7 text-green-600 mr-2" />
+                    Parent Information
+                  </>
+                )}
+                {selectedRole === 'PRINCIPAL' && (
+                  <>
+                    <Shield className="h-7 w-7 text-orange-600 mr-2" />
+                    Principal Information
+                  </>
+                )}
               </CardTitle>
             </div>
             <CardDescription>
@@ -902,9 +927,9 @@ export default function Page() {
 
             {/* Display Clerk User Info */}
             {user && (
-              <div className="bg-blue-50 font-sans border border-blue-200 rounded-lg p-4">
-                <h4 className="font-semibold text-blue-900 mb-2">Account Information (from Clerk)</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-blue-800">
+              <div className="bg-blue-50 font-sans border border-primary/20 rounded-lg p-4">
+                <h4 className="font-semibold text-primary/80 mb-2">Account Information (from Clerk)</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-primary">
                   <div>
                     <span className="font-medium">Name:</span> {user.firstName} {user.lastName}
                   </div>
@@ -912,8 +937,8 @@ export default function Page() {
                     <span className="font-medium">Email:</span> {user.primaryEmailAddress?.emailAddress}
                   </div>
                 </div>
-                <p className="text-xs text-blue-600 mt-2">
-                  ℹ️ This information is managed by your Clerk account and cannot be changed here.
+                <p className="text-xs text-primary/80 mt-2">
+                  ℹ️ This information is managed by your Edutrack account and cannot be changed here.
                 </p>
               </div>
             )}
@@ -922,13 +947,6 @@ export default function Page() {
             {selectedRole === 'STUDENT' && (
               <div className="space-y-4 font-sans">
                 <div className="flex items-center gap-2 mb-4">
-                  <Image 
-                    src="/logo_white.png" 
-                    alt="EduTrack AI Logo" 
-                    width={20} 
-                    height={20} 
-                    className="object-contain"
-                  />
                   <h3 className="text-lg font-semibold">Student Details</h3>
                 </div>
 
@@ -945,8 +963,8 @@ export default function Page() {
                         ...prev,
                         student: { ...prev.student, grade: e.target.value }
                       }))}
-                      placeholder="e.g., 10th Grade"
-                      className="w-full"
+                      placeholder="e.g., Grade 10A"
+                      className="w-full active:outline-none focus:outline-none active:ring-0 focus:ring-0 ring-0 ring-white/20"
                       required
                     />
                   </div>
@@ -1408,13 +1426,9 @@ export default function Page() {
                 </>
               )}
             </Button>
-
-            {/* Debug info - remove this later */}
-            <div className="text-xs text-gray-500 text-center mt-4">
-              Debug: Step: {step}, Role: {selectedRole}
-            </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     )
   }
@@ -1494,7 +1508,7 @@ export default function Page() {
                       }
                     }}
                     placeholder={`Search by name or email...`}
-                    className="w-full"
+                    className="w-full active:outline-none focus:outline-none"
                   />
                   <Search className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
                 </div>
@@ -1513,10 +1527,10 @@ export default function Page() {
                           ...prev,
                           selectedRelationship: user
                         }))}
-                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                        className={`w-full p-4 text-left border rounded-lg cursor-pointer transition-colors ${
                           relationshipData.selectedRelationship?.id === user.id
-                            ? 'border-primary bg-primary/5'
-                            : 'border-gray-200 hover:border-gray-300'
+                            ? 'bg-blue-50 border-blue-200 ring-2 ring-blue-100'
+                            : 'hover:bg-gray-50 border-gray-200'
                         }`}
                       >
                         <div className="flex items-center justify-between">
