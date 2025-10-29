@@ -51,9 +51,10 @@ next-env.d.ts
 /.clerk/.tmp
 /.clerk/.tmp/
 /.clerk/.tmp/*
+.clerk/
 
 # guides
-/Guides
+/Guides/
 /Guides/*
-/Guides*
+/Guides/**
 
