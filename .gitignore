@@ -48,8 +48,8 @@ next-env.d.ts
 # clerk configuration (can include secrets)
 .clerk/
 .clerk/*
-.clerk/.temp/
-.clerk/.temp/*
+.clerk/.tmp/
+.clerk/.tmp/*
 
 # guides
 Guides
