@@ -456,21 +456,16 @@ export default function PrincipalPeoplePage() {
 
   return (
     <div className="space-y-6">
-      <div className='p-5 bg-white rounded-3xl mt-3 gap-2'>
+      <div className='rounded-3xl mt-3  gap-2'>
               {/* Header */}
-        <div className="flex items-center mb-3 justify-between">
-          <div>
-
-          </div>
-          {/*
-          <div>
+        <div className="flex items-center p-3 rounded-2xl bg-white mb-3 justify-between">
+          <div className="  p-3 gap-2">
             <h1 className="text-3xl font-bold tracking-tight">People Management</h1>
             <p className="text-muted-foreground">
               Manage teachers, students, parents, and staff members
             </p>
           </div>
-          */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center mr-3 gap-2">
             <Button variant="outline" className='bg-zinc-100 shadow-none border-none hover:bg-zinc-200' onClick={handleBulkImport}>
               <Upload className="h-4 text-primary w-4 mr-2" />
               Bulk Import
@@ -488,7 +483,7 @@ export default function PrincipalPeoplePage() {
 
       {/* Stats Cards */}
       <div className="grid space-x-3 md:grid-cols-2 mb-3 lg:grid-cols-4">
-        <Card className='bg-zinc-100 border-none shadow-none'>
+        <Card className='bg-white border-none shadow-none'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Teachers</CardTitle>
             <GraduationCap className="h-4 w-4 text-muted-foreground" />
@@ -499,7 +494,7 @@ export default function PrincipalPeoplePage() {
           </CardContent>
         </Card>
 
-        <Card className='bg-zinc-100 border-none shadow-none'>
+        <Card className='bg-white border-none shadow-none'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Students</CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -510,7 +505,7 @@ export default function PrincipalPeoplePage() {
           </CardContent>
         </Card>
 
-        <Card className='bg-zinc-100 border-none shadow-none'>
+        <Card className='bg-white border-none shadow-none'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Parents</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -521,7 +516,7 @@ export default function PrincipalPeoplePage() {
           </CardContent>
         </Card>
 
-        <Card className='bg-zinc-100 border-none shadow-none'>
+        <Card className='bg-white border-none shadow-none'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">New This Month</CardTitle>
             <UserPlus className="h-4 w-4 text-muted-foreground" />
@@ -534,7 +529,7 @@ export default function PrincipalPeoplePage() {
       </div>
 
       {/* Filters */}
-      <Card className='mb-3 shadow-none border-none bg-zinc-100'>
+      <Card className='mb-3 shadow-none border-none bg-white'>
         <CardContent className="pt-6">
           <div className="flex items-center gap-4">
             <div className="flex-1">
@@ -595,7 +590,7 @@ export default function PrincipalPeoplePage() {
               ))}
             </div>
           ) : (
-            <Card className='shadow-none border-dotted bg-zinc-100 border-3 border-zinc-200'>
+            <Card className='shadow-none border-dotted bg-white border-3 border-zinc-200'>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Users className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No {activeTab} found</h3>

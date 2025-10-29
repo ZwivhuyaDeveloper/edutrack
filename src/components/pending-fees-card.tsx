@@ -52,10 +52,10 @@ export function PendingFeesCard({
   if (isLoading) {
     return (
       <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6">
+        <CardHeader className="flex flex-row items-center border-b justify-between space-y-0 px-6 pt-6">
           <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-            <DollarSign strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-            <CardTitle className="text-md sm:text-md font-bold text-primary">Pending Fees</CardTitle>
+            <DollarSign strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <CardTitle className="text-sm sm:text-sm font-bold text-primary">Pending Fees</CardTitle>
           </div>
           <Button 
             variant="default" 
@@ -76,7 +76,7 @@ export function PendingFeesCard({
           </div>
         </CardContent>
         <CardFooter className="flex flex-col items-start px-6">
-          <div className="text-lg sm:text-xl font-bold text-muted-foreground/50">
+          <div className="text-lg sm:text-lg font-bold text-muted-foreground/50">
             Total Pending: <span className="text-primary/50">$---</span>
           </div>
           <p className="text-xs sm:text-sm font-medium text-muted-foreground">
@@ -91,10 +91,10 @@ export function PendingFeesCard({
   if (error) {
     return (
       <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-6 pt-6">
+        <CardHeader className="flex flex-row items-center border-b justify-between space-y-0 px-6 pt-6">
           <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-            <DollarSign strokeWidth={2} className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
-            <CardTitle className="text-md sm:text-md font-bold text-primary">Pending Fees</CardTitle>
+            <DollarSign strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <CardTitle className="text-sm sm:text-sm font-bold text-primary">Pending Fees</CardTitle>
           </div>
           <Button 
             variant="default" 
@@ -127,7 +127,7 @@ export function PendingFeesCard({
           </div>
         </CardContent>
         <CardFooter className="flex flex-col items-start px-6">
-          <div className="text-lg sm:text-xl font-bold text-muted-foreground/50">
+          <div className="text-lg sm:text-lg font-bold text-muted-foreground/50">
             Total Pending: <span className="text-primary/50">$---</span>
           </div>
           <p className="text-xs sm:text-sm font-medium text-muted-foreground">
@@ -172,7 +172,7 @@ export function PendingFeesCard({
           </div>
         </CardContent>
         <CardFooter className="flex flex-col items-start px-6">
-          <div className="text-lg sm:text-xl font-bold">
+          <div className="text-lg sm:text-lg font-bold">
             Total Pending: <span className="text-primary">$0.00</span>
           </div>
           <p className="text-xs sm:text-sm font-medium text-muted-foreground">
@@ -232,7 +232,7 @@ export function PendingFeesCard({
       </CardContent>
 
         <CardFooter className="flex flex-col items-start px-6 mt-5">
-          <div className="text-lg sm:text-xl font-bold">
+          <div className="text-lg sm:text-lg font-bold">
             Total Pending: <span className="text-primary">${displayTotal.toFixed(2)}</span>
           </div>
           <p className="text-xs sm:text-sm font-medium text-muted-foreground">

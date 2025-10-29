@@ -36,9 +36,9 @@ export function TeamSwitcher({
   }
 
   const isCollapsed = state === "collapsed"
-  const logoSize = isCollapsed ? "size-10" : "size-12"
-  const containerSize = isCollapsed ? "size-8" : "size-12"
-  const containerPadding = isCollapsed ? "p-0 px-0.5" : "p-1 px-1.5"
+  const logoSize = isCollapsed ? "size-8 md:size-10" : "size-10 md:size-11 lg:size-12"
+  const containerSize = isCollapsed ? "size-7 md:size-8" : "size-10 md:size-11 lg:size-12"
+  const containerPadding = isCollapsed ? "p-0 px-0.5" : "p-0.5 md:p-1 px-1 md:px-1.5"
 
   return (
     <SidebarMenu>
@@ -54,8 +54,8 @@ export function TeamSwitcher({
                 <activeTeam.logo className={`${logoSize}`} />
               </div>
               <div className={`grid flex-1 text-left leading-tight ${isCollapsed ? 'hidden' : ''}`}>
-                <span className="truncate text-md font-bold">{activeTeam.name}</span>
-                <span className="truncate text-xs font-medium tracking-widest">{activeTeam.plan}</span>
+                <span className="truncate text-sm md:text-base font-bold">{activeTeam.name}</span>
+                <span className="truncate text-[10px] md:text-xs font-medium tracking-widest">{activeTeam.plan}</span>
               </div>
             </SidebarMenuButton>
           </DropdownMenuTrigger>

@@ -82,11 +82,11 @@ export function NavMain({ items, onNavigate, activePage }: NavMainProps) {
   }
 
   return (
-    <SidebarGroup className="px-2">
-      <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wide mb-2">
+    <SidebarGroup className="px-1 md:px-1.5 lg:px-2">
+      <SidebarGroupLabel className="text-[10px] md:text-xs font-semibold text-muted-foreground/70 uppercase tracking-wide mb-1.5 md:mb-2">
         Navigation
       </SidebarGroupLabel>
-      <SidebarMenu className="space-y-1">
+      <SidebarMenu className="space-y-0.5 md:space-y-1">
         {items.map((item, index) => {
           const isActive = isItemActive(item.title)
           
@@ -106,8 +106,8 @@ export function NavMain({ items, onNavigate, activePage }: NavMainProps) {
                     className={`
                       relative w-full transition-all duration-300 ease-out
                       ${isCollapsed 
-                        ? 'justify-center p-2 h-12 w-12 mx-auto' 
-                        : 'justify-start px-3 py-2.5 h-12'
+                        ? 'justify-center p-1.5 md:p-2 h-10 md:h-12 w-10 md:w-12 mx-auto' 
+                        : 'justify-start px-2 md:px-2.5 lg:px-3 py-2 md:py-2.5 h-10 md:h-11 lg:h-12'
                       }
                       ${isActive
                         ? 'bg-primary text-primary-foreground shadow-md hover:bg-primary/90'
@@ -125,7 +125,7 @@ export function NavMain({ items, onNavigate, activePage }: NavMainProps) {
                     {/* Icon Container */}
                     <div className={`
                       relative flex items-center justify-center shrink-0
-                      ${isCollapsed ? 'w-6 h-6' : 'w-8 h-8 mr-3'}
+                      ${isCollapsed ? 'w-5 md:w-6 h-5 md:h-6' : 'w-6 md:w-7 lg:w-8 h-6 md:h-7 lg:h-8 mr-2 md:mr-2.5 lg:mr-3'}
                       transition-all duration-300 ease-out
                       ${isActive 
                         ? 'text-primary-foreground scale-110' 
@@ -134,8 +134,8 @@ export function NavMain({ items, onNavigate, activePage }: NavMainProps) {
                     `}>
                       {item.icon && (
                         <item.icon 
-                          size={isCollapsed ? 20 : 22} 
-                          className="transition-all duration-300 ease-out"
+                          size={isCollapsed ? 18 : 20} 
+                          className="transition-all duration-300 ease-out md:w-5 md:h-5 lg:w-[22px] lg:h-[22px]"
                           strokeWidth={isActive ? 2.5 : 2}
                         />
                       )}
@@ -143,7 +143,7 @@ export function NavMain({ items, onNavigate, activePage }: NavMainProps) {
 
                     {/* Text Label */}
                     <span className={`
-                      font-medium transition-all duration-300 ease-out
+                      text-sm md:text-base font-medium transition-all duration-300 ease-out
                       ${isCollapsed ? 'sr-only' : 'block'}
                       ${isActive ? 'text-primary-foreground font-semibold' : 'text-muted-foreground group-hover:text-accent-foreground'}
                       truncate
@@ -155,7 +155,7 @@ export function NavMain({ items, onNavigate, activePage }: NavMainProps) {
                 
                 {/* Sub-menu items */}
                 <CollapsibleContent className="transition-all duration-300 ease-out">
-                  <SidebarMenuSub className="ml-6 mt-1 space-y-1">
+                  <SidebarMenuSub className="ml-4 md:ml-5 lg:ml-6 mt-0.5 md:mt-1 space-y-0.5 md:space-y-1">
                     {item.items?.map((subItem) => (
                       <SidebarMenuSubItem key={subItem.title}>
                         <SidebarMenuSubButton 

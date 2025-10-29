@@ -13,20 +13,39 @@ function randomDate(start: Date, end: Date): Date {
 async function seedAdditionalData() {
   console.log('🌱 Adding additional seed data...')
 
-  // Get existing data
-  const schools = await prisma.school.findMany()
-  const users = await prisma.user.findMany({ include: { studentProfile: true, clerkProfile: true } })
-  const classes = await prisma.class.findMany()
-  const subjects = await prisma.subject.findMany()
-  const classSubjects = await prisma.classSubject.findMany()
-  const terms = await prisma.term.findMany()
-  const rooms = await prisma.room.findMany()
-  const periods = await prisma.period.findMany()
+  const SCHOOL_ID = 'cmh2izv8q00005kedyof0ud33'
+
+  // Get existing data for the specific school
+  const school = await prisma.school.findUnique({ where: { id: SCHOOL_ID } })
+  
+  if (!school) {
+    console.error('❌ School not found. Please run seed.ts first.')
+    return
+  }
+
+  const users = await prisma.user.findMany({ 
+    where: { schoolId: SCHOOL_ID },
+    include: { studentProfile: true, clerkProfile: true } 
+  })
+  const classes = await prisma.class.findMany({ where: { schoolId: SCHOOL_ID } })
+  const subjects = await prisma.subject.findMany({ where: { schoolId: SCHOOL_ID } })
+  const classSubjects = await prisma.classSubject.findMany({
+    where: {
+      class: { schoolId: SCHOOL_ID }
+    }
+  })
+  const terms = await prisma.term.findMany({ where: { schoolId: SCHOOL_ID } })
+  const rooms = await prisma.room.findMany({ where: { schoolId: SCHOOL_ID } })
+  const periods = await prisma.period.findMany({ where: { schoolId: SCHOOL_ID } })
 
   const students = users.filter(u => u.role === 'STUDENT')
-  // const teachers = users.filter(u => u.role === 'TEACHER') // Not used in this extended seed
-  const principal = users.find(u => u.role === 'PRINCIPAL')!
-  const clerk = users.find(u => u.role === 'CLERK')!
+  const principal = users.find(u => u.role === 'PRINCIPAL')
+  const clerk = users.find(u => u.role === 'CLERK')
+  
+  if (!principal || !clerk) {
+    console.error('❌ Principal or Clerk not found. Please run seed.ts first.')
+    return
+  }
 
   // 11. Create Class Meetings (Timetable)
   for (const classSubject of classSubjects) {
@@ -374,7 +393,7 @@ async function seedAdditionalData() {
         ]),
         type: faker.helpers.arrayElement(['HOLIDAY', 'EXAM', 'MEETING', 'SPORTS', 'CULTURAL', 'PARENT_TEACHER', 'OTHER']) as 'HOLIDAY' | 'EXAM' | 'MEETING' | 'SPORTS' | 'CULTURAL' | 'PARENT_TEACHER' | 'OTHER',
         isAllDay: faker.datatype.boolean(0.3),
-        schoolId: schools[0].id,
+        schoolId: SCHOOL_ID,
         createdById: principal.id,
       },
     })
@@ -451,7 +470,7 @@ async function seedAdditionalData() {
         content: faker.lorem.paragraphs(2),
         scope: faker.helpers.arrayElement(['SCHOOL', 'CLASS', 'SUBJECT']),
         priority: faker.helpers.arrayElement(['low', 'normal', 'high', 'urgent']),
-        schoolId: schools[0].id,
+        schoolId: SCHOOL_ID,
         createdById: principal.id,
         publishedAt: randomDate(new Date('2024-09-01'), new Date()),
         expiresAt: randomDate(new Date(), new Date('2025-06-30')),

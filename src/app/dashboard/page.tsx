@@ -92,8 +92,6 @@ const rolePageMap: Record<string, Partial<Record<PageType, () => Promise<{ defau
     academic: () => import("./principal/academic/page").then(mod => ({ default: mod.default })),
     operations: () => import("./principal/operations/page").then(mod => ({ default: mod.default })),
     communication: () => import("./principal/communication/page").then(mod => ({ default: mod.default })),
-    events: () => import("./principal/events/page").then(mod => ({ default: mod.default })),
-    finance: () => import("./principal/finance/page").then(mod => ({ default: mod.default })),
     settings: () => import("./principal/settings/page").then(mod => ({ default: mod.default })),
   },
   PARENT: {
@@ -815,21 +813,25 @@ function DashboardContent() {
         />
       </div>
       
-      <SidebarInset className="bg-zinc-100 h-full w-full pb-16 md:pb-0">
-        <header className="flex h-auto sm:h-15 shrink-0 bg-white rounded-2xl sm:rounded-4xl shadow-none mx-2 sm:mx-4 mt-3 sm:mt-7 mb-0 items-center px-3 sm:px-6 py-3 sm:py-0 pr-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-16 font-sans">
+      <SidebarInset className="bg-zinc-100 h-full w-full max-w-full pb-16 md:pb-0 overflow-x-hidden">
+
+        {/* Header */}
+        <header className="flex h-auto max-w-full md:h-14 lg:h-16 shrink-0 bg-white rounded-2xl md:rounded-3xl shadow-none 
+        mx-2 sm:mx-3 md:mx-4 mt-3 md:mt-5 lg:mt-7 mb-0 items-center px-3 md:px-4 lg:px-6 py-3 md:py-0  md:justify-between transition-[width,height] 
+        ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-16 font-sans overflow-hidden">
           {/* Left section - Sidebar trigger */}
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-1 sm:flex-initial">
-            <SidebarTrigger className="-ml-1 hidden md:block" />
-            <Separator orientation="vertical" className="mr-1 sm:mr-2 h-4 bg-gray-200 hidden md:block" />
-            <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2">
-              <span className="text-xs sm:text-sm lg:text-md font-semibold text-primary capitalize whitespace-nowrap">
+          <div className="flex items-center gap-1.5 md:gap-2 flex-1 md:flex-initial min-w-0">
+            <SidebarTrigger className="-ml-0 hidden md:flex" />
+            <Separator orientation="vertical" className="hidden md:block h-5 md:h-6 bg-gray-300" />
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-0.5 md:gap-1.5 lg:gap-2 min-w-0 overflow-hidden">
+              <span className="text-xs md:text-sm lg:text-base font-semibold text-primary capitalize whitespace-nowrap">
                 {dbUser.role.toLowerCase()} Dashboard
               </span>
-              <span className="text-xs sm:text-sm lg:text-md text-black gap-1 sm:gap-2 flex flex-row">
-                <p className="font-medium hidden sm:inline">
+              <span className="text-xs md:text-sm lg:text-base text-black gap-1 md:gap-1.5 lg:gap-2 flex flex-row items-center min-w-0">
+                <p className="font-medium hidden lg:inline">
                   Welcome back,
                 </p>
-                <p className="font-semibold text-primary truncate max-w-[120px] sm:max-w-none">
+                <p className="font-semibold text-background-muted truncate max-w-[120px] md:max-w-[150px] lg:max-w-none">
                   {dbUser.firstName} {dbUser.lastName}
                 </p>
               </span>
@@ -837,27 +839,27 @@ function DashboardContent() {
           </div>
 
           {/* Center section - Search input */}
-          <div className="hidden md:flex flex-1 justify-center">
-            <div className="relative">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <div className="hidden lg:flex flex-1 justify-center px-2 lg:px-4 min-w-0">
+            <div className="relative w-full max-w-[200px] md:max-w-[280px] lg:max-w-[400px]">
+              <Search className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 h-3.5 md:h-4 w-3.5 md:w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search reports, assignments, etc."
-                className="w-[200px] bg-zinc-100 rounded-full shadow-none border-0 pl-8 md:w-[350px]"
+                placeholder="Search..."
+                className="w-full h-8 md:h-9 lg:h-10 text-xs md:text-sm bg-zinc-100 rounded-full shadow-none border-0 pl-7 md:pl-9 pr-3"
               />
             </div>
           </div>
 
           {/* Right section - User menu */}
-          <div className="flex flex-row items-center justify-center gap-1 sm:gap-2">
+          <div className="flex flex-row items-center justify-end gap-1 md:gap-2 flex-shrink-0">
             <AlertsDropdown role={dbUser.role} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="rounded-full p-1.5 sm:p-2 hover:bg-accent" aria-label="User menu">
-                  <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
+                <button className="rounded-full p-1 md:p-1.5 lg:p-2 hover:bg-accent transition-colors" aria-label="User menu">
+                  <Avatar className="h-7 w-7 md:h-8 md:w-8 lg:h-9 lg:w-9">
                     <AvatarImage src={clerkUser.imageUrl} alt={`${dbUser.firstName} ${dbUser.lastName}`} />
                     <AvatarFallback>
-                      <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <User className="h-3.5 w-3.5 md:h-4 md:w-4" />
                     </AvatarFallback>
                   </Avatar>
                 </button>
@@ -913,11 +915,11 @@ function DashboardContent() {
         </header>
 
         {/* Main content area */}
-        <div className="flex flex-1 bg-zinc-100 flex-col gap-4 px-2 sm:px-4 pb-4 md:pb-4 pt-0 font-sans">
+        <div className="flex flex-1 bg-zinc-100 flex-col gap-4 px-2 sm:px-4 pb-4 md:pb-4 pt-0 font-sans max-w-full overflow-x-hidden">
           {/* Role-specific alert banner */}
           {roleAlert?.show && (
-            <div className="pt-4">
-              <Alert className={`relative flex flex-col shadow-sm p-0 overflow-hidden ${
+            <div className="pt-4 max-w-full overflow-x-hidden">
+              <Alert className={`relative flex flex-col shadow-sm p-0 overflow-hidden max-w-full ${
                 roleAlert.type === 'warning' 
                   ? 'border-l-4 border-l-amber-500 border-amber-200 bg-gradient-to-r from-amber-50 to-amber-50/50' 
                   : roleAlert.type === 'error'
@@ -1031,7 +1033,7 @@ function DashboardContent() {
 export default function DashboardPage() {
   return (
     <>
-    <div>
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden">
       <DashboardContent />
     </div>
     </>

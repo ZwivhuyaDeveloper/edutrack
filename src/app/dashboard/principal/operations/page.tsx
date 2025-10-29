@@ -127,7 +127,7 @@ export default function PrincipalOperationsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
-  const [selectedItem, setSelectedItem] = useState<any>(null)
+  const [selectedItem, setSelectedItem] = useState<Room | Period | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
 
@@ -148,12 +148,27 @@ export default function PrincipalOperationsPage() {
         case 'schedule':
           endpoint = '/api/principal/timetable'
           break
-        case 'rooms':
-          endpoint = '/api/principal/rooms'
-          break
-        case 'periods':
-          endpoint = '/api/principal/periods'
-          break
+        case 'resources':
+          // Fetch both rooms and periods
+          const [roomsRes, periodsRes] = await Promise.all([
+            fetch('/api/principal/rooms'),
+            fetch('/api/principal/periods')
+          ])
+          if (roomsRes.ok && periodsRes.ok) {
+            const roomsData = await roomsRes.json()
+            const periodsData = await periodsRes.json()
+            setRooms(roomsData.rooms || [])
+            setPeriods(periodsData.periods || [])
+          }
+          setIsLoading(false)
+          return
+        case 'finance':
+        case 'reports':
+        case 'settings':
+        case 'audit':
+          // These tabs don't need API calls yet
+          setIsLoading(false)
+          return
       }
 
       const response = await fetch(endpoint)
@@ -558,9 +573,9 @@ export default function PrincipalOperationsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">School Operations</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Operations Center</h1>
           <p className="text-muted-foreground">
-            Manage attendance, schedules, rooms, and time periods
+            Manage attendance, finance, resources, reports, and school settings
           </p>
         </div>
         {(activeTab === 'rooms' || activeTab === 'periods') && (
@@ -580,7 +595,7 @@ export default function PrincipalOperationsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.attendanceRate}%</div>
-            <p className="text-xs text-muted-foreground">Today's attendance</p>
+            <p className="text-xs text-muted-foreground">Today&apos;s attendance</p>
           </CardContent>
         </Card>
 
@@ -667,11 +682,14 @@ export default function PrincipalOperationsPage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-1">
           <TabsTrigger value="attendance">Attendance</TabsTrigger>
+          <TabsTrigger value="finance">Finance</TabsTrigger>
+          <TabsTrigger value="resources">Resources</TabsTrigger>
           <TabsTrigger value="schedule">Schedule</TabsTrigger>
-          <TabsTrigger value="rooms">Rooms</TabsTrigger>
-          <TabsTrigger value="periods">Periods</TabsTrigger>
+          <TabsTrigger value="reports">Reports</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
+          <TabsTrigger value="audit">Audit Logs</TabsTrigger>
         </TabsList>
 
         <TabsContent value="attendance">
@@ -738,7 +756,7 @@ export default function PrincipalOperationsPage() {
                 <Building className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No rooms found</h3>
                 <p className="text-muted-foreground text-center mb-4">
-                  Add rooms to manage your school's physical spaces.
+                  Add rooms to manage your school&apos;s physical spaces.
                 </p>
                 <Button onClick={() => setIsCreateModalOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
@@ -749,35 +767,266 @@ export default function PrincipalOperationsPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="periods">
-          {isLoading ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i}>
-                  <CardHeader>
-                    <div className="h-4 w-24 bg-muted animate-pulse rounded" />
-                    <div className="h-3 w-32 bg-muted animate-pulse rounded" />
-                  </CardHeader>
-                </Card>
-              ))}
+        <TabsContent value="resources">
+          <div className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Building className="h-5 w-5" />
+                    Rooms & Facilities
+                  </CardTitle>
+                  <CardDescription>Manage physical spaces</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {rooms.length > 0 ? (
+                    <RoomsGrid />
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground mb-4">No rooms configured</p>
+                      <Button onClick={() => setIsCreateModalOpen(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Room
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Clock className="h-5 w-5" />
+                    Time Periods
+                  </CardTitle>
+                  <CardDescription>School day structure</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {periods.length > 0 ? (
+                    <PeriodsGrid />
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground mb-4">No periods configured</p>
+                      <Button onClick={() => setIsCreateModalOpen(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Period
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
-          ) : periods.length > 0 ? (
-            <PeriodsGrid />
-          ) : (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Timer className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No periods found</h3>
-                <p className="text-muted-foreground text-center mb-4">
-                  Add time periods to structure your school day.
+          </div>
+        </TabsContent>
+
+        <TabsContent value="finance">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Financial Overview
+              </CardTitle>
+              <CardDescription>
+                Fee collection, payments, and financial reports
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-3 mb-6">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">$0</div>
+                    <p className="text-xs text-muted-foreground">This academic year</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">Outstanding Fees</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">$0</div>
+                    <p className="text-xs text-muted-foreground">Pending collection</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">Payment Rate</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">0%</div>
+                    <p className="text-xs text-muted-foreground">On-time payments</p>
+                  </CardContent>
+                </Card>
+              </div>
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-4">
+                  Financial management features will be integrated here
                 </p>
-                <Button onClick={() => setIsCreateModalOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Period
+                <Button variant="outline">
+                  View Financial Reports
                 </Button>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="reports">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Reports & Analytics
+              </CardTitle>
+              <CardDescription>
+                Comprehensive school reports and data analytics
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                  <CardHeader>
+                    <CardTitle className="text-base">Attendance Reports</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Daily, weekly, and monthly attendance analytics
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                  <CardHeader>
+                    <CardTitle className="text-base">Academic Performance</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Grade distribution and student progress
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                  <CardHeader>
+                    <CardTitle className="text-base">Financial Reports</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Fee collection and payment analytics
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                  <CardHeader>
+                    <CardTitle className="text-base">Staff Reports</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Teacher performance and workload analysis
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                  <CardHeader>
+                    <CardTitle className="text-base">Enrollment Trends</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Student enrollment and retention metrics
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                  <CardHeader>
+                    <CardTitle className="text-base">Custom Reports</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Build and export custom data reports
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="settings">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building className="h-5 w-5" />
+                School Settings
+              </CardTitle>
+              <CardDescription>
+                Configure school information and system preferences
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-4">School Information</h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="text-sm font-medium">School Name</label>
+                    <Input placeholder="Enter school name" className="mt-1" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Email</label>
+                    <Input type="email" placeholder="school@example.com" className="mt-1" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Phone</label>
+                    <Input type="tel" placeholder="+1 (555) 000-0000" className="mt-1" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Website</label>
+                    <Input type="url" placeholder="https://school.com" className="mt-1" />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Academic Year</h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="text-sm font-medium">Start Date</label>
+                    <Input type="date" className="mt-1" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">End Date</label>
+                    <Input type="date" className="mt-1" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <Button variant="outline">Cancel</Button>
+                <Button>Save Changes</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="audit">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Eye className="h-5 w-5" />
+                Audit Logs
+              </CardTitle>
+              <CardDescription>
+                System activity and change history
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-12">
+                <Eye className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Audit Logs</h3>
+                <p className="text-muted-foreground">
+                  Track all system changes and user activities
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 

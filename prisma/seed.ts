@@ -13,130 +13,89 @@ function randomDate(start: Date, end: Date): Date {
 async function main() {
   console.log('🌱 Starting database seeding...')
 
-  // Clear existing data (in correct order due to foreign key constraints)
-  await prisma.auditLog.deleteMany()
-  await prisma.notification.deleteMany()
-  await prisma.messageAttachment.deleteMany()
-  await prisma.message.deleteMany()
-  await prisma.conversationParticipant.deleteMany()
-  await prisma.conversation.deleteMany()
-  await prisma.lessonPlanAttachment.deleteMany()
-  await prisma.lessonPlan.deleteMany()
-  await prisma.resourceTagJoin.deleteMany()
-  await prisma.resourceLink.deleteMany()
-  await prisma.resource.deleteMany()
-  await prisma.resourceTag.deleteMany()
-  await prisma.eventAttendee.deleteMany()
-  await prisma.eventAudience.deleteMany()
-  await prisma.event.deleteMany()
-  await prisma.classMeeting.deleteMany()
-  await prisma.period.deleteMany()
-  await prisma.room.deleteMany()
-  await prisma.attendance.deleteMany()
-  await prisma.attendanceSession.deleteMany()
-  await prisma.grade.deleteMany()
-  await prisma.gradeItem.deleteMany()
-  await prisma.gradeCategory.deleteMany()
-  await prisma.assignmentSubmission.deleteMany()
-  await prisma.assignment.deleteMany()
-  await prisma.term.deleteMany()
-  await prisma.enrollment.deleteMany()
-  await prisma.classSubject.deleteMany()
-  await prisma.subject.deleteMany()
-  await prisma.class.deleteMany()
-  await prisma.invoiceItem.deleteMany()
-  await prisma.invoice.deleteMany()
-  await prisma.payment.deleteMany()
-  await prisma.studentAccount.deleteMany()
-  await prisma.fee_records.deleteMany()
-  await prisma.teaching_assignments.deleteMany()
-  await prisma.parentChildRelationship.deleteMany()
-  await prisma.clerkProfile.deleteMany()
-  await prisma.principalProfile.deleteMany()
-  await prisma.parentProfile.deleteMany()
-  await prisma.teacherProfile.deleteMany()
-  await prisma.studentProfile.deleteMany()
-  await prisma.user.deleteMany()
-  await prisma.school.deleteMany()
+  const SCHOOL_ID = 'cmh2izv8q00005kedyof0ud33'
 
-  console.log('🗑️  Cleared existing data')
-
-  // 1. Create Schools
-  const schools = await Promise.all([
-    prisma.school.create({
-      data: {
-        id: 'cmgov9w5m00002mfqfu13jqqz', // Fixed school ID
-        name: 'Greenwood High School',
-        address: '123 Education Street',
-        city: 'Springfield',
-        state: 'IL',
-        zipCode: '62701',
-        country: 'US',
-        phone: '+1-555-0101',
-        email: 'info@greenwood.edu',
-        website: 'https://greenwood.edu',
-        clerkOrganizationId: 'org_greenwood_123',
-        isActive: true,
-      },
-    }),
-    prisma.school.create({
-      data: {
-        name: 'Riverside Elementary',
-        address: '456 River Road',
-        city: 'Riverside',
-        state: 'CA',
-        zipCode: '92501',
-        country: 'US',
-        phone: '+1-555-0102',
-        email: 'contact@riverside.edu',
-        website: 'https://riverside.edu',
-        clerkOrganizationId: 'org_riverside_456',
-        isActive: true,
-      },
-    }),
-  ])
-
-  console.log('🏫 Created schools')
-
-  // 2. Create Users with Profiles
-  const users = []
-  
-  // Create Principal
-  const principal = await prisma.user.create({
-    data: {
-      clerkId: 'user_principal_001',
-      email: 'principal@greenwood.edu',
-      firstName: 'Sarah',
-      lastName: 'Johnson',
-      role: 'PRINCIPAL',
-      avatar: faker.image.avatar(),
-      schoolId: schools[0].id,
-      principalProfile: {
-        create: {
-          employeeId: 'EMP001',
-          hireDate: new Date('2020-08-15'),
-          phone: '+1-555-0201',
-          address: '789 Principal Ave, Springfield, IL 62701',
-          emergencyContact: 'Michael Johnson - +1-555-0202',
-          qualifications: 'M.Ed Educational Leadership, B.A. Mathematics',
-          yearsOfExperience: 15,
-          previousSchool: 'Lincoln Middle School',
-          educationBackground: 'Masters in Educational Leadership from State University',
-          salary: 95000,
-          administrativeArea: 'School Operations',
-        },
-      },
-      clerkProfile: {
-        create: {
-          employeeId: 'EMP001',
-          department: 'Administration',
-          hireDate: new Date('2020-08-15'),
-          phone: '+1-555-0201',
-          address: '789 Principal Ave, Springfield, IL 62701',
-        },
-      },
+  // 1. Upsert School (never delete, only create or update)
+  const school = await prisma.school.upsert({
+    where: { id: SCHOOL_ID },
+    update: {
+      name: 'Greenwood High School',
+      address: '123 Education Street',
+      city: 'Springfield',
+      state: 'IL',
+      zipCode: '62701',
+      country: 'US',
+      phone: '+1-555-0101',
+      email: 'info@greenwood.edu',
+      website: 'https://greenwood.edu',
+      clerkOrganizationId: 'org_greenwood_123',
+      isActive: true,
+    },
+    create: {
+      id: SCHOOL_ID,
+      name: 'Greenwood High School',
+      address: '123 Education Street',
+      city: 'Springfield',
+      state: 'IL',
+      zipCode: '62701',
+      country: 'US',
+      phone: '+1-555-0101',
+      email: 'info@greenwood.edu',
+      website: 'https://greenwood.edu',
+      clerkOrganizationId: 'org_greenwood_123',
+      isActive: true,
     },
   })
+
+  const schools = [school]
+
+  console.log('🏫 Upserted school')
+
+  // 2. Create Users with Profiles (check if exists first)
+  const users = []
+  
+  // Upsert Principal
+  let principal = await prisma.user.findUnique({
+    where: { clerkId: 'user_principal_001' },
+  })
+
+  if (!principal) {
+    principal = await prisma.user.create({
+      data: {
+        clerkId: 'user_principal_001',
+        email: 'principal@greenwood.edu',
+        firstName: 'Sarah',
+        lastName: 'Johnson',
+        role: 'PRINCIPAL',
+        avatar: faker.image.avatar(),
+        schoolId: SCHOOL_ID,
+        principalProfile: {
+          create: {
+            employeeId: 'EMP001',
+            hireDate: new Date('2020-08-15'),
+            phone: '+1-555-0201',
+            address: '789 Principal Ave, Springfield, IL 62701',
+            emergencyContact: 'Michael Johnson - +1-555-0202',
+            qualifications: 'M.Ed Educational Leadership, B.A. Mathematics',
+            yearsOfExperience: 15,
+            previousSchool: 'Lincoln Middle School',
+            educationBackground: 'Masters in Educational Leadership from State University',
+            salary: 95000,
+            administrativeArea: 'School Operations',
+          },
+        },
+        clerkProfile: {
+          create: {
+            employeeId: 'EMP001',
+            department: 'Administration',
+            hireDate: new Date('2020-08-15'),
+            phone: '+1-555-0201',
+            address: '789 Principal Ave, Springfield, IL 62701',
+          },
+        },
+      },
+    })
+  }
   users.push(principal)
 
   // Create Teachers
@@ -151,56 +110,74 @@ async function main() {
   for (let i = 0; i < teacherData.length; i++) {
     const teacher = teacherData[i]
     const [firstName, lastName] = teacher.name.split(' ')
+    const clerkId = `user_teacher_${String(i + 1).padStart(3, '0')}`
     
-    const user = await prisma.user.create({
-      data: {
-        clerkId: `user_teacher_${String(i + 1).padStart(3, '0')}`,
-        email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@greenwood.edu`,
-        firstName,
-        lastName,
-        role: 'TEACHER',
-        avatar: faker.image.avatar(),
-        schoolId: schools[0].id,
-        teacherProfile: {
-          create: {
-            employeeId: `TCH${String(i + 1).padStart(3, '0')}`,
-            department: teacher.dept,
-            hireDate: randomDate(new Date('2018-01-01'), new Date('2023-01-01')),
-            salary: faker.number.float({ min: 45000, max: 75000, fractionDigits: 2 }),
-            qualifications: `B.Ed ${teacher.subject}, Teaching Certificate`,
-          },
-        },
-        clerkProfile: {
-          create: {
-            employeeId: `TCH${String(i + 1).padStart(3, '0')}`,
-            department: teacher.dept,
-            hireDate: randomDate(new Date('2018-01-01'), new Date('2023-01-01')),
-            phone: faker.phone.number(),
-            address: faker.location.streetAddress({ useFullAddress: true }),
-          },
-        },
-      },
+    let user = await prisma.user.findUnique({
+      where: { clerkId },
     })
+
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          clerkId,
+          email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@greenwood.edu`,
+          firstName,
+          lastName,
+          role: 'TEACHER',
+          avatar: faker.image.avatar(),
+          schoolId: SCHOOL_ID,
+          teacherProfile: {
+            create: {
+              employeeId: `TCH${String(i + 1).padStart(3, '0')}`,
+              department: teacher.dept,
+              hireDate: randomDate(new Date('2018-01-01'), new Date('2023-01-01')),
+              salary: faker.number.float({ min: 45000, max: 75000, fractionDigits: 2 }),
+              qualifications: `B.Ed ${teacher.subject}, Teaching Certificate`,
+            },
+          },
+          clerkProfile: {
+            create: {
+              employeeId: `TCH${String(i + 1).padStart(3, '0')}`,
+              department: teacher.dept,
+              hireDate: randomDate(new Date('2018-01-01'), new Date('2023-01-01')),
+              phone: faker.phone.number(),
+              address: faker.location.streetAddress({ useFullAddress: true }),
+            },
+          },
+        },
+      })
+    }
     users.push(user)
   }
 
-  // Create Students
-  for (let i = 0; i < 50; i++) {
+  // Create Students (only if they don't exist)
+  const existingStudents = await prisma.user.findMany({
+    where: { 
+      role: 'STUDENT',
+      schoolId: SCHOOL_ID
+    }
+  })
+  
+  const studentsToCreate = Math.max(0, 50 - existingStudents.length)
+  
+  for (let i = 0; i < studentsToCreate; i++) {
     const firstName = faker.person.firstName()
     const lastName = faker.person.lastName()
+    const studentNum = existingStudents.length + i + 1
+    const clerkId = `user_student_${String(studentNum).padStart(3, '0')}`
     
     const student = await prisma.user.create({
       data: {
-        clerkId: `user_student_${String(i + 1).padStart(3, '0')}`,
+        clerkId,
         email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@student.greenwood.edu`,
         firstName,
         lastName,
         role: 'STUDENT',
         avatar: faker.image.avatar(),
-        schoolId: schools[0].id,
+        schoolId: SCHOOL_ID,
         studentProfile: {
           create: {
-            studentIdNumber: `STU${String(i + 1).padStart(4, '0')}`,
+            studentIdNumber: `STU${String(studentNum).padStart(4, '0')}`,
             dateOfBirth: randomDate(new Date('2005-01-01'), new Date('2010-12-31')),
             grade: faker.helpers.arrayElement(['9', '10', '11', '12']),
             emergencyContact: `${faker.person.fullName()} - ${faker.phone.number()}`,
@@ -212,21 +189,34 @@ async function main() {
     })
     users.push(student)
   }
+  
+  users.push(...existingStudents)
 
-  // Create Parents
-  for (let i = 0; i < 30; i++) {
+  // Create Parents (only if they don't exist)
+  const existingParents = await prisma.user.findMany({
+    where: { 
+      role: 'PARENT',
+      schoolId: SCHOOL_ID
+    }
+  })
+  
+  const parentsToCreate = Math.max(0, 30 - existingParents.length)
+  
+  for (let i = 0; i < parentsToCreate; i++) {
     const firstName = faker.person.firstName()
     const lastName = faker.person.lastName()
+    const parentNum = existingParents.length + i + 1
+    const clerkId = `user_parent_${String(parentNum).padStart(3, '0')}`
     
     const parent = await prisma.user.create({
       data: {
-        clerkId: `user_parent_${String(i + 1).padStart(3, '0')}`,
+        clerkId,
         email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@parent.greenwood.edu`,
         firstName,
         lastName,
         role: 'PARENT',
         avatar: faker.image.avatar(),
-        schoolId: schools[0].id,
+        schoolId: SCHOOL_ID,
         parentProfile: {
           create: {
             phone: faker.phone.number(),
@@ -238,28 +228,36 @@ async function main() {
     })
     users.push(parent)
   }
+  
+  users.push(...existingParents)
 
-  // Create Clerk
-  const clerk = await prisma.user.create({
-    data: {
-      clerkId: 'user_clerk_001',
-      email: 'clerk@greenwood.edu',
-      firstName: 'Amanda',
-      lastName: 'Rodriguez',
-      role: 'CLERK',
-      avatar: faker.image.avatar(),
-      schoolId: schools[0].id,
-      clerkProfile: {
-        create: {
-          employeeId: 'CLK001',
-          department: 'Administration',
-          hireDate: new Date('2021-09-01'),
-          phone: '+1-555-0301',
-          address: '321 Clerk Street, Springfield, IL 62701',
+  // Upsert Clerk
+  let clerk = await prisma.user.findUnique({
+    where: { clerkId: 'user_clerk_001' },
+  })
+
+  if (!clerk) {
+    clerk = await prisma.user.create({
+      data: {
+        clerkId: 'user_clerk_001',
+        email: 'clerk@greenwood.edu',
+        firstName: 'Amanda',
+        lastName: 'Rodriguez',
+        role: 'CLERK',
+        avatar: faker.image.avatar(),
+        schoolId: SCHOOL_ID,
+        clerkProfile: {
+          create: {
+            employeeId: 'CLK001',
+            department: 'Administration',
+            hireDate: new Date('2021-09-01'),
+            phone: '+1-555-0301',
+            address: '321 Clerk Street, Springfield, IL 62701',
+          },
         },
       },
-    },
-  })
+    })
+  }
   users.push(clerk)
 
   console.log('👥 Created users and profiles')
@@ -287,97 +285,71 @@ async function main() {
 
   console.log('👨‍👩‍👧‍👦 Created parent-child relationships')
 
-  // 4. Create Subjects
-  const subjects = await Promise.all([
-    prisma.subject.create({
-      data: {
-        name: 'Mathematics',
-        code: 'MATH',
-        description: 'Algebra, Geometry, and Calculus',
-        schoolId: schools[0].id,
-      },
-    }),
-    prisma.subject.create({
-      data: {
-        name: 'English Literature',
-        code: 'ENG',
-        description: 'Reading, Writing, and Literature Analysis',
-        schoolId: schools[0].id,
-      },
-    }),
-    prisma.subject.create({
-      data: {
-        name: 'Biology',
-        code: 'BIO',
-        description: 'Life Sciences and Laboratory Work',
-        schoolId: schools[0].id,
-      },
-    }),
-    prisma.subject.create({
-      data: {
-        name: 'World History',
-        code: 'HIST',
-        description: 'Ancient to Modern World History',
-        schoolId: schools[0].id,
-      },
-    }),
-    prisma.subject.create({
-      data: {
-        name: 'Physical Education',
-        code: 'PE',
-        description: 'Sports, Fitness, and Health',
-        schoolId: schools[0].id,
-      },
-    }),
-  ])
+  // 4. Create Subjects (only if they don't exist)
+  const subjectData = [
+    { code: 'MATH', name: 'Mathematics', description: 'Algebra, Geometry, and Calculus' },
+    { code: 'ENG', name: 'English Literature', description: 'Reading, Writing, and Literature Analysis' },
+    { code: 'BIO', name: 'Biology', description: 'Life Sciences and Laboratory Work' },
+    { code: 'HIST', name: 'World History', description: 'Ancient to Modern World History' },
+    { code: 'PE', name: 'Physical Education', description: 'Sports, Fitness, and Health' },
+  ]
 
-  console.log('📚 Created subjects')
+  const subjects = []
+  for (const subj of subjectData) {
+    let subject = await prisma.subject.findFirst({
+      where: { 
+        code: subj.code,
+        schoolId: SCHOOL_ID
+      }
+    })
 
-  // 5. Create Classes
-  const classes = await Promise.all([
-    prisma.class.create({
-      data: {
-        name: 'Grade 9A',
-        grade: '9',
-        section: 'A',
-        schoolId: schools[0].id,
-      },
-    }),
-    prisma.class.create({
-      data: {
-        name: 'Grade 9B',
-        grade: '9',
-        section: 'B',
-        schoolId: schools[0].id,
-      },
-    }),
-    prisma.class.create({
-      data: {
-        name: 'Grade 10A',
-        grade: '10',
-        section: 'A',
-        schoolId: schools[0].id,
-      },
-    }),
-    prisma.class.create({
-      data: {
-        name: 'Grade 11A',
-        grade: '11',
-        section: 'A',
-        schoolId: schools[0].id,
-      },
-    }),
-    prisma.class.create({
-      data: {
-        name: 'Grade 12A',
-        grade: '12',
-        section: 'A',
-        schoolId: schools[0].id,
-      },
-    }),
-  ])
+    if (!subject) {
+      subject = await prisma.subject.create({
+        data: {
+          code: subj.code,
+          name: subj.name,
+          description: subj.description,
+          schoolId: SCHOOL_ID,
+        },
+      })
+    }
+    subjects.push(subject)
+  }
 
-  console.log('🏛️ Created classes')
+  console.log('📚 Created/found subjects')
+
+  // 5. Create Classes (only if they don't exist)
+  const classData = [
+    { name: 'Grade 9A', grade: '9', section: 'A' },
+    { name: 'Grade 9B', grade: '9', section: 'B' },
+    { name: 'Grade 10A', grade: '10', section: 'A' },
+    { name: 'Grade 11A', grade: '11', section: 'A' },
+    { name: 'Grade 12A', grade: '12', section: 'A' },
+  ]
+
+  const classes = []
+  for (const cls of classData) {
+    let classObj = await prisma.class.findFirst({
+      where: {
+        name: cls.name,
+        schoolId: SCHOOL_ID
+      }
+    })
+
+    if (!classObj) {
+      classObj = await prisma.class.create({
+        data: {
+          name: cls.name,
+          grade: cls.grade,
+          section: cls.section,
+          schoolId: SCHOOL_ID,
+        },
+      })
+    }
+    classes.push(classObj)
+  }
+
+  console.log('🏛️ Created/found classes')
 
   // 6. Create ClassSubjects (assign teachers to class-subject combinations)
   const classSubjects = []

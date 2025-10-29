@@ -101,7 +101,7 @@ export function StudentEnrollmentChart({
         </CardContent>
         <CardFooter className="flex-col items-start gap-2 px-6 pt-0">
           <div className="flex w-full flex-col gap-1">
-            <div className="text-lg sm:text-xl font-bold text-muted-foreground/50">
+            <div className="text-lg sm:text-lg font-bold text-muted-foreground/50">
               Total Students: <span className="text-primary/50">---</span>
             </div>
             <p className="text-xs sm:text-sm font-medium text-muted-foreground">
@@ -148,7 +148,7 @@ export function StudentEnrollmentChart({
         </CardContent>
         <CardFooter className="flex-col h-fit items-start gap-2 px-6 pt-0">
           <div className="flex w-full h-fit flex-col gap-0">
-            <div className="text-lg sm:text-xl font-bold text-muted-foreground/50">
+            <div className="text-lg sm:text-lg font-bold text-muted-foreground/50">
               Total Students: <span className="text-primary/50">---</span>
             </div>
             <p className="text-xs sm:text-sm font-medium text-muted-foreground">
@@ -187,7 +187,7 @@ export function StudentEnrollmentChart({
         </CardContent>
         <CardFooter className="flex-col items-start gap-2 px-6 pt-0">
           <div className="flex w-full h-fit flex-col gap-0">
-            <div className="text-lg sm:text-xl font-bold">
+            <div className="text-lg sm:text-lg font-bold">
               Total Students: <span className="text-primary">0</span>
             </div>
             <p className="text-xs sm:text-sm font-medium text-muted-foreground">
@@ -296,7 +296,7 @@ export function StudentEnrollmentChart({
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 px-6 pt-0 pb-0 ">
         <div className="flex w-full flex-col gap-1">
-          <div className="text-lg sm:text-xl font-bold">
+          <div className="text-lg sm:text-lg font-bold">
             Total Students: <span className="text-primary">{totalStudents}</span>
           </div>
           <p className="text-xs sm:text-sm font-medium text-muted-foreground">
