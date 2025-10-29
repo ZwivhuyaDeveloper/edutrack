@@ -829,7 +829,7 @@ export default function Page() {
       signUp.authenticateWithRedirect({
         strategy: strategy as 'oauth_google' | 'oauth_linkedin',
         redirectUrl: '/sso-callback',
-        redirectUrlComplete: '/sign-up',
+        redirectUrlComplete: '/',  // Let SSO callback handle the redirect logic
       }).catch((err) => {
         // Handle errors that occur before redirect
         console.error('[OAuth] Pre-redirect error:', err)
@@ -1231,6 +1231,8 @@ export default function Page() {
   if (step === 'role') {
     return (
       <div className="font-sans min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-gray-50 to-white py-12 px-4 sm:px-6 lg:px-8">
+        {/* Clerk CAPTCHA element for bot protection */}
+        <div id="clerk-captcha"></div>
         <div className="w-full max-w-4xl">
           {/* Header Section */}
           <div className="text-center mb-8">
@@ -1400,6 +1402,8 @@ export default function Page() {
     console.log('Current step:', step)
     return (
       <div className="min-h-screen font-sans flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        {/* Clerk CAPTCHA element for bot protection */}
+        <div id="clerk-captcha"></div>
         <Card className="w-full font-sans max-w-2xl p-2">
           <CardHeader className="space-y-1">
             <div className="flex items-center gap-2">
@@ -1965,6 +1969,8 @@ export default function Page() {
     
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        {/* Clerk CAPTCHA element for bot protection */}
+        <div id="clerk-captcha"></div>
         <Card className="w-full max-w-2xl">
           <CardHeader className="space-y-1">
             <div className="flex items-center gap-2">
@@ -2142,6 +2148,8 @@ export default function Page() {
   if (step === 'school-setup') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        {/* Clerk CAPTCHA element for bot protection */}
+        <div id="clerk-captcha"></div>
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1">
             <div className="flex items-center gap-2">
@@ -2200,6 +2208,8 @@ export default function Page() {
   if (step === 'school') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        {/* Clerk CAPTCHA element for bot protection */}
+        <div id="clerk-captcha"></div>
         <Card className="w-full max-w-2xl">
           <CardHeader className="space-y-1">
             <div className="flex items-center gap-2">
@@ -2301,6 +2311,8 @@ export default function Page() {
   if (step === 'complete') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        {/* Clerk CAPTCHA element for bot protection */}
+        <div id="clerk-captcha"></div>
         <Card className="w-full max-w-md">
           <CardHeader className="space-y-1 text-center">
             <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
