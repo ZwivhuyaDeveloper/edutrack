@@ -128,7 +128,7 @@ export default function Page() {
       await signIn.authenticateWithRedirect({
         strategy: provider,
         redirectUrl: '/sso-callback',
-        redirectUrlComplete: '/sign-in',
+        redirectUrlComplete: '/',  // Let SSO callback handle the redirect logic
       })
     } catch (err: unknown) {
       console.error('OAuth error:', err)
@@ -181,6 +181,8 @@ export default function Page() {
   if (isRedirecting) {
     return (
       <div className="font-sans min-h-screen flex items-center justify-center bg-gray-50">
+        {/* Clerk CAPTCHA element for redirecting state */}
+        <div id="clerk-captcha"></div>
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
           <p className="text-gray-600">Redirecting to your dashboard...</p>
@@ -237,6 +239,9 @@ export default function Page() {
               </CardHeader>
 
               <CardContent className="px-8 py-6 space-y-3">
+                {/* Clerk CAPTCHA element for bot protection */}
+                <div id="clerk-captcha"></div>
+                
                 {signInError && (
                   <Alert variant="destructive">
                     <AlertDescription className="text-red-600 text-sm">
