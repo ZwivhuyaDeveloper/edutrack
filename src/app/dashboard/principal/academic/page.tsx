@@ -10,95 +10,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { 
   BookOpen, 
-  Users, 
   Plus, 
   Search, 
-  Filter,
   GraduationCap,
   FileText,
   BarChart3,
-  Calendar,
   Edit,
   Eye,
-  Trash2,
-  UserPlus,
-  BookPlus,
-  ClipboardList,
-  TrendingUp,
   Award
 } from 'lucide-react'
 import { toast } from 'sonner'
-
-interface Class {
-  id: string
-  name: string
-  grade: string
-  section: string
-  _count: {
-    enrollments: number
-    subjects: number
-    assignments: number
-  }
-  subjects: Array<{
-    id: string
-    subject: {
-      name: string
-      code: string
-    }
-    teacher: {
-      firstName: string
-      lastName: string
-    }
-  }>
-}
-
-interface Subject {
-  id: string
-  name: string
-  code: string
-  description?: string
-  _count: {
-    classSubjects: number
-    assignments: number
-  }
-}
-
-interface Assignment {
-  id: string
-  title: string
-  dueDate: string
-  maxPoints?: number
-  class: {
-    name: string
-    grade: string
-  }
-  subject: {
-    name: string
-  }
-  _count: {
-    submissions: number
-  }
-}
-
-interface Grade {
-  id: string
-  points: number
-  maxPoints: number
-  student: {
-    firstName: string
-    lastName: string
-  }
-  gradeItem: {
-    name: string
-    class: {
-      name: string
-    }
-    subject: {
-      name: string
-    }
-  }
-  gradedAt: string
-}
+import { Class, Subject, Assignment, Grade } from '@/types/academic'
 
 interface AcademicStats {
   totalClasses: number
@@ -126,16 +48,11 @@ export default function PrincipalAcademicPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [gradeFilter, setGradeFilter] = useState('all')
-  const [selectedItem, setSelectedItem] = useState<any>(null)
+  const [selectedItem, setSelectedItem] = useState<Class | Subject | Assignment | Grade | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
 
-  useEffect(() => {
-    fetchData()
-    fetchStats()
-  }, [activeTab])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setIsLoading(true)
       let endpoint = ''
@@ -180,9 +97,9 @@ export default function PrincipalAcademicPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [activeTab])
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const response = await fetch('/api/principal/academic/stats')
       if (response.ok) {
@@ -192,7 +109,12 @@ export default function PrincipalAcademicPage() {
     } catch (error) {
       console.error('Error fetching stats:', error)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchData()
+    fetchStats()
+  }, [fetchData, fetchStats])
 
   const ClassCard = ({ classItem }: { classItem: Class }) => (
     <Card className="hover:shadow-md transition-shadow">
@@ -465,8 +387,9 @@ export default function PrincipalAcademicPage() {
 
   return (
     <div className="space-y-6">
+      <div className='rounded-3xl mt-3  gap-2'>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center p-3 rounded-2xl bg-white mb-3 justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Academic Management</h1>
           <p className="text-muted-foreground">
@@ -725,6 +648,7 @@ export default function PrincipalAcademicPage() {
 
       {/* Create Modal */}
       <CreateModal />
+      </div>
     </div>
   )
 }

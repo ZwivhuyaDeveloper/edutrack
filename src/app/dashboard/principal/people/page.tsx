@@ -1,8 +1,7 @@
 "use client"
 
-import { Suspense, useCallback, useEffect, useState } from 'react'
-import { PageSkeletonWithTabs } from '@/components/dashboard-skeleton'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useCallback, useEffect, useState } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -11,25 +10,23 @@ import {
   Users, 
   UserPlus, 
   Search, 
-  Filter,
-  MoreHorizontal,
-  Edit,
-  Trash2,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  BookOpen,
-  DollarSign,
-  Eye,
-  Download,
-  Upload,
-  GraduationCap
-} from 'lucide-react'
-import { toast } from 'sonner'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+  Mail, 
+  Phone, 
+  MapPin, 
+  Download, 
+  Upload, 
+  ArrowRight, 
+  ArrowLeft, 
+  ChevronDown, 
+  ChevronUp, 
+  Edit, 
+  Trash2, 
+  Menu 
+} from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface UserProfile {
   phone?: string
@@ -86,6 +83,8 @@ export default function PrincipalPeoplePage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
 
+  const isMobile = useIsMobile();
+
   useEffect(() => {
     fetchUsers()
     fetchStats()
@@ -105,7 +104,7 @@ export default function PrincipalPeoplePage() {
       }
     } catch (error) {
       console.error('Error fetching users:', error)
-      toast.error('Failed to load users')
+      // toast.error('Failed to load users')
     } finally {
       setIsLoading(false)
     }
@@ -151,31 +150,31 @@ export default function PrincipalPeoplePage() {
       })
 
       if (response.ok) {
-        toast.success('User deactivated successfully')
+        // toast.success('User deactivated successfully')
         fetchUsers()
       } else {
-        toast.error('Failed to deactivate user')
+        // toast.error('Failed to deactivate user')
       }
     } catch (error) {
       console.error('Error deactivating user:', error)
-      toast.error('Failed to deactivate user')
+      // toast.error('Failed to deactivate user')
     }
   }
 
   const handleBulkImport = () => {
     // TODO: Implement bulk import functionality
-    toast.info('Bulk import feature coming soon')
+    // toast.info('Bulk import feature coming soon')
   }
 
   const handleExportUsers = () => {
     // TODO: Implement export functionality
-    toast.info('Export feature coming soon')
+    // toast.info('Export feature coming soon')
   }
 
   const getRoleIcon = (role: string) => {
     switch (role.toLowerCase()) {
-      case 'teacher': return GraduationCap
-      case 'student': return BookOpen
+      case 'teacher': return Users
+      case 'student': return Users
       case 'parent': return Users
       default: return Users
     }
@@ -198,13 +197,8 @@ export default function PrincipalPeoplePage() {
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <Avatar>
-                <AvatarImage src={user.avatar} />
-                <AvatarFallback>
-                  {user.firstName[0]}{user.lastName[0]}
-                </AvatarFallback>
-              </Avatar>
-              <div>
+              <div className="h-10 w-10 bg-muted animate-pulse rounded-full" />
+              <div className="space-y-2">
                 <CardTitle className="text-base">
                   {user.firstName} {user.lastName}
                 </CardTitle>
@@ -237,7 +231,7 @@ export default function PrincipalPeoplePage() {
                 </span>
               </div>
               <div className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
+                <Mail className="h-4 w-4" />
                 <span>{new Date(user.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
@@ -249,13 +243,6 @@ export default function PrincipalPeoplePage() {
                   setSelectedUser(user)
                   setIsViewModalOpen(true)
                 }}
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => window.location.href = `/dashboard/principal/people/${user.id}/edit`}
               >
                 <Edit className="h-4 w-4" />
               </Button>
@@ -323,7 +310,7 @@ export default function PrincipalPeoplePage() {
               Cancel
             </Button>
             <Button onClick={() => {
-              toast.success('User created successfully')
+              // toast.success('User created successfully')
               setIsAddModalOpen(false)
               fetchUsers()
             }}>
@@ -350,12 +337,7 @@ export default function PrincipalPeoplePage() {
             </DialogHeader>
             <div className="space-y-6">
               <div className="flex items-center gap-4">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage src={selectedUser.avatar} />
-                  <AvatarFallback className="text-lg">
-                    {selectedUser.firstName[0]}{selectedUser.lastName[0]}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="h-16 w-16 bg-muted animate-pulse rounded-full" />
                 <div>
                   <h3 className="text-lg font-semibold">
                     {selectedUser.firstName} {selectedUser.lastName}
@@ -455,7 +437,7 @@ export default function PrincipalPeoplePage() {
   )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mb-20">
       <div className='rounded-3xl mt-3  gap-2'>
               {/* Header */}
         <div className="flex items-center p-3 rounded-2xl bg-white mb-3 justify-between">
@@ -465,19 +447,45 @@ export default function PrincipalPeoplePage() {
               Manage teachers, students, parents, and staff members
             </p>
           </div>
-          <div className="flex items-center mr-3 gap-2">
-            <Button variant="outline" className='bg-zinc-100 shadow-none border-none hover:bg-zinc-200' onClick={handleBulkImport}>
-              <Upload className="h-4 text-primary w-4 mr-2" />
-              Bulk Import
-            </Button>
-            <Button variant="outline" className='bg-zinc-100 shadow-none border-none hover:bg-zinc-200' onClick={handleExportUsers}>
-              <Download className="h-4 text-primary w-4 mr-2" />
-              Export
-            </Button>
-            <Button onClick={() => setIsAddModalOpen(true)}>
-              <UserPlus className="h-4 w-4 mr-2" />
-              Add {activeTab.slice(0, -1)}
-            </Button>
+          <div className="flex lg:flex-row md:flex-col flex-col items-center  mr-3 gap-2">
+            {!isMobile ? (
+              <>
+                <Button variant="outline" className='bg-zinc-100 shadow-none border-none hover:bg-zinc-200' onClick={handleBulkImport}>
+                  <Upload className="h-4 text-primary w-4 mr-2" />
+                  Bulk Import
+                </Button>
+                <Button variant="outline" className='bg-zinc-100 shadow-none border-none hover:bg-zinc-200' onClick={handleExportUsers}>
+                  <Download className="h-4 text-primary w-4 mr-2" />
+                  Export
+                </Button>
+                <Button onClick={() => setIsAddModalOpen(true)}>
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Add {activeTab.slice(0, -1)}
+                </Button>
+              </>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="bg-zinc-100 shadow-none border-none hover:bg-zinc-200">
+                    <Menu className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleBulkImport}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Bulk Import
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleExportUsers}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setIsAddModalOpen(true)}>
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Add {activeTab.slice(0, -1)}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
 
@@ -486,7 +494,7 @@ export default function PrincipalPeoplePage() {
         <Card className='bg-white border-none shadow-none'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Teachers</CardTitle>
-            <GraduationCap className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalTeachers}</div>
@@ -497,7 +505,7 @@ export default function PrincipalPeoplePage() {
         <Card className='bg-white border-none shadow-none'>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Students</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalStudents}</div>
@@ -590,7 +598,7 @@ export default function PrincipalPeoplePage() {
               ))}
             </div>
           ) : (
-            <Card className='shadow-none border-dotted bg-white border-3 border-zinc-200'>
+            <Card className='shadow-none border-dotted w-full bg-white border-3 border-zinc-200'>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Users className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No {activeTab} found</h3>
