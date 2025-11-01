@@ -21,7 +21,7 @@ import {
   UserPlus
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Class, Subject, Assignment, Grade } from '@/types/academic'
+import { Class, Subject, Assignment, Grade, TotalClassesSummary } from '@/types/academic'
 import { TotalClassesCard } from '@/components/total-classes-card';
 import { SubjectsCard } from '@/components/subjects-card'
 import { AssignmentsCard } from '@/components/assignments-card';
@@ -34,10 +34,7 @@ interface AcademicStats {
   averageGrade: number
   completionRate: number
   activeTerms: number
-}
-
-interface AcademicStats {
-  totalClasses: number;
+  totalClassesSummary?: TotalClassesSummary
 }
 
 export default function PrincipalAcademicPage() {
@@ -52,7 +49,14 @@ export default function PrincipalAcademicPage() {
     totalAssignments: 0,
     averageGrade: 0,
     completionRate: 0,
-    activeTerms: 0
+    activeTerms: 0,
+    totalClassesSummary: {
+      totalClasses: 0,
+      activeClasses: 0,
+      averageStudentsPerClass: 0,
+      gradeDistribution: [],
+      recentClasses: []
+    }
   })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -111,13 +115,55 @@ export default function PrincipalAcademicPage() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const response = await fetch('/api/principal/academic/stats')
-      if (response.ok) {
-        const data = await response.json()
-        setStats(data)
+      setIsLoading(true)
+
+      const [statsResponse, totalClassesResponse] = await Promise.all([
+        fetch('/api/principal/academic/stats'),
+        fetch('/api/dashboard/principal/total-classes', {
+          cache: 'no-store'
+        })
+      ])
+
+      if (statsResponse.ok) {
+        const data = await statsResponse.json()
+        setStats(prev => ({
+          totalClasses: data.totalClasses ?? prev?.totalClasses ?? 0,
+          totalSubjects: data.totalSubjects ?? prev?.totalSubjects ?? 0,
+          totalAssignments: data.totalAssignments ?? prev?.totalAssignments ?? 0,
+          averageGrade: data.averageGrade ?? prev?.averageGrade ?? 0,
+          completionRate: data.completionRate ?? prev?.completionRate ?? 0,
+          activeTerms: data.activeTerms ?? prev?.activeTerms ?? 0,
+          totalClassesSummary: prev?.totalClassesSummary ?? {
+            totalClasses: 0,
+            activeClasses: 0,
+            averageStudentsPerClass: 0,
+            gradeDistribution: [],
+            recentClasses: []
+          }
+        }))
+      }
+
+      if (totalClassesResponse.ok) {
+        const totalClassesData: TotalClassesSummary = await totalClassesResponse.json()
+        setStats(prev => prev ? {
+          ...prev,
+          totalClasses: totalClassesData.totalClasses ?? prev.totalClasses,
+          totalClassesSummary: totalClassesData
+        } : {
+          totalClasses: totalClassesData.totalClasses ?? 0,
+          totalSubjects: 0,
+          totalAssignments: 0,
+          averageGrade: 0,
+          completionRate: 0,
+          activeTerms: 0,
+          totalClassesSummary: totalClassesData
+        })
       }
     } catch (error) {
       console.error('Error fetching stats:', error)
+      setError('Failed to load academic statistics')
+    } finally {
+      setIsLoading(false)
     }
   }, [])
 
@@ -415,9 +461,13 @@ export default function PrincipalAcademicPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid hidden gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <TotalClassesCard 
-          totalClasses={stats?.totalClasses || 0}
+          totalClasses={stats?.totalClassesSummary?.totalClasses ?? 0}
+          activeClasses={stats?.totalClassesSummary?.activeClasses ?? 0}
+          averageStudentsPerClass={stats?.totalClassesSummary?.averageStudentsPerClass ?? 0}
+          gradeDistribution={stats?.totalClassesSummary?.gradeDistribution ?? []}
+          recentClasses={stats?.totalClassesSummary?.recentClasses ?? []}
           isLoading={isLoading}
           error={error}
           onRetry={fetchStats}

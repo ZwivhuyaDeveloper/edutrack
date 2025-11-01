@@ -69,6 +69,24 @@ export interface Grade {
   gradedAt: string
 }
 
+export interface TotalClassesSummary {
+  totalClasses: number
+  activeClasses: number
+  averageStudentsPerClass: number
+  gradeDistribution: Array<{
+    grade: string
+    count: number
+  }>
+  recentClasses: Array<{
+    id: string
+    name: string
+    grade: string | null
+    section: string | null
+    createdAt: string
+    activeStudents: number
+  }>
+}
+
 export interface AcademicStats {
   totalClasses: number;
   // Add other stats fields as needed
