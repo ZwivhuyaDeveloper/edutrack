@@ -1,4 +1,11 @@
 "use client"
+/**
+ * StudentEnrollmentChart Component
+ * 
+ * This component receives data via props from the parent page.
+ * Data is cached at the page level with a 5-minute TTL to improve performance.
+ * Enrollment trends change less frequently, so they are cached longer.
+ */
 
 import * as React from "react"
 import { Users, AlertCircle, TrendingUp, Loader2 } from "lucide-react"

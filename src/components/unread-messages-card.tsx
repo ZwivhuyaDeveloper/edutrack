@@ -1,4 +1,11 @@
 "use client"
+/**
+ * UnreadMessagesCard Component
+ * 
+ * This component receives data via props from the parent page.
+ * Data is cached at the page level with a 1-minute TTL to improve performance.
+ * Messages are cached for 1 minute due to frequent updates.
+ */
 
 import { MessageSquare, AlertCircle, Loader2, Mail } from "lucide-react"
 import { Badge } from "@/components/ui/badge"

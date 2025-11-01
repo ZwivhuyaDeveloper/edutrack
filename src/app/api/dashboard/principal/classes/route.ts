@@ -30,7 +30,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Get classes with enrollment count and subject count
-    const classes = await prisma.class.findMany({
+    // Fetch classes first, then get counts separately to avoid Prisma _count conflicts
+    const classesData = await prisma.class.findMany({
       where: {
         schoolId: user.schoolId
       },
@@ -39,12 +40,6 @@ export async function GET(request: NextRequest) {
         name: true,
         grade: true,
         section: true,
-        _count: {
-          select: {
-            enrollments: true,
-            subjects: true
-          }
-        },
         subjects: {
           select: {
             subject: {
@@ -70,8 +65,30 @@ export async function GET(request: NextRequest) {
       take: 6 // Get top 6 classes
     })
 
+    // Get counts for each class
+    const classesWithCounts = await Promise.all(
+      classesData.map(async (cls) => {
+        const [enrollmentsCount, subjectsCount] = await Promise.all([
+          prisma.enrollment.count({
+            where: { classId: cls.id, status: 'ACTIVE' }
+          }),
+          prisma.classSubject.count({
+            where: { classId: cls.id }
+          })
+        ])
+
+        return {
+          ...cls,
+          _count: {
+            enrollments: enrollmentsCount,
+            subjects: subjectsCount
+          }
+        }
+      })
+    )
+
     return NextResponse.json({ 
-      classes 
+      classes: classesWithCounts
     })
   } catch (error) {
     console.error('Error fetching classes:', error)

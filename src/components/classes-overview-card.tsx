@@ -1,4 +1,11 @@
 "use client"
+/**
+ * ClassesOverviewCard Component
+ * 
+ * This component receives data via props from the parent page.
+ * Data is cached at the page level with a 3-minute TTL to improve performance.
+ * Caching reduces API calls and speeds up subsequent page loads.
+ */
 
 import { BookOpen, Users, AlertCircle, Loader2, GraduationCap } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
