@@ -325,9 +325,9 @@ export default function PrincipalAcademicPage() {
     <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New {activeTab.slice(0, -1)}</DialogTitle>
+          <DialogTitle>Create New {activeTab}</DialogTitle>
           <DialogDescription>
-            Add a new {activeTab.slice(0, -1).toLowerCase()} to your school
+            Add a new {activeTab.toLowerCase()} to your school
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -365,15 +365,15 @@ export default function PrincipalAcademicPage() {
             <>
               <div>
                 <label className="text-sm font-medium">Subject Name</label>
-                <Input placeholder="e.g., Mathematics" />
+                <Input className="bg-zinc-100 border-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0" placeholder="e.g., Mathematics" />
               </div>
               <div>
                 <label className="text-sm font-medium">Subject Code</label>
-                <Input placeholder="e.g., MATH101" />
+                <Input className="bg-zinc-100 border-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0" placeholder="e.g., MATH101" />
               </div>
               <div>
                 <label className="text-sm font-medium">Description</label>
-                <Input placeholder="Brief description of the subject" />
+                <Input className="bg-zinc-100 border-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0" placeholder="Brief description of the subject" />
               </div>
             </>
           )}
@@ -396,12 +396,12 @@ export default function PrincipalAcademicPage() {
   )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 h-full mb-20">
       <div className='rounded-3xl mt-3  gap-2 space-y-2'>
       {/* Header */}
-      <div className="flex items-center p-3 rounded-2xl bg-white mb-3 justify-between">
+      <div className="flex items-center p-3 rounded-2xl shadow-sm bg-white mb-3 justify-between">
         <div className="p-3 gap-2">
-          <h1 className="text-3xl font-bold tracking-tight">Academic Management</h1>
+          <h1 className="text-3xl text-primary font-bold tracking-tight">Academic Management</h1>
           <p className="text-muted-foreground">
             Manage classes, subjects, assignments, and academic performance
           </p>
@@ -410,7 +410,7 @@ export default function PrincipalAcademicPage() {
           className='bg-primary text-white mr-2'
           >
           <UserPlus className="h-4 w-4 mr-2" />
-          Add {activeTab.slice(0, -1)}
+          Add {activeTab}
         </Button>
       </div>
 
@@ -445,7 +445,7 @@ export default function PrincipalAcademicPage() {
       </div>
 
       {/* Search and Filters */}
-      <Card className="bg-white rounded-2xl shadow-none border-none">
+      <Card className="bg-white rounded-2xl shadow-sm border-none">
         <CardContent className="">
           <div className="flex items-center gap-4">
             <div className="flex-1">
@@ -455,12 +455,12 @@ export default function PrincipalAcademicPage() {
                   placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 bg-zinc-100 border-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0"
                 />
               </div>
             </div>
             <Select value={gradeFilter} onValueChange={setGradeFilter}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-fit bg-primary text-white border-none">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -477,12 +477,12 @@ export default function PrincipalAcademicPage() {
       </Card>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="classes">Classes</TabsTrigger>
-          <TabsTrigger value="subjects">Subjects</TabsTrigger>
-          <TabsTrigger value="assignments">Assignments</TabsTrigger>
-          <TabsTrigger value="grades">Grades</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="bg-white rounded-2xl shadow-sm p-3 border-none">
+        <TabsList className="grid w-full grid-cols-4 space-x-1  ">
+          <TabsTrigger value="classes" className="bg-white/70 rounded-md shadow-none border-none">Classes</TabsTrigger>
+          <TabsTrigger value="subjects" className="rounded-md bg-white/70 ">Subjects</TabsTrigger>
+          <TabsTrigger value="assignments" className="rounded-md bg-white/70 ">Assignments</TabsTrigger>
+          <TabsTrigger value="grades" className="rounded-md bg-white/70 ">Grades</TabsTrigger>
         </TabsList>
 
         <TabsContent value="classes" className="space-y-4">
@@ -510,7 +510,7 @@ export default function PrincipalAcademicPage() {
               ))}
             </div>
           ) : (
-            <Card>
+            <Card className="border-none shadow-none h-full">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No classes found</h3>
@@ -545,7 +545,7 @@ export default function PrincipalAcademicPage() {
               ))}
             </div>
           ) : (
-            <Card>
+            <Card className="border-none shadow-none h-full">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <GraduationCap className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No subjects found</h3>
@@ -580,7 +580,7 @@ export default function PrincipalAcademicPage() {
               ))}
             </div>
           ) : (
-            <Card>
+            <Card className="border-none shadow-none h-full">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <FileText className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No assignments found</h3>
@@ -593,7 +593,7 @@ export default function PrincipalAcademicPage() {
         </TabsContent>
 
         <TabsContent value="grades" className="space-y-4">
-          <Card>
+          <Card className="border-none shadow-none h-full">
             <CardHeader>
               <CardTitle>Recent Grades</CardTitle>
               <CardDescription>
