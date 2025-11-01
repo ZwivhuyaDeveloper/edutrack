@@ -13,7 +13,7 @@ function randomDate(start: Date, end: Date): Date {
 async function seedAdditionalData() {
   console.log('🌱 Adding additional seed data...')
 
-  const SCHOOL_ID = 'cmh2izv8q00005kedyof0ud33'
+  const SCHOOL_ID = 'cmhdqyqcc00001ne7owvn5d2f'
 
   // Get existing data for the specific school
   const school = await prisma.school.findUnique({ where: { id: SCHOOL_ID } })

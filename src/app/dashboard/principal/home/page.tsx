@@ -804,14 +804,14 @@ export default function PrincipalHomePage() {
 
       {/* Stats Cards */}
       <div className="grid gap-3 sm:gap-3 w-full  md:gap-3  grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-none shadow-none gap-5 pb-0 pt-0 mb-0 bg-white">
+        <Card className="border-none shadow-sm gap-5 pb-0 pt-0 mb-0 bg-white">
             <StudentEnrollmentChart
               data={enrollmentTrends}
               isLoading={isLoading}
             />
         </Card>
 
-        <Card className="border-none shadow-none gap-5 pt-0 mb-0 bg-white">
+        <Card className="border-none shadow-sm gap-5 pt-0 mb-0 bg-white">
           {/* Attendance Trend Chart */}
           <AttendanceChart
             data={attendanceTrends}
@@ -819,14 +819,14 @@ export default function PrincipalHomePage() {
           />
         </Card>
 
-        <Card className="border-none shadow-none pt-0 mb-0 bg-white">
+        <Card className="border-none shadow-sm pt-0 mb-0 bg-white">
           <FeePaymentsChart
             data={paymentTrends}
             isLoading={isLoading}
           />
         </Card>
 
-        <Card className="border-none shadow-none pt-0 mb-0 bg-white">
+        <Card className="border-none shadow-sm pt-0 mb-0 bg-white">
           <PendingFeesCard
             feeRecords={feeRecords}
             totalPending={stats.pendingFees}
@@ -839,7 +839,7 @@ export default function PrincipalHomePage() {
       <div className="grid gap-3 sm:gap-3 w-full md:gap-3 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
 
 
-        <Card className="border-none shadow-none pt-0 bg-white">
+        <Card className="border-none shadow-sm pt-0 bg-white">
           <UnreadMessagesCard
             messages={messages}
             totalUnread={stats.unreadMessages}
@@ -848,7 +848,7 @@ export default function PrincipalHomePage() {
           />
         </Card>
 
-        <Card className="border-none shadow-none pt-0 bg-white">
+        <Card className="border-none shadow-sm pt-0 bg-white">
           <UpcomingEventsCard
             events={events}
             totalEvents={stats.upcomingEvents}
@@ -857,7 +857,7 @@ export default function PrincipalHomePage() {
           />
         </Card>
 
-        <Card className="border-none shadow-none pt-0 bg-white">
+        <Card className="border-none shadow-sm pt-0 bg-white">
           <ClassesOverviewCard
             classes={classes}
             totalClasses={stats.totalClasses}
@@ -867,7 +867,7 @@ export default function PrincipalHomePage() {
         />
         </Card>
 
-        <Card className="border-none shadow-none pt-0 bg-white">
+        <Card className="border-none shadow-sm pt-0 bg-white">
           <StaffOverviewCard
             staff={staff}
             totalTeachers={stats.totalTeachers}
@@ -884,7 +884,7 @@ export default function PrincipalHomePage() {
       <div className="grid gap-6 lg:grid-cols-1">
 
         {/* Recent Activity */}
-        <Card className="border-none shadow-none bg-white">
+        <Card className="border-none shadow-sm bg-white">
           <CardHeader className="space-y-3 sm:space-y-4 border-b pb-3 sm:pb-4 p-3 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
               <div className="flex flex-col gap-1 sm:gap-2">

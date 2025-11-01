@@ -813,10 +813,10 @@ function DashboardContent() {
         />
       </div>
       
-      <SidebarInset className="bg-zinc-100 h-full w-full max-w-full pb-16 md:pb-0 overflow-x-hidden">
+      <SidebarInset className="bg-zinc-100 shadow-md h-full w-full max-w-full pb-16 md:pb-0 overflow-x-hidden">
 
         {/* Header */}
-        <header className="flex h-auto max-w-full md:h-14 lg:h-16 shrink-0 bg-white rounded-2xl md:rounded-3xl shadow-none 
+        <header className="flex h-auto max-w-full md:h-14 lg:h-16 shrink-0 bg-white rounded-2xl md:rounded-4xl lg:rounded-6xl shadow-none 
         mx-2 sm:mx-3 md:mx-4 mt-3 md:mt-5 lg:mt-7 mb-0 items-center px-3 md:px-4 lg:px-6 py-3 md:py-0  md:justify-between transition-[width,height] 
         ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-16 font-sans overflow-hidden">
           {/* Left section - Sidebar trigger */}

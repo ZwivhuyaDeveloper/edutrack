@@ -13,7 +13,7 @@ function randomDate(start: Date, end: Date): Date {
 async function main() {
   console.log('🌱 Starting database seeding...')
 
-  const SCHOOL_ID = 'cmh2izv8q00005kedyof0ud33'
+  const SCHOOL_ID = 'cmhdqyqcc00001ne7owvn5d2f'
 
   // 1. Upsert School (never delete, only create or update)
   const school = await prisma.school.upsert({
@@ -112,41 +112,37 @@ async function main() {
     const [firstName, lastName] = teacher.name.split(' ')
     const clerkId = `user_teacher_${String(i + 1).padStart(3, '0')}`
     
-    let user = await prisma.user.findUnique({
+    const user = await prisma.user.upsert({
       where: { clerkId },
-    })
-
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          clerkId,
-          email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@greenwood.edu`,
-          firstName,
-          lastName,
-          role: 'TEACHER',
-          avatar: faker.image.avatar(),
-          schoolId: SCHOOL_ID,
-          teacherProfile: {
-            create: {
-              employeeId: `TCH${String(i + 1).padStart(3, '0')}`,
-              department: teacher.dept,
-              hireDate: randomDate(new Date('2018-01-01'), new Date('2023-01-01')),
-              salary: faker.number.float({ min: 45000, max: 75000, fractionDigits: 2 }),
-              qualifications: `B.Ed ${teacher.subject}, Teaching Certificate`,
-            },
-          },
-          clerkProfile: {
-            create: {
-              employeeId: `TCH${String(i + 1).padStart(3, '0')}`,
-              department: teacher.dept,
-              hireDate: randomDate(new Date('2018-01-01'), new Date('2023-01-01')),
-              phone: faker.phone.number(),
-              address: faker.location.streetAddress({ useFullAddress: true }),
-            },
+      update: {},
+      create: {
+        clerkId,
+        email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@greenwood.edu`,
+        firstName,
+        lastName,
+        role: 'TEACHER',
+        avatar: faker.image.avatar(),
+        schoolId: SCHOOL_ID,
+        teacherProfile: {
+          create: {
+            employeeId: `TCH${String(i + 1).padStart(3, '0')}`,
+            department: teacher.dept,
+            hireDate: randomDate(new Date('2018-01-01'), new Date('2023-01-01')),
+            salary: faker.number.float({ min: 45000, max: 75000, fractionDigits: 2 }),
+            qualifications: `B.Ed ${teacher.subject}, Teaching Certificate`,
           },
         },
-      })
-    }
+        clerkProfile: {
+          create: {
+            employeeId: `TCH${String(i + 1).padStart(3, '0')}`,
+            department: teacher.dept,
+            hireDate: randomDate(new Date('2018-01-01'), new Date('2023-01-01')),
+            phone: faker.phone.number(),
+            address: faker.location.streetAddress({ useFullAddress: true }),
+          },
+        },
+      },
+    })
     users.push(user)
   }
 
@@ -166,8 +162,10 @@ async function main() {
     const studentNum = existingStudents.length + i + 1
     const clerkId = `user_student_${String(studentNum).padStart(3, '0')}`
     
-    const student = await prisma.user.create({
-      data: {
+    const student = await prisma.user.upsert({
+      where: { clerkId },
+      update: {},
+      create: {
         clerkId,
         email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@student.greenwood.edu`,
         firstName,
@@ -208,8 +206,10 @@ async function main() {
     const parentNum = existingParents.length + i + 1
     const clerkId = `user_parent_${String(parentNum).padStart(3, '0')}`
     
-    const parent = await prisma.user.create({
-      data: {
+    const parent = await prisma.user.upsert({
+      where: { clerkId },
+      update: {},
+      create: {
         clerkId,
         email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}@parent.greenwood.edu`,
         firstName,
@@ -272,15 +272,22 @@ async function main() {
   const teachers = users.filter(u => u.role === 'TEACHER')
   const parents = users.filter(u => u.role === 'PARENT')
 
-  // 3. Create Parent-Child Relationships
+  // 3. Create Parent-Child Relationships (only if they don't exist)
   for (let i = 0; i < Math.min(parents.length, students.length); i++) {
-    await prisma.parentChildRelationship.create({
-      data: {
+    await prisma.parentChildRelationship.upsert({
+      where: {
+        parentId_childId: {
+          parentId: parents[i].id,
+          childId: students[i].id,
+        },
+      },
+      update: {},
+      create: {
         parentId: parents[i].id,
         childId: students[i].id,
         relationship: 'PARENT',
       },
-    })
+    });
   }
 
   console.log('👨‍👩‍👧‍👦 Created parent-child relationships')
@@ -351,29 +358,47 @@ async function main() {
 
   console.log('🏛️ Created/found classes')
 
-  // 6. Create ClassSubjects (assign teachers to class-subject combinations)
-  const classSubjects = []
+  // 6. Create or update ClassSubjects (assign teachers to class-subject combinations)
+  const classSubjects: { id: string; classId: string; subjectId: string; teacherId: string }[] = []
   for (let i = 0; i < classes.length; i++) {
     for (let j = 0; j < subjects.length; j++) {
       const teacherIndex = j % teachers.length
-      const classSubject = await prisma.classSubject.create({
-        data: {
+      const classSubject = await prisma.classSubject.upsert({
+        where: {
+          classId_subjectId: {
+            classId: classes[i].id,
+            subjectId: subjects[j].id,
+          },
+        },
+        update: {
+          teacherId: teachers[teacherIndex].id, // Update teacher if needed
+        },
+        create: {
           classId: classes[i].id,
           subjectId: subjects[j].id,
           teacherId: teachers[teacherIndex].id,
         },
       })
-      classSubjects.push(classSubject)
+      if (!classSubjects.some(cs => cs.id === classSubject.id)) {
+        classSubjects.push(classSubject)
+      }
     }
   }
 
   console.log('🎓 Created class-subject assignments')
 
-  // 7. Create Student Enrollments
+  // 7. Create Student Enrollments (only if they don't exist)
   for (let i = 0; i < students.length; i++) {
     const classIndex = Math.floor(i / 10) % classes.length
-    await prisma.enrollment.create({
-      data: {
+    await prisma.enrollment.upsert({
+      where: {
+        studentId_classId: {
+          studentId: students[i].id,
+          classId: classes[classIndex].id,
+        },
+      },
+      update: {},
+      create: {
         studentId: students[i].id,
         classId: classes[classIndex].id,
         enrolledAt: randomDate(new Date('2024-08-01'), new Date('2024-09-01')),

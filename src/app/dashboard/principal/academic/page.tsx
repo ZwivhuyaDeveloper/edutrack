@@ -10,95 +10,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { 
   BookOpen, 
-  Users, 
   Plus, 
   Search, 
-  Filter,
   GraduationCap,
   FileText,
   BarChart3,
-  Calendar,
   Edit,
   Eye,
-  Trash2,
-  UserPlus,
-  BookPlus,
-  ClipboardList,
-  TrendingUp,
-  Award
+  Award,
+  UserPlus
 } from 'lucide-react'
 import { toast } from 'sonner'
-
-interface Class {
-  id: string
-  name: string
-  grade: string
-  section: string
-  _count: {
-    enrollments: number
-    subjects: number
-    assignments: number
-  }
-  subjects: Array<{
-    id: string
-    subject: {
-      name: string
-      code: string
-    }
-    teacher: {
-      firstName: string
-      lastName: string
-    }
-  }>
-}
-
-interface Subject {
-  id: string
-  name: string
-  code: string
-  description?: string
-  _count: {
-    classSubjects: number
-    assignments: number
-  }
-}
-
-interface Assignment {
-  id: string
-  title: string
-  dueDate: string
-  maxPoints?: number
-  class: {
-    name: string
-    grade: string
-  }
-  subject: {
-    name: string
-  }
-  _count: {
-    submissions: number
-  }
-}
-
-interface Grade {
-  id: string
-  points: number
-  maxPoints: number
-  student: {
-    firstName: string
-    lastName: string
-  }
-  gradeItem: {
-    name: string
-    class: {
-      name: string
-    }
-    subject: {
-      name: string
-    }
-  }
-  gradedAt: string
-}
+import { Class, Subject, Assignment, Grade, TotalClassesSummary } from '@/types/academic'
+import { TotalClassesCard } from '@/components/total-classes-card';
+import { SubjectsCard } from '@/components/subjects-card'
+import { AssignmentsCard } from '@/components/assignments-card';
+import { AverageGradeCard } from '@/components/average-grade-card';
 
 interface AcademicStats {
   totalClasses: number
@@ -107,6 +34,7 @@ interface AcademicStats {
   averageGrade: number
   completionRate: number
   activeTerms: number
+  totalClassesSummary?: TotalClassesSummary
 }
 
 export default function PrincipalAcademicPage() {
@@ -115,27 +43,30 @@ export default function PrincipalAcademicPage() {
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [recentGrades, setRecentGrades] = useState<Grade[]>([])
-  const [stats, setStats] = useState<AcademicStats>({
+  const [stats, setStats] = useState<AcademicStats | null>({
     totalClasses: 0,
     totalSubjects: 0,
     totalAssignments: 0,
     averageGrade: 0,
     completionRate: 0,
-    activeTerms: 0
+    activeTerms: 0,
+    totalClassesSummary: {
+      totalClasses: 0,
+      activeClasses: 0,
+      averageStudentsPerClass: 0,
+      gradeDistribution: [],
+      recentClasses: []
+    }
   })
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [gradeFilter, setGradeFilter] = useState('all')
-  const [selectedItem, setSelectedItem] = useState<any>(null)
+  const [selectedItem, setSelectedItem] = useState<Class | Subject | Assignment | Grade | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
 
-  useEffect(() => {
-    fetchData()
-    fetchStats()
-  }, [activeTab])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setIsLoading(true)
       let endpoint = ''
@@ -180,19 +111,66 @@ export default function PrincipalAcademicPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [activeTab])
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
-      const response = await fetch('/api/principal/academic/stats')
-      if (response.ok) {
-        const data = await response.json()
-        setStats(data)
+      setIsLoading(true)
+
+      const [statsResponse, totalClassesResponse] = await Promise.all([
+        fetch('/api/principal/academic/stats'),
+        fetch('/api/dashboard/principal/total-classes', {
+          cache: 'no-store'
+        })
+      ])
+
+      if (statsResponse.ok) {
+        const data = await statsResponse.json()
+        setStats(prev => ({
+          totalClasses: data.totalClasses ?? prev?.totalClasses ?? 0,
+          totalSubjects: data.totalSubjects ?? prev?.totalSubjects ?? 0,
+          totalAssignments: data.totalAssignments ?? prev?.totalAssignments ?? 0,
+          averageGrade: data.averageGrade ?? prev?.averageGrade ?? 0,
+          completionRate: data.completionRate ?? prev?.completionRate ?? 0,
+          activeTerms: data.activeTerms ?? prev?.activeTerms ?? 0,
+          totalClassesSummary: prev?.totalClassesSummary ?? {
+            totalClasses: 0,
+            activeClasses: 0,
+            averageStudentsPerClass: 0,
+            gradeDistribution: [],
+            recentClasses: []
+          }
+        }))
+      }
+
+      if (totalClassesResponse.ok) {
+        const totalClassesData: TotalClassesSummary = await totalClassesResponse.json()
+        setStats(prev => prev ? {
+          ...prev,
+          totalClasses: totalClassesData.totalClasses ?? prev.totalClasses,
+          totalClassesSummary: totalClassesData
+        } : {
+          totalClasses: totalClassesData.totalClasses ?? 0,
+          totalSubjects: 0,
+          totalAssignments: 0,
+          averageGrade: 0,
+          completionRate: 0,
+          activeTerms: 0,
+          totalClassesSummary: totalClassesData
+        })
       }
     } catch (error) {
       console.error('Error fetching stats:', error)
+      setError('Failed to load academic statistics')
+    } finally {
+      setIsLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchData()
+    fetchStats()
+  }, [fetchData, fetchStats])
 
   const ClassCard = ({ classItem }: { classItem: Class }) => (
     <Card className="hover:shadow-md transition-shadow">
@@ -393,9 +371,9 @@ export default function PrincipalAcademicPage() {
     <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New {activeTab.slice(0, -1)}</DialogTitle>
+          <DialogTitle>Create New {activeTab}</DialogTitle>
           <DialogDescription>
-            Add a new {activeTab.slice(0, -1).toLowerCase()} to your school
+            Add a new {activeTab.toLowerCase()} to your school
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -433,15 +411,15 @@ export default function PrincipalAcademicPage() {
             <>
               <div>
                 <label className="text-sm font-medium">Subject Name</label>
-                <Input placeholder="e.g., Mathematics" />
+                <Input className="bg-zinc-100 border-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0" placeholder="e.g., Mathematics" />
               </div>
               <div>
                 <label className="text-sm font-medium">Subject Code</label>
-                <Input placeholder="e.g., MATH101" />
+                <Input className="bg-zinc-100 border-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0" placeholder="e.g., MATH101" />
               </div>
               <div>
                 <label className="text-sm font-medium">Description</label>
-                <Input placeholder="Brief description of the subject" />
+                <Input className="bg-zinc-100 border-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0" placeholder="Brief description of the subject" />
               </div>
             </>
           )}
@@ -464,71 +442,61 @@ export default function PrincipalAcademicPage() {
   )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 h-full mb-20">
+      <div className='rounded-3xl mt-3  gap-2 space-y-2'>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Academic Management</h1>
+      <div className="flex items-center p-3 rounded-2xl shadow-sm bg-white mb-3 justify-between">
+        <div className="p-3 gap-2">
+          <h1 className="text-3xl text-primary font-bold tracking-tight">Academic Management</h1>
           <p className="text-muted-foreground">
             Manage classes, subjects, assignments, and academic performance
           </p>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add {activeTab.slice(0, -1)}
+        <Button onClick={() => setIsCreateModalOpen(true)}
+          className='bg-primary text-white mr-2'
+          >
+          <UserPlus className="h-4 w-4 mr-2" />
+          Add {activeTab}
         </Button>
       </div>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Classes</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalClasses}</div>
-            <p className="text-xs text-muted-foreground">Active classes</p>
-          </CardContent>
-        </Card>
+        <TotalClassesCard 
+          totalClasses={stats?.totalClassesSummary?.totalClasses ?? 0}
+          activeClasses={stats?.totalClassesSummary?.activeClasses ?? 0}
+          averageStudentsPerClass={stats?.totalClassesSummary?.averageStudentsPerClass ?? 0}
+          gradeDistribution={stats?.totalClassesSummary?.gradeDistribution ?? []}
+          recentClasses={stats?.totalClassesSummary?.recentClasses ?? []}
+          isLoading={isLoading}
+          error={error}
+          onRetry={fetchStats}
+        />
+        <SubjectsCard
+          totalSubjects={stats?.totalSubjects || 0}
+          isLoading={isLoading}
+          error={error}
+          onRetry={fetchStats}
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Subjects</CardTitle>
-            <GraduationCap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalSubjects}</div>
-            <p className="text-xs text-muted-foreground">Available subjects</p>
-          </CardContent>
-        </Card>
+        <AssignmentsCard
+          totalAssignments={stats?.totalAssignments || 0}
+          isLoading={isLoading}
+          error={error}
+          onRetry={fetchStats}
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Assignments</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalAssignments}</div>
-            <p className="text-xs text-muted-foreground">Total assignments</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Grade</CardTitle>
-            <Award className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.averageGrade}%</div>
-            <p className="text-xs text-muted-foreground">School average</p>
-          </CardContent>
-        </Card>
+        <AverageGradeCard
+          averageGrade={stats?.averageGrade || 0}
+          isLoading={isLoading}
+          error={error}
+          onRetry={fetchStats}
+        />
       </div>
 
       {/* Search and Filters */}
-      <Card>
-        <CardContent className="pt-6">
+      <Card className="bg-white rounded-2xl shadow-sm border-none">
+        <CardContent className="">
           <div className="flex items-center gap-4">
             <div className="flex-1">
               <div className="relative">
@@ -537,12 +505,12 @@ export default function PrincipalAcademicPage() {
                   placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 bg-zinc-100 border-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0"
                 />
               </div>
             </div>
             <Select value={gradeFilter} onValueChange={setGradeFilter}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-fit bg-primary text-white border-none">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -559,12 +527,12 @@ export default function PrincipalAcademicPage() {
       </Card>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="classes">Classes</TabsTrigger>
-          <TabsTrigger value="subjects">Subjects</TabsTrigger>
-          <TabsTrigger value="assignments">Assignments</TabsTrigger>
-          <TabsTrigger value="grades">Grades</TabsTrigger>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="bg-white rounded-2xl shadow-sm p-3 border-none">
+        <TabsList className="grid w-full grid-cols-4 space-x-1  ">
+          <TabsTrigger value="classes" className="bg-white/70 rounded-md shadow-none border-none">Classes</TabsTrigger>
+          <TabsTrigger value="subjects" className="rounded-md bg-white/70 ">Subjects</TabsTrigger>
+          <TabsTrigger value="assignments" className="rounded-md bg-white/70 ">Assignments</TabsTrigger>
+          <TabsTrigger value="grades" className="rounded-md bg-white/70 ">Grades</TabsTrigger>
         </TabsList>
 
         <TabsContent value="classes" className="space-y-4">
@@ -592,7 +560,7 @@ export default function PrincipalAcademicPage() {
               ))}
             </div>
           ) : (
-            <Card>
+            <Card className="border-none shadow-none h-full">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No classes found</h3>
@@ -627,7 +595,7 @@ export default function PrincipalAcademicPage() {
               ))}
             </div>
           ) : (
-            <Card>
+            <Card className="border-none shadow-none h-full">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <GraduationCap className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No subjects found</h3>
@@ -662,7 +630,7 @@ export default function PrincipalAcademicPage() {
               ))}
             </div>
           ) : (
-            <Card>
+            <Card className="border-none shadow-none h-full">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <FileText className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No assignments found</h3>
@@ -675,7 +643,7 @@ export default function PrincipalAcademicPage() {
         </TabsContent>
 
         <TabsContent value="grades" className="space-y-4">
-          <Card>
+          <Card className="border-none shadow-none h-full">
             <CardHeader>
               <CardTitle>Recent Grades</CardTitle>
               <CardDescription>
@@ -725,6 +693,7 @@ export default function PrincipalAcademicPage() {
 
       {/* Create Modal */}
       <CreateModal />
+      </div>
     </div>
   )
 }
