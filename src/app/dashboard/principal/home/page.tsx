@@ -1,38 +1,17 @@
 "use client"
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { 
-  Users, 
-  GraduationCap, 
-  BookOpen, 
-  Calendar, 
-  DollarSign, 
   AlertTriangle,
   Plus,
   MessageSquare,
-  Bell,
-  Clock,
   UserPlus,
   CalendarPlus,
   RefreshCw,
-  ChevronLeft,
-  ChevronRight,
-  ActivitySquareIcon,
-  MousePointer,
   MouseIcon,
-  ActivityIcon,
-  Settings
 } from 'lucide-react'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { toast } from 'sonner'
 import { StudentEnrollmentChart } from "@/components/student-enrollment-chart"
 import { AttendanceChart } from "@/components/attendance-chart"
@@ -42,8 +21,75 @@ import { ClassesOverviewCard } from "@/components/classes-overview-card"
 import { StaffOverviewCard } from "@/components/staff-overview-card"
 import { UpcomingEventsCard } from "@/components/upcoming-events-card"
 import { UnreadMessagesCard } from "@/components/unread-messages-card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu'
-import router from 'next/router'
+import { RecentActivityCard } from "@/components/recent-activity-card"
+import { getDashboardCacheKey, clearCache } from "@/hooks/use-cached-fetch"
+
+// Client-side cache for dashboard data
+interface CacheEntry {
+  data: unknown
+  timestamp: number
+  expiry: number
+}
+const dashboardCache = new Map<string, CacheEntry>()
+
+// Helper to clear all dashboard cache
+function clearDashboardCache() {
+  dashboardCache.clear()
+  clearCache('dashboard:principal/stats')
+  clearCache('dashboard:principal/activity')
+  clearCache('dashboard:principal/enrollment-trends')
+  clearCache('dashboard:principal/attendance-trends')
+  clearCache('dashboard:principal/teachers')
+  clearCache('dashboard:principal/fee-records')
+  clearCache('dashboard:principal/payment-trends')
+  clearCache('dashboard:principal/events')
+  clearCache('dashboard:principal/messages')
+  clearCache('dashboard:principal/classes')
+  clearCache('dashboard:principal/staff')
+}
+
+// Helper function to fetch with caching - returns cached data or fetches fresh
+async function fetchWithCache<T = unknown>(
+  url: string,
+  cacheKey: string,
+  cacheTime: number = 5 * 60 * 1000, // 5 minutes default
+  signal?: AbortSignal
+): Promise<{ data: T | null; fromCache: boolean; response?: Response }> {
+  // Check cache first
+  const cached = dashboardCache.get(cacheKey)
+  const now = Date.now()
+
+  if (cached && now < cached.expiry) {
+    console.log(`[Cache] Using cached data for ${cacheKey}`)
+    return { data: cached.data as T, fromCache: true }
+  }
+
+  // Fetch fresh data
+  console.log(`[Cache] Fetching fresh data for ${cacheKey}`)
+  const response = await fetch(url, {
+    signal,
+    cache: 'no-store',
+    headers: { 'Cache-Control': 'no-cache' }
+  })
+
+  if (response.ok) {
+    const data = await response.clone().json() as T
+    dashboardCache.set(cacheKey, {
+      data,
+      timestamp: now,
+      expiry: now + cacheTime
+    })
+    return { data, fromCache: false, response }
+  }
+
+  // If fetch fails but we have stale cache, return it
+  if (cached?.data) {
+    console.log(`[Cache] Fetch failed, using stale cache for ${cacheKey}`)
+    return { data: cached.data as T, fromCache: true }
+  }
+
+  return { data: null, fromCache: false, response }
+}
 
 interface DashboardStats {
   totalStudents: number
@@ -246,7 +292,8 @@ export default function PrincipalHomePage() {
       console.log('[Principal Dashboard] Cleaning up - aborting requests')
       abortController.abort()
     }
-  }, [hasFetchedData, isFetching, lastFetchTime])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Only run once on mount
 
   const fetchDashboardData = async (signal?: AbortSignal) => {
     // Prevent concurrent fetches
@@ -272,92 +319,48 @@ export default function PrincipalHomePage() {
       
       console.log('[Principal Dashboard] Fetching data...')
       
-      // Fetch stats first (priority), then others in parallel
-      const statsRes = await fetch('/api/dashboard/principal/stats', {
-        signal,
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache'
-        }
-      })
+      // Fetch stats first (priority) with caching (2 minutes cache)
+      const statsCacheKey = getDashboardCacheKey('principal/stats')
+      const statsResult = await fetchWithCache('/api/dashboard/principal/stats', statsCacheKey, 2 * 60 * 1000, signal)
       
-      // Fetch non-critical data in parallel
-      // Note: Using cache: 'no-store' for client-side fetches (next.revalidate only works in Server Components)
-      const [activityRes, trendsRes, attendanceTrendsRes, teachersRes, feeRecordsRes, paymentTrendsRes, eventsRes, messagesRes, classesRes, staffRes] = await Promise.all([
-        fetch('/api/dashboard/principal/activity', {
-          signal,
-          cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache' }
-        }),
-        fetch('/api/dashboard/principal/enrollment-trends', {
-          signal,
-          cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache' }
-        }),
-        fetch('/api/dashboard/principal/attendance-trends', {
-          signal,
-          cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache' }
-        }),
-        fetch('/api/dashboard/principal/teachers', {
-          signal,
-          cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache' }
-        }),
-        fetch('/api/dashboard/principal/fee-records', {
-          signal,
-          cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache' }
-        }),
-        fetch('/api/dashboard/principal/payment-trends', {
-          signal,
-          cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache' }
-        }),
-        fetch('/api/dashboard/principal/events', {
-          signal,
-          cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache' }
-        }),
-        fetch('/api/dashboard/principal/messages', {
-          signal,
-          cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache' }
-        }),
-        fetch('/api/dashboard/principal/classes', {
-          signal,
-          cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache' }
-        }),
-        fetch('/api/dashboard/principal/staff', {
-          signal,
-          cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache' }
-        })
+      // Fetch non-critical data in parallel with different cache times
+      // Activity: 1 minute (frequently changing)
+      // Trends: 5 minutes (less frequently changing)
+      // Lists: 3 minutes (moderate update frequency)
+      const [activityResult, trendsResult, attendanceTrendsResult, teachersResult, feeRecordsResult, paymentTrendsResult, eventsResult, messagesResult, classesResult, staffResult] = await Promise.all([
+        fetchWithCache('/api/dashboard/principal/activity', getDashboardCacheKey('principal/activity'), 60 * 1000, signal),
+        fetchWithCache('/api/dashboard/principal/enrollment-trends', getDashboardCacheKey('principal/enrollment-trends'), 5 * 60 * 1000, signal),
+        fetchWithCache('/api/dashboard/principal/attendance-trends', getDashboardCacheKey('principal/attendance-trends'), 5 * 60 * 1000, signal),
+        fetchWithCache('/api/dashboard/principal/teachers', getDashboardCacheKey('principal/teachers'), 3 * 60 * 1000, signal),
+        fetchWithCache('/api/dashboard/principal/fee-records', getDashboardCacheKey('principal/fee-records'), 2 * 60 * 1000, signal),
+        fetchWithCache('/api/dashboard/principal/payment-trends', getDashboardCacheKey('principal/payment-trends'), 5 * 60 * 1000, signal),
+        fetchWithCache('/api/dashboard/principal/events', getDashboardCacheKey('principal/events'), 3 * 60 * 1000, signal),
+        fetchWithCache('/api/dashboard/principal/messages', getDashboardCacheKey('principal/messages'), 1 * 60 * 1000, signal),
+        fetchWithCache('/api/dashboard/principal/classes', getDashboardCacheKey('principal/classes'), 3 * 60 * 1000, signal),
+        fetchWithCache('/api/dashboard/principal/staff', getDashboardCacheKey('principal/staff'), 3 * 60 * 1000, signal)
       ])
 
       let statsLoaded = false
       let activityLoaded = false
 
       // Handle stats response
-      if (statsRes.ok) {
-        const statsData = await statsRes.json()
-        console.log('Received stats data:', statsData)
-        setStats(statsData)
+      if (statsResult.data) {
+        console.log(`Received stats data (from cache: ${statsResult.fromCache}):`, statsResult.data)
+        setStats(statsResult.data as DashboardStats)
         statsLoaded = true
-      } else {
-        const errorData = await statsRes.json().catch(() => ({ error: 'Unknown error' }))
-        console.error('Failed to fetch stats:', statsRes.status, statsRes.statusText, errorData)
+      } else if (statsResult.response) {
+        const errorData = await statsResult.response.json().catch(() => ({ error: 'Unknown error' }))
+        console.error('Failed to fetch stats:', statsResult.response.status, statsResult.response.statusText, errorData)
         
-        if (statsRes.status === 401) {
+        if (statsResult.response.status === 401) {
           setError('Unauthorized. Please sign in again.')
           toast.error('Session expired. Please sign in again.')
           setTimeout(() => window.location.href = '/sign-in', 2000)
           return
-        } else if (statsRes.status === 403) {
+        } else if (statsResult.response.status === 403) {
           setError('Access denied. You do not have permission to view this page.')
           toast.error('Access denied')
-        } else if (statsRes.status === 500) {
+        } else if (statsResult.response.status === 500) {
           setError('Server error. Please try again later.')
           toast.error('Failed to load statistics. Please try again.')
         } else {
@@ -367,13 +370,16 @@ export default function PrincipalHomePage() {
       }
 
       // Handle activity response
-      if (activityRes.ok) {
-        const activityData = await activityRes.json()
-        console.log('Received activity data:', activityData)
-        setRecentActivity(activityData.activities || [])
+      if (activityResult.data) {
+        const activityData = activityResult.data as { activities?: RecentActivity[] } | RecentActivity[]
+        console.log(`Received activity data (from cache: ${activityResult.fromCache}):`, activityData)
+        const activitiesArray = Array.isArray(activityData) ? activityData : (Array.isArray((activityData as { activities?: RecentActivity[] }).activities) ? (activityData as { activities: RecentActivity[] }).activities : [])
+        console.log('Setting activities array:', activitiesArray.length, 'activities')
+        setRecentActivity(activitiesArray)
         activityLoaded = true
-      } else {
-        console.error('Failed to fetch activity:', activityRes.status)
+      } else if (activityResult.response && !activityResult.response.ok) {
+        const errorText = await activityResult.response.text().catch(() => 'Unknown error')
+        console.error('Failed to fetch activity:', activityResult.response.status, errorText)
         if (statsLoaded) {
           setHasPartialData(true)
           toast.warning('Some dashboard data could not be loaded')
@@ -381,13 +387,14 @@ export default function PrincipalHomePage() {
       }
 
       // Handle enrollment trends response
-      if (trendsRes.ok) {
-        const trendsData = await trendsRes.json()
-        console.log('Received enrollment trends:', trendsData)
-        setEnrollmentTrends(trendsData.trends || [])
-      } else {
-        console.error('Failed to fetch enrollment trends:', trendsRes.status)
-        // Set default trend data if API fails
+      if (trendsResult.data) {
+        const trendsData = trendsResult.data as { trends?: EnrollmentTrend[] } | EnrollmentTrend[]
+        console.log(`Received enrollment trends (from cache: ${trendsResult.fromCache}):`, trendsData)
+        const trendsArray = Array.isArray(trendsData) ? trendsData : (Array.isArray((trendsData as { trends?: EnrollmentTrend[] }).trends) ? (trendsData as { trends: EnrollmentTrend[] }).trends : [])
+        console.log('Setting enrollment trends array:', trendsArray.length, 'data points')
+        setEnrollmentTrends(trendsArray)
+      } else if (!trendsResult.fromCache) {
+        // Set default trend data if API fails and no cache
         setEnrollmentTrends([
           { month: 'Jan', students: stats.totalStudents - 150 },
           { month: 'Feb', students: stats.totalStudents - 120 },
@@ -399,76 +406,77 @@ export default function PrincipalHomePage() {
       }
 
       // Handle attendance trends response
-      if (attendanceTrendsRes.ok) {
-        const attendanceData = await attendanceTrendsRes.json()
-        console.log('Received attendance trends:', attendanceData)
-        setAttendanceTrends(attendanceData.trends || [])
-      } else {
-        console.error('Failed to fetch attendance trends:', attendanceTrendsRes.status)
+      if (attendanceTrendsResult.data) {
+        const attendanceData = attendanceTrendsResult.data as { trends?: AttendanceTrend[] } | AttendanceTrend[]
+        console.log(`Received attendance trends (from cache: ${attendanceTrendsResult.fromCache}):`, attendanceData)
+        const attendanceArray = Array.isArray(attendanceData) ? attendanceData : (Array.isArray((attendanceData as { trends?: AttendanceTrend[] }).trends) ? (attendanceData as { trends: AttendanceTrend[] }).trends : [])
+        console.log('Setting attendance trends array:', attendanceArray.length, 'data points')
+        setAttendanceTrends(attendanceArray)
       }
 
-      // Handle teachers response
-      if (teachersRes.ok) {
-        const teachersData = await teachersRes.json()
-        console.log('Received teachers:', teachersData)
-        setTeachers(teachersData.teachers || [])
-      } else {
-        console.error('Failed to fetch teachers:', teachersRes.status)
+      // Handle teachers response (data is stored but not displayed directly)
+      if (teachersResult.data) {
+        const teachersData = teachersResult.data as { teachers?: Teacher[] } | Teacher[]
+        const teachersArray = Array.isArray(teachersData) ? teachersData : (Array.isArray((teachersData as { teachers?: Teacher[] }).teachers) ? (teachersData as { teachers: Teacher[] }).teachers : [])
+        console.log(`Setting teachers array (from cache: ${teachersResult.fromCache}):`, teachersArray.length, 'teachers')
+        setTeachers(teachersArray)
       }
 
       // Handle fee records response
-      if (feeRecordsRes.ok) {
-        const feeRecordsData = await feeRecordsRes.json()
-        console.log('Received fee records:', feeRecordsData)
-        setFeeRecords(feeRecordsData.feeRecords || [])
-      } else {
-        console.error('Failed to fetch fee records:', feeRecordsRes.status)
+      if (feeRecordsResult.data) {
+        const feeRecordsData = feeRecordsResult.data as { feeRecords?: FeeRecord[] } | FeeRecord[]
+        console.log(`Received fee records (from cache: ${feeRecordsResult.fromCache}):`, feeRecordsData)
+        const feeRecordsArray = Array.isArray(feeRecordsData) ? feeRecordsData : (Array.isArray((feeRecordsData as { feeRecords?: FeeRecord[] }).feeRecords) ? (feeRecordsData as { feeRecords: FeeRecord[] }).feeRecords : [])
+        console.log('Setting fee records array:', feeRecordsArray.length, 'fee records')
+        setFeeRecords(feeRecordsArray)
       }
 
       // Handle payment trends response
-      if (paymentTrendsRes.ok) {
-        const paymentData = await paymentTrendsRes.json()
-        console.log('Received payment trends:', paymentData)
-        setPaymentTrends(paymentData.trends || [])
-      } else {
-        console.error('Failed to fetch payment trends:', paymentTrendsRes.status)
+      if (paymentTrendsResult.data) {
+        const paymentData = paymentTrendsResult.data as { trends?: PaymentTrend[] } | PaymentTrend[]
+        console.log(`Received payment trends (from cache: ${paymentTrendsResult.fromCache}):`, paymentData)
+        const paymentArray = Array.isArray(paymentData) ? paymentData : (Array.isArray((paymentData as { trends?: PaymentTrend[] }).trends) ? (paymentData as { trends: PaymentTrend[] }).trends : [])
+        console.log('Setting payment trends array:', paymentArray.length, 'data points')
+        setPaymentTrends(paymentArray)
       }
 
       // Handle events response
-      if (eventsRes.ok) {
-        const eventsData = await eventsRes.json()
-        console.log('Received events:', eventsData)
-        setEvents(eventsData.events || [])
-      } else {
-        console.error('Failed to fetch events:', eventsRes.status)
+      if (eventsResult.data) {
+        const eventsData = eventsResult.data as { events?: Event[] } | Event[]
+        console.log(`Received events (from cache: ${eventsResult.fromCache}):`, eventsData)
+        const eventsArray = Array.isArray(eventsData) ? eventsData : (Array.isArray((eventsData as { events?: Event[] }).events) ? (eventsData as { events: Event[] }).events : [])
+        console.log('Setting events array:', eventsArray.length, 'events')
+        setEvents(eventsArray)
       }
 
       // Handle messages response
-      if (messagesRes.ok) {
-        const messagesData = await messagesRes.json()
-        console.log('Received messages:', messagesData)
-        setMessages(messagesData.messages || [])
-      } else {
-        console.error('Failed to fetch messages:', messagesRes.status)
+      if (messagesResult.data) {
+        const messagesData = messagesResult.data as { messages?: Message[] } | Message[]
+        console.log(`Received messages (from cache: ${messagesResult.fromCache}):`, messagesData)
+        const messagesArray = Array.isArray(messagesData) ? messagesData : (Array.isArray((messagesData as { messages?: Message[] }).messages) ? (messagesData as { messages: Message[] }).messages : [])
+        console.log('Setting messages array:', messagesArray.length, 'messages')
+        setMessages(messagesArray)
       }
 
       // Handle classes response
-      if (classesRes.ok) {
-        const classesData = await classesRes.json()
-        console.log('Received classes:', classesData)
-        setClasses(classesData.classes || [])
-      } else {
-        console.error('Failed to fetch classes:', classesRes.status)
+      if (classesResult.data) {
+        const classesData = classesResult.data as { classes?: ClassData[] } | ClassData[]
+        console.log(`Received classes (from cache: ${classesResult.fromCache}):`, classesData)
+        const classesArray = Array.isArray(classesData) ? classesData : (Array.isArray((classesData as { classes?: ClassData[] }).classes) ? (classesData as { classes: ClassData[] }).classes : [])
+        console.log('Setting classes array:', classesArray.length, 'classes')
+        setClasses(classesArray)
       }
 
       // Handle staff response
-      if (staffRes.ok) {
-        const staffData = await staffRes.json()
-        console.log('Received staff:', staffData)
-        setStaff(staffData.staff || [])
-        setTotalClerks(staffData.totalClerks || 0)
-      } else {
-        console.error('Failed to fetch staff:', staffRes.status)
+      if (staffResult.data) {
+        const staffData = staffResult.data as { staff?: StaffMember[]; totalClerks?: number } | StaffMember[]
+        console.log(`Received staff (from cache: ${staffResult.fromCache}):`, staffData)
+        const staffArray = Array.isArray(staffData) ? staffData : (Array.isArray((staffData as { staff?: StaffMember[] }).staff) ? (staffData as { staff: StaffMember[] }).staff : [])
+        console.log('Setting staff array:', staffArray.length, 'staff members')
+        setStaff(staffArray)
+        if (staffData && typeof staffData === 'object' && 'totalClerks' in staffData) {
+          setTotalClerks((staffData as { totalClerks?: number }).totalClerks || 0)
+        }
       }
 
       // If stats failed but activity loaded, show partial data
@@ -501,7 +509,8 @@ export default function PrincipalHomePage() {
       return
     }
     
-    console.log('[Principal Dashboard] Manual retry triggered')
+    console.log('[Principal Dashboard] Manual retry triggered - clearing cache')
+    clearDashboardCache() // Clear cache on manual retry
     setRetryCount(prev => prev + 1)
     setHasFetchedData(false) // Allow refetch
     fetchDashboardData()
@@ -534,76 +543,18 @@ export default function PrincipalHomePage() {
     }
   ]
 
-  // Pagination helpers - memoized for performance
-  const getPeriodLabel = (days: string) => {
-    switch (days) {
-      case '1': return 'Today'
-      case '7': return 'Last 7 days'
-      case '14': return 'Last 14 days'
-      case '30': return 'Last 30 days'
-      default: return 'Last 7 days'
-    }
-  }
-
-  // Memoize filtered and paginated activities to avoid unnecessary recalculations
-  const filteredActivities = useMemo(() => recentActivity, [recentActivity])
-  const totalPages = useMemo(() => Math.ceil(filteredActivities.length / activitiesPerPage), [filteredActivities.length, activitiesPerPage])
-  const paginatedActivities = useMemo(() => 
-    filteredActivities.slice(
-      (activityPage - 1) * activitiesPerPage,
-      activityPage * activitiesPerPage
-    ),
-    [filteredActivities, activityPage, activitiesPerPage]
-  )
-
+  // Handle period change for activities
   const handlePeriodChange = (value: string) => {
     setActivityPeriod(value)
     setActivityPage(1) // Reset to first page when period changes
     // In a real implementation, you would refetch data with the new period
-    toast.info(`Showing activities from ${getPeriodLabel(value).toLowerCase()}`)
-  }
-
-  const handlePreviousPage = () => {
-    if (activityPage > 1) {
-      setActivityPage(activityPage - 1)
+    const periodLabels: Record<string, string> = {
+      '1': 'today',
+      '7': 'last 7 days',
+      '14': 'last 14 days',
+      '30': 'last 30 days'
     }
-  }
-
-  const handleNextPage = () => {
-    if (activityPage < totalPages) {
-      setActivityPage(activityPage + 1)
-    }
-  }
-
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'enrollment': return Users
-      case 'assignment': return BookOpen
-      case 'payment': return DollarSign
-      case 'announcement': return Bell
-      case 'class': return Calendar
-      case 'teacher': return GraduationCap
-      default: return Clock
-    }
-  }
-
-  const getActivityColor = (type: string) => {
-    switch (type) {
-      case 'enrollment': 
-        return { bg: 'bg-blue-100 dark:bg-blue-900/20', text: 'text-blue-600 dark:text-blue-400' }
-      case 'assignment': 
-        return { bg: 'bg-purple-100 dark:bg-purple-900/20', text: 'text-purple-600 dark:text-purple-400' }
-      case 'payment': 
-        return { bg: 'bg-green-100 dark:bg-green-900/20', text: 'text-green-600 dark:text-green-400' }
-      case 'announcement': 
-        return { bg: 'bg-orange-100 dark:bg-orange-900/20', text: 'text-orange-600 dark:text-orange-400' }
-      case 'class': 
-        return { bg: 'bg-indigo-100 dark:bg-indigo-900/20', text: 'text-indigo-600 dark:text-indigo-400' }
-      case 'teacher': 
-        return { bg: 'bg-pink-100 dark:bg-pink-900/20', text: 'text-pink-600 dark:text-pink-400' }
-      default: 
-        return { bg: 'bg-gray-100 dark:bg-gray-900/20', text: 'text-gray-600 dark:text-gray-400' }
-    }
+    toast.info(`Showing activities from ${periodLabels[value] || 'last 7 days'}`)
   }
 
   // Error state
@@ -884,121 +835,17 @@ export default function PrincipalHomePage() {
       <div className="grid gap-6 lg:grid-cols-1">
 
         {/* Recent Activity */}
-        <Card className="border-none shadow-sm bg-white">
-          <CardHeader className="space-y-3 sm:space-y-4 border-b pb-3 sm:pb-4 p-3 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-              <div className="flex flex-col gap-1 sm:gap-2">
-                <CardTitle className="text-base sm:text-base lg:text-lg font-bold flex flex-row items-center gap-2 text-primary">
-                  <ActivityIcon strokeWidth={3} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                  Recent Activity
-                </CardTitle>
-                <CardDescription className="text-sm sm:text-md font-medium text-muted-foreground">
-                  Latest updates from your school
-                </CardDescription>
-              </div>
-              
-              {/* Period Filter */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm sm:text-md text-muted-foreground hidden sm:inline">Period:</span>
-                <Select value={activityPeriod} onValueChange={handlePeriodChange}>
-                  <SelectTrigger className="w-full sm:w-fit gap-2 h-8 sm:h-9 text-xs sm:text-sm bg-primary text-white border-primary [&>svg]:text-white">
-                    <SelectValue placeholder="Select period" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">Today</SelectItem>
-                    <SelectItem value="7">Last 7 days</SelectItem>
-                    <SelectItem value="14">Last 14 days</SelectItem>
-                    <SelectItem value="30">Last 30 days</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardHeader>
-          
-          <CardContent className="p-3 sm:p-6 pt-0">
-            <div className="space-y-2 sm:space-y-3">
-              {paginatedActivities.length > 0 ? (
-                paginatedActivities.map((activity) => {
-                  const Icon = getActivityIcon(activity.type)
-                  const activityColor = getActivityColor(activity.type)
-                  return (
-                    <div key={activity.id} className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-zinc-100 rounded-lg hover:bg-white transition-colors">
-                      <div className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full flex-shrink-0 ${activityColor.bg}`}>
-                        <Icon strokeWidth={3} className={`h-4 w-4 sm:h-5 sm:w-5 ${activityColor.text}`} />
-                      </div>
-                      <div className="flex-1 space-y-1 min-w-0">
-                        <p className="text-sm sm:text-base font-semibold leading-tight">{activity.message}</p>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <div className="flex items-center gap-1">
-                            <Clock strokeWidth={3} className="h-3 w-3 text-muted-foreground" />
-                            <p className="text-xs text-muted-foreground">{activity.timestamp}</p>
-                          </div>
-                          {activity.user && (
-                            <Badge variant="secondary" className="text-xs">
-                              {activity.user}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })
-              ) : (
-                <div className="text-center py-6 sm:py-8">
-                  <div className="rounded-full bg-muted p-2 sm:p-3 w-fit mx-auto mb-2 sm:mb-3">
-                    <Clock strokeWidth={3} className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-                  </div>
-                  <p className="text-sm font-medium mb-1">No recent activity</p>
-                  <p className="text-xs text-muted-foreground">
-                    Activity from {getPeriodLabel(activityPeriod).toLowerCase()} will appear here
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Pagination Controls */}
-            {filteredActivities.length > activitiesPerPage && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t">
-                <div className="text-xs text-muted-foreground text-center sm:text-left">
-                  Showing {Math.min((activityPage - 1) * activitiesPerPage + 1, filteredActivities.length)} - {Math.min(activityPage * activitiesPerPage, filteredActivities.length)} of {filteredActivities.length} activities
-                </div>
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handlePreviousPage}
-                    disabled={activityPage === 1}
-                    className="h-7 w-7 sm:h-8 sm:w-8 p-0 border-primary border-3 bg-transparent text-primary"
-                  >
-                    <ChevronLeft strokeWidth={3} className="h-3 w-3 sm:h-4 sm:w-4" />
-                  </Button>
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <Button
-                        key={page}
-                        variant={page === activityPage ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setActivityPage(page)}
-                        className="h-7 w-7 sm:h-8 sm:w-8 p-0 bg-primary border-primary border-3 text-primary-foreground text-xs sm:text-sm"
-                      >
-                        {page}
-                      </Button>
-                    ))}
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleNextPage}
-                    disabled={activityPage === totalPages}
-                    className="h-7 w-7 sm:h-8 sm:w-8 p-0 border-primary border-3 bg-transparent text-primary"
-                  >
-                    <ChevronRight strokeWidth={3} className="h-3 w-3 sm:h-4 sm:w-4" />
-                  </Button>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <RecentActivityCard
+          activities={recentActivity}
+          isLoading={isLoading}
+          error={error}
+          onRetry={handleRetry}
+          period={activityPeriod}
+          onPeriodChange={handlePeriodChange}
+          page={activityPage}
+          onPageChange={setActivityPage}
+          activitiesPerPage={activitiesPerPage}
+        />
         </div>
       </div>
     </div>

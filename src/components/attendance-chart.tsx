@@ -1,4 +1,11 @@
 "use client"
+/**
+ * AttendanceChart Component
+ * 
+ * This component receives data via props from the parent page.
+ * Data is cached at the page level with a 5-minute TTL to improve performance.
+ * Attendance trends change less frequently, so they are cached longer.
+ */
 
 import * as React from "react"
 import { TrendingUp, Users, AlertCircle, Loader2, BarChart3 } from "lucide-react"

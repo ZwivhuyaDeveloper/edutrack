@@ -1,4 +1,11 @@
 "use client"
+/**
+ * PendingFeesCard Component
+ * 
+ * This component receives data via props from the parent page.
+ * Data is cached at the page level with a 2-minute TTL to improve performance.
+ * Fee records are cached for 2 minutes to balance freshness with performance.
+ */
 
 import { DollarSign, AlertCircle, Loader2, Receipt } from "lucide-react"
 import { Badge } from "@/components/ui/badge"

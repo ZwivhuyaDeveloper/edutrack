@@ -1,4 +1,11 @@
 "use client"
+/**
+ * StaffOverviewCard Component
+ * 
+ * This component receives data via props from the parent page.
+ * Data is cached at the page level with a 3-minute TTL to improve performance.
+ * Caching reduces API calls and speeds up subsequent page loads.
+ */
 
 import { GraduationCap, AlertCircle, Loader2, Users } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
