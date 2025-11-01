@@ -68,3 +68,8 @@ export interface Grade {
   }
   gradedAt: string
 }
+
+export interface AcademicStats {
+  totalClasses: number;
+  // Add other stats fields as needed
+}

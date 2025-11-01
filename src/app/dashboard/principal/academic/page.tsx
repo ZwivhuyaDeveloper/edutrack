@@ -17,10 +17,15 @@ import {
   BarChart3,
   Edit,
   Eye,
-  Award
+  Award,
+  UserPlus
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Class, Subject, Assignment, Grade } from '@/types/academic'
+import { TotalClassesCard } from '@/components/total-classes-card';
+import { SubjectsCard } from '@/components/subjects-card'
+import { AssignmentsCard } from '@/components/assignments-card';
+import { AverageGradeCard } from '@/components/average-grade-card';
 
 interface AcademicStats {
   totalClasses: number
@@ -31,13 +36,17 @@ interface AcademicStats {
   activeTerms: number
 }
 
+interface AcademicStats {
+  totalClasses: number;
+}
+
 export default function PrincipalAcademicPage() {
   const [activeTab, setActiveTab] = useState('classes')
   const [classes, setClasses] = useState<Class[]>([])
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [assignments, setAssignments] = useState<Assignment[]>([])
   const [recentGrades, setRecentGrades] = useState<Grade[]>([])
-  const [stats, setStats] = useState<AcademicStats>({
+  const [stats, setStats] = useState<AcademicStats | null>({
     totalClasses: 0,
     totalSubjects: 0,
     totalAssignments: 0,
@@ -46,6 +55,7 @@ export default function PrincipalAcademicPage() {
     activeTerms: 0
   })
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [gradeFilter, setGradeFilter] = useState('all')
   const [selectedItem, setSelectedItem] = useState<Class | Subject | Assignment | Grade | null>(null)
@@ -387,71 +397,56 @@ export default function PrincipalAcademicPage() {
 
   return (
     <div className="space-y-6">
-      <div className='rounded-3xl mt-3  gap-2'>
+      <div className='rounded-3xl mt-3  gap-2 space-y-2'>
       {/* Header */}
       <div className="flex items-center p-3 rounded-2xl bg-white mb-3 justify-between">
-        <div>
+        <div className="p-3 gap-2">
           <h1 className="text-3xl font-bold tracking-tight">Academic Management</h1>
           <p className="text-muted-foreground">
             Manage classes, subjects, assignments, and academic performance
           </p>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
+        <Button onClick={() => setIsCreateModalOpen(true)}
+          className='bg-primary text-white mr-2'
+          >
+          <UserPlus className="h-4 w-4 mr-2" />
           Add {activeTab.slice(0, -1)}
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Classes</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalClasses}</div>
-            <p className="text-xs text-muted-foreground">Active classes</p>
-          </CardContent>
-        </Card>
+      <div className="grid hidden gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <TotalClassesCard 
+          totalClasses={stats?.totalClasses || 0}
+          isLoading={isLoading}
+          error={error}
+          onRetry={fetchStats}
+        />
+        <SubjectsCard
+          totalSubjects={stats?.totalSubjects || 0}
+          isLoading={isLoading}
+          error={error}
+          onRetry={fetchStats}
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Subjects</CardTitle>
-            <GraduationCap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalSubjects}</div>
-            <p className="text-xs text-muted-foreground">Available subjects</p>
-          </CardContent>
-        </Card>
+        <AssignmentsCard
+          totalAssignments={stats?.totalAssignments || 0}
+          isLoading={isLoading}
+          error={error}
+          onRetry={fetchStats}
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Assignments</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalAssignments}</div>
-            <p className="text-xs text-muted-foreground">Total assignments</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Grade</CardTitle>
-            <Award className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.averageGrade}%</div>
-            <p className="text-xs text-muted-foreground">School average</p>
-          </CardContent>
-        </Card>
+        <AverageGradeCard
+          averageGrade={stats?.averageGrade || 0}
+          isLoading={isLoading}
+          error={error}
+          onRetry={fetchStats}
+        />
       </div>
 
       {/* Search and Filters */}
-      <Card>
-        <CardContent className="pt-6">
+      <Card className="bg-white rounded-2xl shadow-none border-none">
+        <CardContent className="">
           <div className="flex items-center gap-4">
             <div className="flex-1">
               <div className="relative">
