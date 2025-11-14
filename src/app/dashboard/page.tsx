@@ -644,32 +644,8 @@ function DashboardContent() {
         break
 
       case 'PRINCIPAL':
-        roleSpecificItems.push(
-          {
-            icon: Shield,
-            label: 'School Management',
-            description: 'Administrative controls',
-            action: () => console.log('School Management')
-          },
-          {
-            icon: Users,
-            label: 'Staff Directory',
-            description: 'Manage teachers and staff',
-            action: () => console.log('Staff Directory')
-          },
-          {
-            icon: FileText,
-            label: 'Reports & Analytics',
-            description: 'School performance data',
-            action: () => console.log('Reports')
-          },
-          {
-            icon: Settings,
-            label: 'System Settings',
-            description: 'Configure school settings',
-            action: () => console.log('System Settings')
-          }
-        )
+        // Principal uses the 5-page architecture with sidebar navigation
+        // No additional quick actions needed in dropdown menu
         break
 
       case 'PARENT':
@@ -817,8 +793,8 @@ function DashboardContent() {
 
         {/* Header */}
         <header className="flex h-auto max-w-full md:h-14 lg:h-16 shrink-0 bg-white rounded-2xl md:rounded-4xl lg:rounded-6xl shadow-none 
-        mx-2 sm:mx-3 md:mx-4 mt-3 md:mt-5 lg:mt-7 mb-0 items-center px-3 md:px-4 lg:px-6 py-3 md:py-0  md:justify-between transition-[width,height] 
-        ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-16 font-sans overflow-hidden">
+          mx-2 sm:mx-3 md:mx-4 mt-3 md:mt-5 lg:mt-7 mb-0 items-center px-3 md:px-4 lg:px-6 py-3 md:py-0  md:justify-between transition-[width,height] 
+          ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-16 font-sans overflow-hidden">
           {/* Left section - Sidebar trigger */}
           <div className="flex items-center gap-1.5 md:gap-2 flex-1 md:flex-initial min-w-0">
             <SidebarTrigger className="-ml-0 hidden md:flex" />
@@ -839,8 +815,8 @@ function DashboardContent() {
           </div>
 
           {/* Center section - Search input */}
-          <div className="hidden lg:flex flex-1 justify-center px-2 lg:px-4 min-w-0">
-            <div className="relative w-full max-w-[200px] md:max-w-[280px] lg:max-w-[400px]">
+          <div className="hidden lg:flex flex-1 justify-center  px-2 lg:px-4 min-w-0">
+            <div className="relative w-full max-w-[200px] md:max-w-[280px] lg:max-w-[400px] hidden">
               <Search className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 h-3.5 md:h-4 w-3.5 md:w-4 text-muted-foreground" />
               <Input
                 type="search"

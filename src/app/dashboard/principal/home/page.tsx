@@ -326,7 +326,7 @@ export default function PrincipalHomePage() {
       // Fetch non-critical data in parallel with different cache times
       // Activity: 1 minute (frequently changing)
       // Trends: 5 minutes (less frequently changing)
-      // Lists: 3 minutes (moderate update frequency)
+      // Lists : 3 minutes (moderate update frequency)
       const [activityResult, trendsResult, attendanceTrendsResult, teachersResult, feeRecordsResult, paymentTrendsResult, eventsResult, messagesResult, classesResult, staffResult] = await Promise.all([
         fetchWithCache('/api/dashboard/principal/activity', getDashboardCacheKey('principal/activity'), 60 * 1000, signal),
         fetchWithCache('/api/dashboard/principal/enrollment-trends', getDashboardCacheKey('principal/enrollment-trends'), 5 * 60 * 1000, signal),
