@@ -2,6 +2,10 @@ import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { RateLimiters } from '@/lib/rate-limit'
+import { cachedJsonResponse, CacheConfig } from '@/lib/api-cache-config'
+
+export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
@@ -64,9 +68,7 @@ export async function GET(request: NextRequest) {
       take: 5
     })
 
-    return NextResponse.json({ 
-      events 
-    })
+    return cachedJsonResponse({ events }, CacheConfig.MODERATE)
   } catch (error) {
     console.error('Error fetching events:', error)
     return NextResponse.json(

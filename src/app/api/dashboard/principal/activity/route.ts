@@ -2,6 +2,11 @@ import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { RateLimiters } from '@/lib/rate-limit'
+import { cachedJsonResponse, CacheConfig } from '@/lib/api-cache-config'
+
+// Enable Next.js caching
+export const revalidate = 30 // Revalidate every 30 seconds
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
@@ -314,8 +319,11 @@ export async function GET(request: NextRequest) {
       topActivities: activities.slice(0, 3).map(a => ({ type: a.type, message: a.message }))
     })
 
-    // Return top 10 activities
-    return NextResponse.json({ activities: activities.slice(0, 10) })
+    // Return top 10 activities with cache headers
+    return cachedJsonResponse(
+      { activities: activities.slice(0, 10) },
+      CacheConfig.REALTIME
+    )
   } catch (error) {
     console.error('Error fetching activity:', error)
     return NextResponse.json(

@@ -40,8 +40,6 @@ import {
   GraduationCap,
   BookOpen,
   Users,
-  Shield,
-  Heart,
   Calendar,
   FileText,
   MessageSquare,
@@ -649,90 +647,18 @@ function DashboardContent() {
         break
 
       case 'PARENT':
-        roleSpecificItems.push(
-          {
-            icon: Heart,
-            label: 'My Children',
-            description: 'View your children\'s progress',
-            action: () => console.log('My Children')
-          },
-          {
-            icon: FileText,
-            label: 'Progress Reports',
-            description: 'Academic progress updates',
-            action: () => console.log('Progress Reports')
-          },
-          {
-            icon: Calendar,
-            label: 'School Calendar',
-            description: 'Important dates and events',
-            action: () => console.log('School Calendar')
-          },
-          {
-            icon: MessageSquare,
-            label: 'Teacher Communication',
-            description: 'Contact teachers',
-            action: () => console.log('Teacher Communication')
-          }
-        )
+        // Parent uses the 5-page architecture with sidebar navigation
+        // No additional quick actions needed in dropdown menu
         break
 
       case 'CLERK':
-        roleSpecificItems.push(
-          {
-            icon: Users,
-            label: 'Student Management',
-            description: 'Manage student records',
-            action: () => console.log('Student Management')
-          },
-          {
-            icon: FileText,
-            label: 'Fee Management',
-            description: 'Process fees and payments',
-            action: () => console.log('Fee Management')
-          },
-          {
-            icon: Calendar,
-            label: 'Attendance Records',
-            description: 'View and manage attendance',
-            action: () => console.log('Attendance Records')
-          },
-          {
-            icon: TrendingUp,
-            label: 'Reports',
-            description: 'Generate administrative reports',
-            action: () => console.log('Reports')
-          }
-        )
+        // Clerk uses the 5-page architecture with sidebar navigation
+        // No additional quick actions needed in dropdown menu
         break
 
       case 'ADMIN':
-        roleSpecificItems.push(
-          {
-            icon: Shield,
-            label: 'System Management',
-            description: 'Manage system settings',
-            action: () => console.log('System Management')
-          },
-          {
-            icon: Users,
-            label: 'User Management',
-            description: 'Manage all users',
-            action: () => console.log('User Management')
-          },
-          {
-            icon: FileText,
-            label: 'Audit Logs',
-            description: 'View system audit logs',
-            action: () => console.log('Audit Logs')
-          },
-          {
-            icon: Settings,
-            label: 'Global Settings',
-            description: 'Configure system-wide settings',
-            action: () => console.log('Global Settings')
-          }
-        )
+        // Admin uses the 5-page architecture with sidebar navigation
+        // No additional quick actions needed in dropdown menu
         break
     }
 

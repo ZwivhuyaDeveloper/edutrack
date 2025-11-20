@@ -2,6 +2,10 @@ import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { RateLimiters } from '@/lib/rate-limit'
+import { cachedJsonResponse, CacheConfig } from '@/lib/api-cache-config'
+
+export const revalidate = 30
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
@@ -119,10 +123,10 @@ export async function GET(request: NextRequest) {
     // Filter only unread messages
     const unreadMessages = messages.filter(msg => msg.isUnread)
 
-    return NextResponse.json({ 
+    return cachedJsonResponse({
       messages: unreadMessages,
       totalUnread: unreadMessages.length
-    })
+    }, CacheConfig.REALTIME)
   } catch (error) {
     console.error('Error fetching messages:', error)
     return NextResponse.json(

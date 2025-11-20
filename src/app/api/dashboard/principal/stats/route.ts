@@ -4,6 +4,10 @@ import { prisma } from '@/lib/prisma'
 import { RateLimiters } from '@/lib/rate-limit'
 import { secureLog, sanitizeForLog } from '@/lib/secure-logger'
 
+// Enable Next.js caching with revalidation
+export const revalidate = 60 // Revalidate every 60 seconds
+export const dynamic = 'force-dynamic' // Ensure fresh data for authenticated users
+
 export async function GET(request: NextRequest) {
   try {
     // Apply rate limiting (30 requests per minute)
@@ -145,7 +149,7 @@ export async function GET(request: NextRequest) {
       unreadMessages
     }))
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       totalStudents,
       totalTeachers: teacherCount,
       totalClasses: classCount,
@@ -156,6 +160,10 @@ export async function GET(request: NextRequest) {
       upcomingEvents,
       unreadMessages
     })
+    
+    // Add cache headers for client-side caching
+    response.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60')
+    return response
   } catch (error) {
     console.error('Error fetching principal stats:', error)
     return NextResponse.json(

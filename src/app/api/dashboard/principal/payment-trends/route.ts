@@ -2,6 +2,10 @@ import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { RateLimiters } from '@/lib/rate-limit'
+import { cachedJsonResponse, CacheConfig } from '@/lib/api-cache-config'
+
+export const revalidate = 120
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
@@ -130,10 +134,10 @@ export async function GET(request: NextRequest) {
       trends: paymentData
     })
 
-    return NextResponse.json({ 
+    return cachedJsonResponse({ 
       trends: paymentData,
       totalPaid: Math.round(totalPaid * 100) / 100
-    })
+    }, CacheConfig.MODERATE)
   } catch (error) {
     console.error('Error fetching payment trends:', error)
     return NextResponse.json(
