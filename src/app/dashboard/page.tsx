@@ -40,8 +40,6 @@ import {
   GraduationCap,
   BookOpen,
   Users,
-  Shield,
-  Heart,
   Calendar,
   FileText,
   MessageSquare,
@@ -644,119 +642,23 @@ function DashboardContent() {
         break
 
       case 'PRINCIPAL':
-        roleSpecificItems.push(
-          {
-            icon: Shield,
-            label: 'School Management',
-            description: 'Administrative controls',
-            action: () => console.log('School Management')
-          },
-          {
-            icon: Users,
-            label: 'Staff Directory',
-            description: 'Manage teachers and staff',
-            action: () => console.log('Staff Directory')
-          },
-          {
-            icon: FileText,
-            label: 'Reports & Analytics',
-            description: 'School performance data',
-            action: () => console.log('Reports')
-          },
-          {
-            icon: Settings,
-            label: 'System Settings',
-            description: 'Configure school settings',
-            action: () => console.log('System Settings')
-          }
-        )
+        // Principal uses the 5-page architecture with sidebar navigation
+        // No additional quick actions needed in dropdown menu
         break
 
       case 'PARENT':
-        roleSpecificItems.push(
-          {
-            icon: Heart,
-            label: 'My Children',
-            description: 'View your children\'s progress',
-            action: () => console.log('My Children')
-          },
-          {
-            icon: FileText,
-            label: 'Progress Reports',
-            description: 'Academic progress updates',
-            action: () => console.log('Progress Reports')
-          },
-          {
-            icon: Calendar,
-            label: 'School Calendar',
-            description: 'Important dates and events',
-            action: () => console.log('School Calendar')
-          },
-          {
-            icon: MessageSquare,
-            label: 'Teacher Communication',
-            description: 'Contact teachers',
-            action: () => console.log('Teacher Communication')
-          }
-        )
+        // Parent uses the 5-page architecture with sidebar navigation
+        // No additional quick actions needed in dropdown menu
         break
 
       case 'CLERK':
-        roleSpecificItems.push(
-          {
-            icon: Users,
-            label: 'Student Management',
-            description: 'Manage student records',
-            action: () => console.log('Student Management')
-          },
-          {
-            icon: FileText,
-            label: 'Fee Management',
-            description: 'Process fees and payments',
-            action: () => console.log('Fee Management')
-          },
-          {
-            icon: Calendar,
-            label: 'Attendance Records',
-            description: 'View and manage attendance',
-            action: () => console.log('Attendance Records')
-          },
-          {
-            icon: TrendingUp,
-            label: 'Reports',
-            description: 'Generate administrative reports',
-            action: () => console.log('Reports')
-          }
-        )
+        // Clerk uses the 5-page architecture with sidebar navigation
+        // No additional quick actions needed in dropdown menu
         break
 
       case 'ADMIN':
-        roleSpecificItems.push(
-          {
-            icon: Shield,
-            label: 'System Management',
-            description: 'Manage system settings',
-            action: () => console.log('System Management')
-          },
-          {
-            icon: Users,
-            label: 'User Management',
-            description: 'Manage all users',
-            action: () => console.log('User Management')
-          },
-          {
-            icon: FileText,
-            label: 'Audit Logs',
-            description: 'View system audit logs',
-            action: () => console.log('Audit Logs')
-          },
-          {
-            icon: Settings,
-            label: 'Global Settings',
-            description: 'Configure system-wide settings',
-            action: () => console.log('Global Settings')
-          }
-        )
+        // Admin uses the 5-page architecture with sidebar navigation
+        // No additional quick actions needed in dropdown menu
         break
     }
 
@@ -817,8 +719,8 @@ function DashboardContent() {
 
         {/* Header */}
         <header className="flex h-auto max-w-full md:h-14 lg:h-16 shrink-0 bg-white rounded-2xl md:rounded-4xl lg:rounded-6xl shadow-none 
-        mx-2 sm:mx-3 md:mx-4 mt-3 md:mt-5 lg:mt-7 mb-0 items-center px-3 md:px-4 lg:px-6 py-3 md:py-0  md:justify-between transition-[width,height] 
-        ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-16 font-sans overflow-hidden">
+          mx-2 sm:mx-3 md:mx-4 mt-3 md:mt-5 lg:mt-7 mb-0 items-center px-3 md:px-4 lg:px-6 py-3 md:py-0  md:justify-between transition-[width,height] 
+          ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-16 font-sans overflow-hidden">
           {/* Left section - Sidebar trigger */}
           <div className="flex items-center gap-1.5 md:gap-2 flex-1 md:flex-initial min-w-0">
             <SidebarTrigger className="-ml-0 hidden md:flex" />
@@ -839,8 +741,8 @@ function DashboardContent() {
           </div>
 
           {/* Center section - Search input */}
-          <div className="hidden lg:flex flex-1 justify-center px-2 lg:px-4 min-w-0">
-            <div className="relative w-full max-w-[200px] md:max-w-[280px] lg:max-w-[400px]">
+          <div className="hidden lg:flex flex-1 justify-center  px-2 lg:px-4 min-w-0">
+            <div className="relative w-full max-w-[200px] md:max-w-[280px] lg:max-w-[400px] hidden">
               <Search className="absolute left-2.5 md:left-3 top-1/2 -translate-y-1/2 h-3.5 md:h-4 w-3.5 md:w-4 text-muted-foreground" />
               <Input
                 type="search"

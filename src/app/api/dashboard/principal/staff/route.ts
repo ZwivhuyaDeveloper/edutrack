@@ -2,6 +2,10 @@ import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { RateLimiters } from '@/lib/rate-limit'
+import { cachedJsonResponse, CacheConfig } from '@/lib/api-cache-config'
+
+export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
@@ -109,11 +113,11 @@ export async function GET(request: NextRequest) {
       }))
     ]
 
-    return NextResponse.json({ 
+    return cachedJsonResponse({ 
       staff,
       totalTeachers: teachers.length,
       totalClerks: clerks.length
-    })
+    }, CacheConfig.MODERATE)
   } catch (error) {
     console.error('Error fetching staff:', error)
     return NextResponse.json(
