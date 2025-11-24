@@ -1,8 +1,6 @@
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, AlertCircle, TrendingUp, Users, Sparkles, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { RotateCw } from 'lucide-react';
 
 export interface TotalClassesCardProps {
   totalClasses: number;
@@ -30,29 +28,52 @@ export function TotalClassesCard({
   // Loading state
   if (isLoading) {
     return (
-      <Card className='shadow-none border-none rounded-2xl'>
-        <CardHeader className="flex flex-row items-center border-b justify-between space-y-0 px-6 pt-6">
-          <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-            <BookOpen strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-            <CardTitle className="text-sm sm:text-sm font-bold text-primary">Total Classes</CardTitle>
+      <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-blue-50/30 overflow-hidden relative">
+        {/* Animated gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-100/20 to-transparent animate-shimmer" />
+        
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 relative z-10">
+          <div className="flex flex-row items-center gap-2">
+            <div className="p-2 rounded-xl bg-primary/10 backdrop-blur-sm">
+              <BookOpen strokeWidth={2.5} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+            </div>
+            <CardTitle className="text-sm sm:text-base font-bold text-primary">Total Classes</CardTitle>
           </div>
         </CardHeader>
-        <CardContent className="sm:px-6 h-fit flex flex-col">
-          <div className="h-[150px] flex flex-col items-center justify-center gap-3">
-            <BookOpen className="h-8 w-8 animate-spin text-primary" />
-            <div className="text-center">
-              <p className="text-sm font-medium text-foreground">Loading classes...</p>
-              <p className="text-xs text-muted-foreground mt-1">Please wait while we fetch classes</p>
+        
+        <CardContent className="px-4 sm:px-6 pb-4 relative z-10">
+          <div className="h-[180px] flex flex-col items-center justify-center gap-4">
+            {/* Pulsing icon with glow effect */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
+              <div className="relative p-4 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-sm">
+                <BookOpen className="h-10 w-10 text-primary animate-pulse" strokeWidth={2} />
+              </div>
+            </div>
+            
+            <div className="text-center space-y-2">
+              <div className="flex items-center gap-2 justify-center">
+                <div className="h-2 w-2 rounded-full bg-primary animate-bounce" />
+                <p className="text-sm font-semibold text-foreground">Loading classes data</p>
+                <div className="h-2 w-2 rounded-full bg-primary animate-bounce [animation-delay:0.2s]" />
+              </div>
+              <p className="text-xs text-muted-foreground">Fetching latest information...</p>
+            </div>
+            
+            {/* Skeleton stats */}
+            <div className="w-full max-w-[200px] space-y-2 mt-2">
+              <div className="h-3 bg-primary/10 rounded-full animate-pulse" />
+              <div className="h-3 bg-primary/10 rounded-full animate-pulse w-3/4" />
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col items-start px-6">
-          <div className="text-lg sm:text-lg font-bold text-muted-foreground/50">
-            Total Classes: <span className="text-primary/50">---</span>
+        
+        <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-gradient-to-r from-primary/5 to-transparent relative z-10">
+          <div className="flex items-baseline gap-2">
+            <span className="text-xs sm:text-sm font-medium text-muted-foreground">Total Classes:</span>
+            <div className="h-6 w-12 bg-primary/10 rounded animate-pulse" />
           </div>
-          <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-            Active classes
-          </p>
+          <p className="text-xs text-muted-foreground/70 mt-1">Loading statistics...</p>
         </CardFooter>
       </Card>
     );
@@ -61,37 +82,50 @@ export function TotalClassesCard({
   // Error state
   if (error) {
     return (
-      <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
-        <CardHeader className="flex flex-row items-center border-b justify-between space-y-0 px-6 pt-6">
-          <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-            <BookOpen strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-            <CardTitle className="text-sm sm:text-sm font-bold text-primary">Total Classes</CardTitle>
+      <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-red-50/20 overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3">
+          <div className="flex flex-row items-center gap-2">
+            <div className="p-2 rounded-xl bg-red-100">
+              <AlertCircle strokeWidth={2.5} className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
+            </div>
+            <CardTitle className="text-sm sm:text-base font-bold text-red-900">Total Classes</CardTitle>
           </div>
         </CardHeader>
-        <CardContent>
-          <Alert variant="destructive" className="mb-2 py-1">
-            <AlertDescription className="text-xs">
-              {error}
-            </AlertDescription>
-          </Alert>
-          {onRetry && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={onRetry}
-              className="text-xs h-7 px-2"
-            >
-              <RotateCw className="mr-1 h-3 w-3" /> Retry
-            </Button>
-          )}
-        </CardContent>
-        <CardFooter className="flex flex-col items-start px-6">
-          <div className="text-lg sm:text-lg font-bold text-muted-foreground/50">
-            Total Classes: <span className="text-primary/50">---</span>
+        
+        <CardContent className="px-4 sm:px-6 pb-4">
+          <div className="space-y-4">
+            {/* Error illustration */}
+            <div className="flex flex-col items-center justify-center py-6 gap-3">
+              <div className="p-4 rounded-2xl bg-red-100">
+                <AlertCircle className="h-12 w-12 text-red-600" strokeWidth={2} />
+              </div>
+              <div className="text-center space-y-1">
+                <p className="text-sm font-semibold text-red-900">Failed to load classes</p>
+                <p className="text-xs text-red-700/70 max-w-[250px]">{error}</p>
+              </div>
+            </div>
+            
+            {/* Retry button */}
+            {onRetry && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={onRetry}
+                className="w-full h-9 text-sm font-medium border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800 hover:border-red-300 transition-all duration-200"
+              >
+                <RotateCw className="mr-2 h-4 w-4" /> 
+                Retry Loading
+              </Button>
+            )}
           </div>
-          <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-            Active classes
-          </p>
+        </CardContent>
+        
+        <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-red-50/30">
+          <div className="flex items-baseline gap-2">
+            <span className="text-xs sm:text-sm font-medium text-muted-foreground">Total Classes:</span>
+            <span className="text-lg font-bold text-muted-foreground/40">---</span>
+          </div>
+          <p className="text-xs text-muted-foreground/70 mt-1">Data unavailable</p>
         </CardFooter>
       </Card>
     );
@@ -100,38 +134,48 @@ export function TotalClassesCard({
   // Empty state (0 classes)
   if (totalClasses === 0) {
     return (
-      <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
-        <CardHeader className="flex flex-row items-center border-b justify-between space-y-0 px-6 pt-6">
-          <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-            <BookOpen strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-            <CardTitle className="text-sm sm:text-sm font-bold text-primary">Total Classes</CardTitle>
+      <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-slate-50/50 overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3">
+          <div className="flex flex-row items-center gap-2">
+            <div className="p-2 rounded-xl bg-slate-100">
+              <BookOpen strokeWidth={2.5} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
+            </div>
+            <CardTitle className="text-sm sm:text-base font-bold text-slate-900">Total Classes</CardTitle>
           </div>
         </CardHeader>
-        <CardContent className="sm:px-6 h-fit flex flex-col">
-          <div className="h-[150px] flex flex-col items-center justify-center gap-3 text-center">
-            <div className="rounded-full bg-primary/10 p-4">
-              <BookOpen className="h-8 w-8 text-primary" />
+        
+        <CardContent className="px-4 sm:px-6 pb-4">
+          <div className="h-[180px] flex flex-col items-center justify-center gap-4 text-center">
+            {/* Empty state illustration */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-slate-200/50 rounded-full blur-2xl" />
+              <div className="relative p-5 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 border-2 border-dashed border-slate-300">
+                <BookOpen className="h-10 w-10 text-slate-400" strokeWidth={2} />
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-foreground">No classes</p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-xs">
-                No classes have been added
+            
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-slate-700">No classes yet</p>
+              <p className="text-xs text-muted-foreground max-w-[220px]">
+                Start by creating your first class to organize students
               </p>
+            </div>
+            
+            {/* Decorative dots */}
+            <div className="flex gap-1.5 mt-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+              <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+              <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col items-start px-6">
-          <div className="text-lg sm:text-lg font-bold">
-            Total Classes: <span className="text-primary">0</span>
+        
+        <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-slate-50/50">
+          <div className="flex items-baseline gap-2">
+            <span className="text-xs sm:text-sm font-medium text-muted-foreground">Total Classes:</span>
+            <span className="text-2xl font-bold text-slate-900">0</span>
           </div>
-          {typeof activeClasses === 'number' && (
-            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-              Active classes: {activeClasses}
-            </p>
-          )}
-          <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-            No classes
-          </p>
+          <p className="text-xs text-muted-foreground/70 mt-1">Ready to add classes</p>
         </CardFooter>
       </Card>
     );
@@ -139,64 +183,142 @@ export function TotalClassesCard({
 
   // Default state
   return (
-    <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
-      <CardHeader className="flex flex-row items-center border-b justify-between space-y-0 px-6 pt-6">
-        <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-          <BookOpen strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-          <CardTitle className="text-sm sm:text-sm font-bold text-primary">Total Classes</CardTitle>
+    <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white via-white to-primary/5 overflow-hidden hover:shadow-md transition-all duration-300 group">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3">
+        <div className="flex flex-row items-center gap-2">
+          <div className="p-2 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary/20 group-hover:to-primary/10 transition-all duration-300">
+            <BookOpen strokeWidth={2.5} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+          </div>
+          <CardTitle className="text-sm sm:text-base font-bold text-primary">Total Classes</CardTitle>
         </div>
+        {totalClasses > 0 && (
+          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700">
+            <Sparkles className="h-3 w-3" strokeWidth={2.5} />
+            <span className="text-xs font-semibold">Active</span>
+          </div>
+        )}
       </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{totalClasses}</div>
-        <p className="text-xs text-muted-foreground">Active classes overview</p>
-        {(hasSummaryDetails || (gradeDistribution?.length ?? 0) > 0 || (recentClasses?.length ?? 0) > 0) && (
-          <div className="mt-3 space-y-3 text-xs text-muted-foreground">
-            <div className="space-y-1">
-              {typeof activeClasses === 'number' && (
-                <p>Active classes: <span className="text-foreground font-medium">{activeClasses}</span></p>
-              )}
-              {typeof averageStudentsPerClass === 'number' && (
-                <p>Avg. students per class: <span className="text-foreground font-medium">{averageStudentsPerClass}</span></p>
-              )}
+      
+      <CardContent className="px-4 sm:px-6 pb-4">
+        {/* Main stat with gradient */}
+        <div className="mb-4">
+          <div className="flex items-baseline gap-2">
+            <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              {totalClasses}
             </div>
+            {typeof activeClasses === 'number' && activeClasses !== totalClasses && (
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <TrendingUp className="h-3 w-3" />
+                <span>{activeClasses} active</span>
+              </div>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">Total classes in system</p>
+        </div>
 
+        {/* Stats grid */}
+        {(hasSummaryDetails || (gradeDistribution?.length ?? 0) > 0 || (recentClasses?.length ?? 0) > 0) && (
+          <div className="space-y-4">
+            {/* Quick stats */}
+            {hasSummaryDetails && (
+              <div className="grid grid-cols-2 gap-2">
+                {typeof activeClasses === 'number' && (
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200/50">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="p-1 rounded-md bg-blue-200/50">
+                        <BookOpen className="h-3 w-3 text-blue-700" strokeWidth={2.5} />
+                      </div>
+                      <p className="text-[10px] font-semibold text-blue-900 uppercase tracking-wide">Active</p>
+                    </div>
+                    <p className="text-xl font-bold text-blue-900">{activeClasses}</p>
+                  </div>
+                )}
+                {typeof averageStudentsPerClass === 'number' && (
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100/50 border border-purple-200/50">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="p-1 rounded-md bg-purple-200/50">
+                        <Users className="h-3 w-3 text-purple-700" strokeWidth={2.5} />
+                      </div>
+                      <p className="text-[10px] font-semibold text-purple-900 uppercase tracking-wide">Avg Size</p>
+                    </div>
+                    <p className="text-xl font-bold text-purple-900">{averageStudentsPerClass}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Grade distribution */}
             {gradeDistribution && gradeDistribution.length > 0 && (
-              <div className="space-y-1">
-                <p className="text-foreground font-semibold text-[11px] uppercase tracking-tight">By grade</p>
-                <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-                  {gradeDistribution.slice(0, 4).map((item) => (
-                    <div key={item.grade} className="flex items-center justify-between">
-                      <span>{item.grade}</span>
-                      <span className="text-foreground font-medium">{item.count}</span>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+                  <p className="text-[10px] font-bold text-primary uppercase tracking-wider">By Grade</p>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {gradeDistribution.slice(0, 4).map((item, idx) => (
+                    <div 
+                      key={item.grade} 
+                      className="flex items-center justify-between p-2 rounded-lg bg-gradient-to-r from-slate-50 to-slate-100/50 hover:from-slate-100 hover:to-slate-200/50 transition-all duration-200"
+                      style={{ animationDelay: `${idx * 50}ms` }}
+                    >
+                      <span className="text-xs font-medium text-slate-700">{item.grade}</span>
+                      <span className="text-sm font-bold text-slate-900">{item.count}</span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
+            {/* Recent classes */}
             {recentClasses && recentClasses.length > 0 && (
-              <div className="space-y-1">
-                <p className="text-foreground font-semibold text-[11px] uppercase tracking-tight">Recent classes</p>
-                <ul className="space-y-1">
-                  {recentClasses.slice(0, 3).map((cls) => (
-                    <li key={cls.id} className="flex items-center justify-between">
-                      <span className="truncate">{cls.name}{cls.section ? ` (${cls.section})` : ''}</span>
-                      <span className="text-muted-foreground">{cls.activeStudents}</span>
-                    </li>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+                  <p className="text-[10px] font-bold text-primary uppercase tracking-wider">Recent</p>
+                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+                </div>
+                <div className="space-y-1.5">
+                  {recentClasses.slice(0, 3).map((cls, idx) => (
+                    <div 
+                      key={cls.id} 
+                      className="flex items-center justify-between p-2 rounded-lg bg-white border border-slate-200 hover:border-primary/30 hover:bg-primary/5 transition-all duration-200 group/item"
+                      style={{ animationDelay: `${idx * 50}ms` }}
+                    >
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className="p-1 rounded-md bg-primary/10 group-hover/item:bg-primary/20 transition-colors">
+                          <BookOpen className="h-3 w-3 text-primary" strokeWidth={2.5} />
+                        </div>
+                        <span className="text-xs font-medium text-slate-900 truncate">
+                          {cls.name}{cls.section ? ` (${cls.section})` : ''}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 group-hover/item:bg-primary/10 transition-colors">
+                        <Users className="h-3 w-3 text-slate-600" strokeWidth={2} />
+                        <span className="text-xs font-semibold text-slate-700">{cls.activeStudents}</span>
+                      </div>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             )}
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex flex-col items-start px-6">
-        <div className="text-lg sm:text-lg font-bold">
-          Total Classes: <span className="text-primary">{totalClasses}</span>
+      
+      <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-gradient-to-r from-primary/5 via-transparent to-transparent">
+        <div className="flex items-center gap-2 w-full">
+          <div className="flex-1">
+            <p className="text-xs text-muted-foreground">System Total</p>
+            <div className="flex items-baseline gap-2 mt-0.5">
+              <span className="text-2xl font-bold text-primary">{totalClasses}</span>
+              <span className="text-xs font-medium text-muted-foreground">classes</span>
+            </div>
+          </div>
+          <div className="p-2 rounded-xl bg-primary/10">
+            <BookOpen className="h-5 w-5 text-primary" strokeWidth={2} />
+          </div>
         </div>
-        <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-          Active classes
-        </p>
       </CardFooter>
     </Card>
   );

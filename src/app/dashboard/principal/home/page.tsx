@@ -257,7 +257,7 @@ export default function PrincipalHomePage() {
   const [hasFetchedData, setHasFetchedData] = useState(false)
   const [lastFetchTime, setLastFetchTime] = useState<number>(0)
   const [isFetching, setIsFetching] = useState(false)
-  const MIN_FETCH_INTERVAL = 10000 // 10 seconds minimum between fetches (optimized with caching)
+  const MIN_FETCH_INTERVAL = 3000 // 3 seconds minimum between fetches (optimized with caching)
   
   // Activity pagination and filtering
   const [activityPeriod, setActivityPeriod] = useState<string>('7')
@@ -276,18 +276,13 @@ export default function PrincipalHomePage() {
       return
     }
     
-    // Rate limiting check
-    const now = Date.now()
-    if (lastFetchTime && (now - lastFetchTime) < MIN_FETCH_INTERVAL) {
-      console.log('[Principal Dashboard] Rate limited, skipping fetch')
-      return
-    }
-    
     console.log('[Principal Dashboard] Initial data fetch')
     setHasFetchedData(true)
     
     // Create AbortController for cleanup
     const abortController = new AbortController()
+    
+    // OPTIMIZATION: Start fetch immediately without rate limiting on initial load
     fetchDashboardData(abortController.signal)
     
     // Cleanup function
@@ -322,25 +317,31 @@ export default function PrincipalHomePage() {
       
       console.log('[Principal Dashboard] Fetching data...')
       
-      // Fetch stats first (priority) with caching (30 seconds cache)
+      // Fetch stats first (priority) with aggressive caching (5 minutes cache)
       const statsCacheKey = getDashboardCacheKey('principal/stats')
-      const statsResult = await fetchWithCache('/api/dashboard/principal/stats', statsCacheKey, 20 * 1000, signal)
+      const statsResult = await fetchWithCache('/api/dashboard/principal/stats', statsCacheKey, 5 * 60 * 1000, signal)
+      
+      // OPTIMIZATION: If we have cached data, hide loading immediately and show cached content
+      if (statsResult.fromCache) {
+        console.log('[Principal Dashboard] Using cached data - hiding loading state')
+        setIsLoading(false)
+      }
       
       // Fetch non-critical data in parallel with optimized cache times
-      // Activity: 30 seconds (frequently changing)
-      // Trends: 2 minutes (less frequently changing)
-      // Lists : 1 minute (moderate update frequency)
+      // Activity: 2 minutes (frequently changing)
+      // Trends: 10 minutes (less frequently changing)
+      // Lists : 5 minutes (moderate update frequency)
       const [activityResult, trendsResult, attendanceTrendsResult, teachersResult, feeRecordsResult, paymentTrendsResult, eventsResult, messagesResult, classesResult, staffResult] = await Promise.all([
-        fetchWithCache('/api/dashboard/principal/activity', getDashboardCacheKey('principal/activity'), 30 * 1000, signal),
-        fetchWithCache('/api/dashboard/principal/enrollment-trends', getDashboardCacheKey('principal/enrollment-trends'), 2 * 60 * 1000, signal),
-        fetchWithCache('/api/dashboard/principal/attendance-trends', getDashboardCacheKey('principal/attendance-trends'), 2 * 60 * 1000, signal),
-        fetchWithCache('/api/dashboard/principal/teachers', getDashboardCacheKey('principal/teachers'), 60 * 1000, signal),
-        fetchWithCache('/api/dashboard/principal/fee-records', getDashboardCacheKey('principal/fee-records'), 60 * 1000, signal),
-        fetchWithCache('/api/dashboard/principal/payment-trends', getDashboardCacheKey('principal/payment-trends'), 2 * 60 * 1000, signal),
-        fetchWithCache('/api/dashboard/principal/events', getDashboardCacheKey('principal/events'), 60 * 1000, signal),
-        fetchWithCache('/api/dashboard/principal/messages', getDashboardCacheKey('principal/messages'), 30 * 1000, signal),
-        fetchWithCache('/api/dashboard/principal/classes', getDashboardCacheKey('principal/classes'), 60 * 1000, signal),
-        fetchWithCache('/api/dashboard/principal/staff', getDashboardCacheKey('principal/staff'), 60 * 1000, signal)
+        fetchWithCache('/api/dashboard/principal/activity', getDashboardCacheKey('principal/activity'), 2 * 60 * 1000, signal),
+        fetchWithCache('/api/dashboard/principal/enrollment-trends', getDashboardCacheKey('principal/enrollment-trends'), 10 * 60 * 1000, signal),
+        fetchWithCache('/api/dashboard/principal/attendance-trends', getDashboardCacheKey('principal/attendance-trends'), 10 * 60 * 1000, signal),
+        fetchWithCache('/api/dashboard/principal/teachers', getDashboardCacheKey('principal/teachers'), 5 * 60 * 1000, signal),
+        fetchWithCache('/api/dashboard/principal/fee-records', getDashboardCacheKey('principal/fee-records'), 5 * 60 * 1000, signal),
+        fetchWithCache('/api/dashboard/principal/payment-trends', getDashboardCacheKey('principal/payment-trends'), 10 * 60 * 1000, signal),
+        fetchWithCache('/api/dashboard/principal/events', getDashboardCacheKey('principal/events'), 5 * 60 * 1000, signal),
+        fetchWithCache('/api/dashboard/principal/messages', getDashboardCacheKey('principal/messages'), 2 * 60 * 1000, signal),
+        fetchWithCache('/api/dashboard/principal/classes', getDashboardCacheKey('principal/classes'), 5 * 60 * 1000, signal),
+        fetchWithCache('/api/dashboard/principal/staff', getDashboardCacheKey('principal/staff'), 5 * 60 * 1000, signal)
       ])
 
       let statsLoaded = false

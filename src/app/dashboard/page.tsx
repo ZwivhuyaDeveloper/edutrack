@@ -250,14 +250,16 @@ function DashboardContent() {
 
   // Function to check for role-specific alerts
   const checkRoleAlerts = useCallback((user: DatabaseUser) => {
-    const currentTimestamp = Date.now()
+    // Use a static timestamp for informational alerts (version-based)
+    // Change this timestamp when you want to show the alert again to all users
+    const STATIC_ALERT_VERSION = 1700000000000 // Static timestamp for v1 alerts
     
     switch (user.role) {
       case 'TEACHER':
         // Check if teacher profile is incomplete
         if (!user.teacherProfile?.department || !user.teacherProfile?.employeeId) {
           const alertId = `teacher-profile-incomplete-${user.id}`
-          const alertTimestamp = user.updatedAt ? new Date(user.updatedAt).getTime() : currentTimestamp
+          const alertTimestamp = user.updatedAt ? new Date(user.updatedAt).getTime() : Date.now()
           
           if (!isAlertDismissed(alertId, alertTimestamp)) {
             setRoleAlert({
@@ -277,7 +279,7 @@ function DashboardContent() {
       case 'STUDENT':
         // Check if student has pending assignments or low grades
         const studentAlertId = `student-welcome-${user.id}`
-        const studentTimestamp = currentTimestamp
+        const studentTimestamp = STATIC_ALERT_VERSION // Use static timestamp
         
         if (!isAlertDismissed(studentAlertId, studentTimestamp)) {
           setRoleAlert({
@@ -296,7 +298,7 @@ function DashboardContent() {
       case 'PRINCIPAL':
         // Check for important school metrics or pending approvals
         const principalAlertId = `principal-overview-${user.id}`
-        const principalTimestamp = currentTimestamp
+        const principalTimestamp = STATIC_ALERT_VERSION // Use static timestamp
         
         if (!isAlertDismissed(principalAlertId, principalTimestamp)) {
           setRoleAlert({
@@ -315,7 +317,7 @@ function DashboardContent() {
       case 'PARENT':
         // Check for student updates or messages
         const parentAlertId = `parent-updates-${user.id}`
-        const parentTimestamp = currentTimestamp
+        const parentTimestamp = STATIC_ALERT_VERSION // Use static timestamp
         
         if (!isAlertDismissed(parentAlertId, parentTimestamp)) {
           setRoleAlert({
@@ -397,13 +399,11 @@ function DashboardContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clerkUser, router])
 
-  // Load page components based on user role
+  // Load page components based on user role - OPTIMIZED with lazy loading
   useEffect(() => {
     if (!dbUser) return
 
     const loadComponents = async () => {
-      const components = {} as Partial<Record<PageType, React.ComponentType>>
-
       // Get role-specific page map
       const rolePages = rolePageMap[dbUser.role]
       
@@ -412,26 +412,60 @@ function DashboardContent() {
         return
       }
 
-      for (const [pageType, importFn] of Object.entries(rolePages)) {
+      // OPTIMIZATION 1: Load active page first (priority)
+      const activePageImport = rolePages[activePage]
+      if (activePageImport) {
         try {
-          const mod = await importFn()
-          components[pageType as PageType] = mod.default
+          console.log(`[Dashboard] Loading active page: ${activePage}`)
+          const mod = await activePageImport()
+          setPageComponents(prev => ({ ...prev, [activePage]: mod.default }))
         } catch (error) {
-          console.error(`Failed to load ${pageType} page for ${dbUser.role}:`, error)
-          // Fallback to a simple error component
-          components[pageType as PageType] = () => (
-            <div className="flex items-center justify-center h-full">
-              <p className="text-muted-foreground">Page not found</p>
-            </div>
-          )
+          console.error(`Failed to load ${activePage} page:`, error)
+          setPageComponents(prev => ({
+            ...prev,
+            [activePage]: () => (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-muted-foreground">Page not found</p>
+              </div>
+            )
+          }))
         }
       }
 
-      setPageComponents(components)
+      // OPTIMIZATION 2: Load other pages in parallel in the background (non-blocking)
+      setTimeout(() => {
+        const otherPages = Object.entries(rolePages).filter(([pageType]) => pageType !== activePage)
+        
+        Promise.all(
+          otherPages.map(async ([pageType, importFn]) => {
+            try {
+              const mod = await importFn()
+              return { pageType: pageType as PageType, component: mod.default }
+            } catch (error) {
+              console.error(`Failed to load ${pageType} page:`, error)
+              return {
+                pageType: pageType as PageType,
+                component: () => (
+                  <div className="flex items-center justify-center h-full">
+                    <p className="text-muted-foreground">Page not found</p>
+                  </div>
+                )
+              }
+            }
+          })
+        ).then(loadedPages => {
+          const components = {} as Partial<Record<PageType, React.ComponentType>>
+          loadedPages.forEach(({ pageType, component }) => {
+            components[pageType] = component
+          })
+          setPageComponents(prev => ({ ...prev, ...components }))
+          console.log(`[Dashboard] Background loaded ${loadedPages.length} pages`)
+        })
+      }, 100) // Small delay to prioritize active page rendering
     }
 
     loadComponents()
-  }, [dbUser])
+  }, [dbUser, activePage])
 
   const renderPageContent = () => {
     const Component = PageComponents[activePage]
