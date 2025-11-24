@@ -176,35 +176,48 @@ export function FeePaymentsChart({
   // Enhanced Empty State
   if (!data || data.length === 0) {
     return (
-      <Card className="border-none shadow-none bg-transparent h-full">
-        <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
-          <div className="flex flex-1 flex-row items-center justify-start gap-2 pl-4 py-1 sm:py-1">
-            <IconMoneybagPlus strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-            <CardTitle className="text-primary text-sm font-semibold">Fee Payments Trend</CardTitle>
+      <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-slate-50/50 overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3">
+          <div className="flex flex-row items-center gap-2">
+            <div className="p-2 rounded-xl bg-slate-100">
+              <IconMoneybagPlus strokeWidth={2.5} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
+            </div>
+            <CardTitle className="text-sm sm:text-base font-bold text-slate-900">Fee Payments Trend</CardTitle>
           </div>
         </CardHeader>
-        <CardContent className="flex flex-col gap-10 p-0 justify-between h-full">
-          <div className="px-3 sm:px-5 h-[200px] flex flex-col items-center justify-center gap-3 text-center">
-            <div className="rounded-full bg-primary/10 p-4">
-              <DollarSign className="h-8 w-8 text-primary" />
+        
+        <CardContent className="px-4 sm:px-6 pb-4">
+          <div className="h-[180px] flex flex-col items-center justify-center gap-4 text-center">
+            {/* Empty state illustration */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-slate-200/50 rounded-full blur-2xl" />
+              <div className="relative p-5 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 border-2 border-dashed border-slate-300">
+                <IconMoneybagPlus className="h-10 w-10 text-slate-400" strokeWidth={2} />
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-foreground">No payment data available</p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-xs">
-                Start collecting fees to see payment trends and statistics
+            
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-slate-700">No payments yet</p>
+              <p className="text-xs text-muted-foreground max-w-[220px]">
+                Start by creating assignments for your classes
               </p>
+            </div>
+            
+            {/* Decorative dots */}
+            <div className="flex gap-1.5 mt-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+              <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+              <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex-col items-start gap-2 px-3">
-          <div className="flex flex-col h-fit gap-0 px-3">
-            <div className="text-md sm:text-lg font-bold">
-              Total Paid: <span className="text-primary text-md">$0.00</span>
-            </div>
-            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-              No collections recorded
-            </p>
+        
+        <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-slate-50/50">
+          <div className="flex items-baseline gap-2">
+            <span className="text-xs sm:text-sm font-medium text-muted-foreground">Total Payments:</span>
+            <span className="text-2xl font-bold text-slate-900">0</span>
           </div>
+          <p className="text-xs text-muted-foreground/70 mt-1">Ready to add payments</p>
         </CardFooter>
       </Card>
     )

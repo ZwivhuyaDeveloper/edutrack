@@ -560,17 +560,36 @@ export default function PrincipalAcademicPage() {
               ))}
             </div>
           ) : (
-            <Card className="border-none shadow-none h-full">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No classes found</h3>
-                <p className="text-muted-foreground text-center mb-4">
-                  Create your first class to get started with academic management.
-                </p>
-                <Button onClick={() => setIsCreateModalOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Class
-                </Button>
+            <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-slate-50/50 overflow-hidden">
+              <CardContent className="px-4 sm:px-6 py-12">
+                <div className="flex flex-col items-center justify-center gap-4 text-center">
+                  {/* Empty state illustration */}
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-slate-200/50 rounded-full blur-2xl" />
+                    <div className="relative p-5 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 border-2 border-dashed border-slate-300">
+                      <BookOpen className="h-12 w-12 text-slate-400" strokeWidth={2} />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-slate-900">No classes found</h3>
+                    <p className="text-sm text-muted-foreground max-w-[300px]">
+                      Create your first class to get started with academic management.
+                    </p>
+                  </div>
+                  
+                  {/* Decorative dots */}
+                  <div className="flex gap-1.5 mt-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                  </div>
+                  
+                  <Button onClick={() => setIsCreateModalOpen(true)} className="mt-4 bg-primary text-white hover:bg-primary/90">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Class
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -595,17 +614,36 @@ export default function PrincipalAcademicPage() {
               ))}
             </div>
           ) : (
-            <Card className="border-none shadow-none h-full">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <GraduationCap className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No subjects found</h3>
-                <p className="text-muted-foreground text-center mb-4">
-                  Add subjects to organize your curriculum.
-                </p>
-                <Button onClick={() => setIsCreateModalOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Subject
-                </Button>
+            <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-slate-50/50 overflow-hidden">
+              <CardContent className="px-4 sm:px-6 py-12">
+                <div className="flex flex-col items-center justify-center gap-4 text-center">
+                  {/* Empty state illustration */}
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-slate-200/50 rounded-full blur-2xl" />
+                    <div className="relative p-5 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 border-2 border-dashed border-slate-300">
+                      <GraduationCap className="h-12 w-12 text-slate-400" strokeWidth={2} />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-slate-900">No subjects found</h3>
+                    <p className="text-sm text-muted-foreground max-w-[300px]">
+                      Add subjects to organize your curriculum.
+                    </p>
+                  </div>
+                  
+                  {/* Decorative dots */}
+                  <div className="flex gap-1.5 mt-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                  </div>
+                  
+                  <Button onClick={() => setIsCreateModalOpen(true)} className="mt-4 bg-primary text-white hover:bg-primary/90">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Subject
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -630,13 +668,31 @@ export default function PrincipalAcademicPage() {
               ))}
             </div>
           ) : (
-            <Card className="border-none shadow-none h-full">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No assignments found</h3>
-                <p className="text-muted-foreground text-center mb-4">
-                  Assignments will appear here as teachers create them.
-                </p>
+            <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-slate-50/50 overflow-hidden">
+              <CardContent className="px-4 sm:px-6 py-12">
+                <div className="flex flex-col items-center justify-center gap-4 text-center">
+                  {/* Empty state illustration */}
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-slate-200/50 rounded-full blur-2xl" />
+                    <div className="relative p-5 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 border-2 border-dashed border-slate-300">
+                      <FileText className="h-12 w-12 text-slate-400" strokeWidth={2} />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-slate-900">No assignments found</h3>
+                    <p className="text-sm text-muted-foreground max-w-[300px]">
+                      Assignments will appear here as teachers create them.
+                    </p>
+                  </div>
+                  
+                  {/* Decorative dots */}
+                  <div className="flex gap-1.5 mt-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -681,9 +737,28 @@ export default function PrincipalAcademicPage() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8">
-                  <BarChart3 className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-muted-foreground">No recent grades</p>
+                <div className="flex flex-col items-center justify-center gap-4 text-center py-12">
+                  {/* Empty state illustration */}
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-slate-200/50 rounded-full blur-2xl" />
+                    <div className="relative p-5 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 border-2 border-dashed border-slate-300">
+                      <BarChart3 className="h-10 w-10 text-slate-400" strokeWidth={2} />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-slate-700">No recent grades</p>
+                    <p className="text-xs text-muted-foreground max-w-[220px]">
+                      Grade entries will appear here as teachers add them
+                    </p>
+                  </div>
+                  
+                  {/* Decorative dots */}
+                  <div className="flex gap-1.5 mt-2">
+                    <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                    <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                  </div>
                 </div>
               )}
             </CardContent>
