@@ -758,7 +758,7 @@ export default function PrincipalHomePage() {
       <div className="grid space-y-3 sm:space-y-4 max-w-full  h-full bg-transparent rounded-2xl sm:rounded-3xl lg:grid-cols-1">
 
       {/* Stats Cards */}
-      <div className="grid md:gap-3 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3 w-full">
+      <div className="grid md:gap-3 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-3 w-full">
 
         <Card className="border-none shadow-sm gap-5 pb-0 pt-0 mb-0 bg-white">
             <StudentEnrollmentChart
@@ -775,14 +775,14 @@ export default function PrincipalHomePage() {
           />
         </Card>
 
-        <Card className="border-none shadow-sm pt-0 mb-0 bg-white">
+        <Card className="border-none hidden shadow-sm pt-0 mb-0 bg-white">
           <FeePaymentsChart
             data={paymentTrends}
             isLoading={isLoading}
           />
         </Card>
 
-        <Card className="border-none shadow-sm pt-0 mb-0 bg-white">
+        <Card className="border-none hidden shadow-sm pt-0 mb-0 bg-white">
           <PendingFeesCard
             feeRecords={feeRecords}
             totalPending={stats.pendingFees}
@@ -793,10 +793,10 @@ export default function PrincipalHomePage() {
       </div>
 
             {/* Additional Stats */}
-      <div className="grid gap-3 sm:gap-3 w-full md:gap-3 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-3 w-full md:gap-3 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
 
 
-        <Card className="border-none shadow-sm pt-0 bg-white">
+        <Card className="border-none hidden shadow-sm pt-0 bg-white">
           <UnreadMessagesCard
             messages={messages}
             totalUnread={stats.unreadMessages}
@@ -805,7 +805,7 @@ export default function PrincipalHomePage() {
           />
         </Card>
 
-        <Card className="border-none shadow-sm pt-0 bg-white">
+        <Card className="border-none hidden shadow-sm pt-0 bg-white">
           <UpcomingEventsCard
             events={events}
             totalEvents={stats.upcomingEvents}

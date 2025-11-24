@@ -149,6 +149,56 @@ export function AverageGradeCard({
     );
   }
 
+  // Empty state (0 average grade)
+  if (averageGrade === 0) {
+    return (
+      <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-slate-50/50 overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3">
+          <div className="flex flex-row items-center gap-2">
+            <div className="p-2 rounded-xl bg-slate-100">
+              <Award strokeWidth={2.5} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
+            </div>
+            <CardTitle className="text-sm sm:text-base font-bold text-slate-900">Average Grade</CardTitle>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="px-4 sm:px-6 pb-4">
+          <div className="h-[180px] flex flex-col items-center justify-center gap-4 text-center">
+            {/* Empty state illustration */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-slate-200/50 rounded-full blur-2xl" />
+              <div className="relative p-5 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 border-2 border-dashed border-slate-300">
+                <Award className="h-10 w-10 text-slate-400" strokeWidth={2} />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-slate-700">No grades yet</p>
+              <p className="text-xs text-muted-foreground max-w-[220px]">
+                Start grading students to see average performance
+              </p>
+            </div>
+            
+            {/* Decorative dots */}
+            <div className="flex gap-1.5 mt-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+              <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+              <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+            </div>
+          </div>
+        </CardContent>
+        
+        <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-slate-50/50">
+          <div className="flex items-baseline gap-2">
+            <span className="text-xs sm:text-sm font-medium text-muted-foreground">Average Grade:</span>
+            <span className="text-2xl font-bold text-slate-900">0%</span>
+          </div>
+          <p className="text-xs text-muted-foreground/70 mt-1">Ready to add grades</p>
+        </CardFooter>
+      </Card>
+    );
+  }
+
   // Default state
   return (
     <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white via-white to-primary/5 overflow-hidden hover:shadow-md transition-all duration-300 group">
