@@ -9,7 +9,7 @@
 
 import * as React from "react"
 import { TrendingUp, Users, AlertCircle, Loader2, BarChart3, RotateCw } from "lucide-react"
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import {
   Card,
   CardContent,
@@ -308,7 +308,7 @@ export function AttendanceChart({
   }
 
   return (
-    <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white via-white to-primary/5 overflow-hidden hover:shadow-md transition-all duration-300 group">
+    <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white via-white to-slate-100 overflow-hidden hover:shadow-md transition-all duration-300 group">
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b px-1 sm:flex-row">
         <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
           <div className="p-2 rounded-xl bg-slate-100">
@@ -360,6 +360,7 @@ export function AttendanceChart({
         >
           <BarChart
             accessibilityLayer
+            height={80}
             data={validChartData}
             margin={{
               left: 12,
@@ -371,12 +372,13 @@ export function AttendanceChart({
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="date"
+              type="category"
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              angle={-45}
+              angle={0}
               textAnchor="end"
-              height={60}
+              height={80}
               tick={{ fontSize: 10 }}
               interval={Math.max(0, Math.floor(validChartData.length / 10))}
             />

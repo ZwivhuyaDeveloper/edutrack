@@ -9,7 +9,7 @@
 
 import * as React from "react"
 import { Users, AlertCircle, TrendingUp, Loader2 } from "lucide-react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import {
   Card,
   CardContent,
@@ -197,7 +197,7 @@ export function StudentEnrollmentChart({
           </div>
           <CardTitle className="text-sm sm:text-base font-bold text-slate-900">Student Enrollment Trend</CardTitle>
         </div>
-        </CardHeader>
+      </CardHeader>
 
         <CardContent className="px-4 sm:px-6 pb-4">
             <div className="h-[180px] flex flex-col items-center justify-center gap-4 text-center">
@@ -237,13 +237,13 @@ export function StudentEnrollmentChart({
 
   // Default state
   return (
-    <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white via-white to-primary/5 overflow-hidden hover:shadow-md transition-all duration-300 group" >
+    <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white via-white to-slate-100 overflow-hidden hover:shadow-md transition-all duration-300 group" >
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b px-1 sm:flex-row">
         <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
           <div className="p-2 rounded-xl bg-slate-100">
             <Users strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
           </div>
-          <CardTitle className="text-sm sm:text-sm w-full font-semibold text-black">Student Enrollment Trend</CardTitle>
+          <CardTitle className="text-md sm:text-md w-full font-semibold text-black">Student Enrollment Trend</CardTitle>
         </div>
 
         <div className="flex">
@@ -300,6 +300,7 @@ export function StudentEnrollmentChart({
               content={<ChartTooltipContent indicator="line" />}
             />
             <CartesianGrid vertical={false} />
+
             <XAxis
               dataKey="month"
               tickLine={false}
@@ -307,7 +308,6 @@ export function StudentEnrollmentChart({
               tickMargin={8}
               tickFormatter={(value) => value.slice(0, 3)}
             />
-
             <Area
               dataKey="students"
               type="natural"
@@ -334,10 +334,10 @@ export function StudentEnrollmentChart({
       </CardContent>
       <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-slate-50/30">
         <div className="flex w-full flex-col gap-1">
-          <div className="text-lg sm:text-lg font-bold">
+          <div className="text-2xl sm:text-2xl font-bold">
             Total Students: <span className="text-primary">{totalStudents}</span>
           </div>
-          <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+          <p className="text-sm sm:text-sm font-medium text-muted-foreground">
             Active enrollments
           </p>
         </div>

@@ -748,7 +748,7 @@ function DashboardContent() {
         />
       </div>
       
-      <SidebarInset className="bg-zinc-100 shadow-md h-full w-full max-w-full pb-16 md:pb-0 overflow-x-hidden">
+      <SidebarInset className="bg-slate-100 shadow-md h-full w-full max-w-full pb-16 md:pb-0 overflow-x-hidden">
 
         {/* Header */}
         <header className="flex h-auto max-w-full md:h-14 lg:h-16 shrink-0 bg-white rounded-2xl md:rounded-4xl lg:rounded-6xl shadow-none 

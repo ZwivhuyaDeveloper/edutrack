@@ -64,11 +64,13 @@ export function ClassesOverviewCard({
   // Enhanced Loading State
   if (isLoading) {
     return (
-      <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
-        <CardHeader className="flex flex-row items-center border-b justify-between space-y-0 px-6 pt-6 pb-3">
-          <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-            <BookOpen strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-            <CardTitle className="text-sm sm:text-sm font-semibold text-primary">Classes Overview</CardTitle>
+      <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-slate-50/50 overflow-hidden relative">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 relative z-10">
+          <div className="flex flex-row items-center gap-2">
+            <div className="p-2 rounded-xl bg-slate-100">
+              <BookOpen strokeWidth={2} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
+            </div>
+            <CardTitle className="text-sm sm:text-base font-bold text-slate-900">Classes Overview</CardTitle>
           </div>
           <Button 
             variant="default" 
@@ -79,22 +81,40 @@ export function ClassesOverviewCard({
             See All
           </Button>
         </CardHeader>
-        <CardContent className="px-6 pb-6 pt-0">
-          <div className="h-[200px] flex flex-col items-center justify-center gap-3">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <div className="text-center">
-              <p className="text-sm font-medium text-foreground">Loading classes...</p>
-              <p className="text-xs text-muted-foreground mt-1">Please wait while we fetch class information</p>
+        <CardContent className="px-4 sm:px-6 pb-4 relative z-10">
+          <div className="h-[180px] flex flex-col items-center justify-center gap-4 text-center">
+            {/* Loading illustration */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-slate-100 rounded-full blur-xl animate-pulse" />
+              <div className="relative p-5 rounded-2xl bg-gradient-to-br from-slate-200/10 to-slate-200/5 border-2 border-dashed border-slate-100/30 backdrop-blur-sm">
+                <Users strokeWidth={2} className="h-10 w-10 text-primary animate-pulse" />
+              </div>
+            </div>
+
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm justify-center">
+                <div className="h-2 w-2 rounded-full bg-primary animate-bounce" />
+                <p className="text-sm font-semibold text-foreground">Loading classes data</p>
+                <div className="h-2 w-2 rounded-full bg-primary animate-bounce [animation-delay:0.2s]" />
+              </div>
+              <p className="text-xs text-muted-foreground max-w-[220px]">Please wait while we fetch the latest statistics</p>
+            </div>
+
+            {/* Decorative dots */}
+            <div className="flex gap-1.5 mt-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-primary/40 animate-pulse" />
+              <div className="h-1.5 w-1.5 rounded-full bg-primary/40 animate-pulse [animation-delay:0.2s]" />
+              <div className="h-1.5 w-1.5 rounded-full bg-primary/40 animate-pulse [animation-delay:0.4s]" />
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col items-start px-6">
-          <div className="text-lg sm:text-lg font-bold text-muted-foreground/50">
-            Total Classes: <span className="text-primary/50">---</span>
+        <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-blue-50/30 relative z-10">
+          <div className="flex items-baseline gap-2">
+            <span className="text-xs sm:text-sm font-medium text-muted-foreground">Total Classes:</span>
+            <div className="h-6 w-12 bg-primary/10 rounded animate-pulse" />
           </div>
-          <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-            --- subjects across all classes
-          </p>
+          <p className="text-xs text-muted-foreground/70 mt-1">Loading statistics...</p>
         </CardFooter>
       </Card>
     )
@@ -103,27 +123,21 @@ export function ClassesOverviewCard({
   // Enhanced Error State
   if (error) {
     return (
-      <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
-        <CardHeader className="flex flex-row items-center border-b justify-between space-y-0 px-6 pt-6 pb-3">
-          <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-            <BookOpen strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-            <CardTitle className="text-sm sm:text-sm font-semibold text-primary">Classes Overview</CardTitle>
+      <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-red-50/20 overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3">
+        <div className="flex flex-row items-center gap-2">
+          <div className="p-2 rounded-xl bg-slate-100">
+            <BookOpen strokeWidth={2} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
           </div>
-          <Button 
-            variant="default" 
-            size="sm" 
-            className="border-primary hidden text-xs h-7 px-2 sm:px-3"
-            onClick={onSeeAll}
-          >
-            See All
-          </Button>
+          <CardTitle className="text-sm sm:text-base font-bold text-slate-900">Classes Overview</CardTitle>
+        </div>
         </CardHeader>
-        <CardContent className="px-6 pb-6 pt-0">
+        <CardContent className="px-3 hidden sm:px-5">
           <div className="h-[200px] flex items-center justify-center">
             <Alert variant="destructive" className="max-w-md">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription className="ml-2">
-                <p className="font-medium">Failed to load classes</p>
+                <p className="font-medium">Failed to load classes data</p>
                 <p className="text-xs mt-1">{error}</p>
                 {onRetry && (
                   <Button 
@@ -139,13 +153,15 @@ export function ClassesOverviewCard({
             </Alert>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col items-start px-6">
-          <div className="text-lg sm:text-lg font-bold text-muted-foreground/50">
-            Total Classes: <span className="text-primary/50">---</span>
+        <CardFooter className="flex-col h-fit items-start gap-2 px-6 pt-0">
+          <div className="flex w-full h-fit flex-col gap-0">
+            <div className="text-lg sm:text-lg font-bold text-muted-foreground/50">
+              Total Classes: <span className="text-primary/50">---</span>
+            </div>
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground">
+              Data unavailable
+            </p>
           </div>
-          <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-            Data unavailable
-          </p>
         </CardFooter>
       </Card>
     )
@@ -154,12 +170,14 @@ export function ClassesOverviewCard({
   // Enhanced Empty State
   if (!classes || classes.length === 0) {
     return (
-      <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
-        <CardHeader className="flex flex-row items-center border-b justify-between space-y-0 px-6 pt-6 pb-3">
-          <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-            <BookOpen strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-            <CardTitle className="text-sm sm:text-sm font-semibold text-primary">Classes Overview</CardTitle>
+      <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-slate-50/50 overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3">
+        <div className="flex flex-row items-center gap-2">
+          <div className="p-2 rounded-xl bg-slate-100">
+            <BookOpen strokeWidth={2} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
           </div>
+          <CardTitle className="text-sm sm:text-base font-bold text-slate-900">Classes Overview</CardTitle>
+        </div>
           <Button 
             variant="default" 
             size="sm" 
@@ -169,10 +187,10 @@ export function ClassesOverviewCard({
             See All
           </Button>
         </CardHeader>
-        <CardContent className="px-6 pb-6 pt-0">
+        <CardContent className="px-6 pb-6 hidden pt-0">
           <div className="h-[200px] flex flex-col items-center justify-center gap-3 text-center">
             <div className="rounded-full bg-primary/10 p-4">
-              <GraduationCap className="h-8 w-8 text-primary" />
+              <BookOpen className="h-8 w-8 text-primary" />
             </div>
             <div>
               <p className="text-sm font-medium text-foreground">No classes found</p>
@@ -195,11 +213,13 @@ export function ClassesOverviewCard({
   }
 
   return (
-    <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
+    <Card className="border-none shadow-none justify-start h-full gap-5 h-full pt-0">
       <CardHeader className="flex flex-row border-b items-center justify-between space-y-0 px-6 pt-6 pb-3">
-        <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-          <BookOpen strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-          <CardTitle className="text-sm sm:text-msm font-semibold text-primary">Classes Overview</CardTitle>
+        <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
+          <div className="p-2 rounded-xl bg-slate-100">
+            <BookOpen strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
+          </div>
+          <CardTitle className="text-sm sm:text-sm w-full font-semibold text-black">Classes Overview</CardTitle>
         </div>
         <Button 
           variant="default" 
@@ -210,7 +230,7 @@ export function ClassesOverviewCard({
           See All
         </Button>
       </CardHeader>
-      <CardContent className="px-6 pb-6 pt-0">
+      <CardContent className="px-4 hidden sm:px-6 pb-4">
         {/* Classes List */}
         <div className="space-y-3">
           {classes.slice(0, maxDisplay).map((classItem) => (
@@ -252,14 +272,17 @@ export function ClassesOverviewCard({
       </CardContent>
 
       {/* Total Count Footer */}
-      <CardFooter className="flex flex-col items-start px-6 ">
+      <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-slate-50/30">
+      <div className="flex w-full flex-col gap-1">
         <div className="text-lg sm:text-lg font-bold">
           Total Classes: <span className="text-primary">{totalClasses}</span>
         </div>
         <p className="text-xs sm:text-sm font-medium text-muted-foreground">
           {totalSubjects} subjects across all classes
         </p>
+      </div>
       </CardFooter>
     </Card>
   )
 }
+
