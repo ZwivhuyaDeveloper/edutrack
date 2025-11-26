@@ -718,15 +718,15 @@ export default function PrincipalHomePage() {
       )}
  
       {/* Header */}
-      <header className="items-center hidden  space-x-2 md:grid-cols-2 lg:grid-cols-2 p-2 justify-between">
-        <div className="space-y-1 bg-white h-full">
-          <h1 className="text-xl md:text-2xl lg:text-3xl text-primary font-bold tracking-tight">Principal Dashboard</h1>
-          <p className="text-xs md:text-sm lg:text-base text-muted-foreground">
+      <header className="flex items-center p-3 rounded-2xl shadow-sm bg-white mb-3 justify-between">
+        <div className="p-3 gap-2">
+          <h1 className="text-3xl text-primary font-bold tracking-tight">Principal Dashboard</h1>
+          <p className="text-muted-foreground">
             Welcome back! Here&apos;s what&apos;s happening at your school today.
           </p>
         </div>
       {/* Quick Actions */}
-      <Card className="border-none  shadow-none bg-white">
+      <Card className="border-none hidden  shadow-none bg-white">
         <CardHeader className="p-3 border-b sm:p-6">
           <CardTitle className="text-base sm:text-base lg:text-lg font-semibold flex flex-row items-center gap-2 text-primary">
             <MouseIcon strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
@@ -760,71 +760,52 @@ export default function PrincipalHomePage() {
       {/* Stats Cards */}
       <div className="grid md:gap-3 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-3 w-full">
 
-        <Card className="border-none shadow-sm gap-5 pb-0 pt-0 mb-0 bg-white">
-            <StudentEnrollmentChart
-              data={enrollmentTrends}
-              isLoading={isLoading}
-            />
-        </Card>
-
-        <Card className="border-none shadow-sm gap-5 pt-0 mb-0 bg-white">
-          {/* Attendance Trend Chart */}
-          <AttendanceChart
-            data={attendanceTrends}
-            isLoading={isLoading}
-          />
-        </Card>
-
-        <Card className="border-none hidden shadow-sm pt-0 mb-0 bg-white">
-          <FeePaymentsChart
-            data={paymentTrends}
-            isLoading={isLoading}
-          />
-        </Card>
-
-        <Card className="border-none hidden shadow-sm pt-0 mb-0 bg-white">
-          <PendingFeesCard
-            feeRecords={feeRecords}
-            totalPending={stats.pendingFees}
-            isLoading={isLoading}
-          />
-        </Card>
+        <StudentEnrollmentChart
+          data={enrollmentTrends}
+          isLoading={isLoading}
+        />
+        <AttendanceChart
+          data={attendanceTrends}
+          isLoading={isLoading}
+        />
+        {/*
+        <FeePaymentsChart
+          data={paymentTrends}
+          isLoading={isLoading}
+        />
+        <PendingFeesCard
+          feeRecords={feeRecords}
+          totalPending={stats.pendingFees}
+          isLoading={isLoading}
+        />
+        */}
 
       </div>
 
             {/* Additional Stats */}
       <div className="grid gap-3 sm:gap-3 w-full md:gap-3 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
 
-
-        <Card className="border-none hidden shadow-sm pt-0 bg-white">
+          {/*
           <UnreadMessagesCard
             messages={messages}
             totalUnread={stats.unreadMessages}
             isLoading={isLoading}
             maxDisplay={3}
           />
-        </Card>
-
-        <Card className="border-none hidden shadow-sm pt-0 bg-white">
           <UpcomingEventsCard
             events={events}
             totalEvents={stats.upcomingEvents}
             isLoading={isLoading}
             maxDisplay={3}
           />
-        </Card>
-
-        <Card className="border-none shadow-sm pt-0 bg-white">
+          */}
           <ClassesOverviewCard
             classes={classes}
             totalClasses={stats.totalClasses}
             totalSubjects={stats.totalSubjects}
             isLoading={isLoading}
             maxDisplay={4}
-        />
-        </Card>
-
-        <Card className="border-none shadow-sm pt-0 bg-white">
+          />
           <StaffOverviewCard
             staff={staff}
             totalTeachers={stats.totalTeachers}
@@ -832,7 +813,6 @@ export default function PrincipalHomePage() {
             isLoading={isLoading}
             maxDisplay={4}
           />
-        </Card>
 
       </div>
 

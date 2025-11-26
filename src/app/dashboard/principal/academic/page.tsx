@@ -453,8 +453,8 @@ export default function PrincipalAcademicPage() {
           </p>
         </div>
         <Button onClick={() => setIsCreateModalOpen(true)}
-          className='bg-primary text-white mr-2'
-          >
+          className='bg-primary hidden text-white mr-2'
+        >
           <UserPlus className="h-4 w-4 mr-2" />
           Add {activeTab}
         </Button>
@@ -478,14 +478,12 @@ export default function PrincipalAcademicPage() {
           error={error}
           onRetry={fetchStats}
         />
-
         <AssignmentsCard
           totalAssignments={stats?.totalAssignments || 0}
           isLoading={isLoading}
           error={error}
           onRetry={fetchStats}
         />
-
         <AverageGradeCard
           averageGrade={stats?.averageGrade || 0}
           isLoading={isLoading}

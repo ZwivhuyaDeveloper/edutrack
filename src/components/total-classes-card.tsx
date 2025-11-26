@@ -31,7 +31,6 @@ export function TotalClassesCard({
       <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-blue-50/30 overflow-hidden relative">
         {/* Animated gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-100/20 to-transparent animate-shimmer" />
-        
         <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 relative z-10">
           <div className="flex flex-row items-center gap-2">
             <div className="p-2 rounded-xl bg-primary/10 backdrop-blur-sm">
@@ -40,7 +39,6 @@ export function TotalClassesCard({
             <CardTitle className="text-sm sm:text-base font-bold text-primary">Total Classes</CardTitle>
           </div>
         </CardHeader>
-        
         <CardContent className="px-4 sm:px-6 pb-4 relative z-10">
           <div className="h-[180px] flex flex-col items-center justify-center gap-4 text-center">
             {/* Loading state illustration */}
@@ -199,7 +197,7 @@ export function TotalClassesCard({
           <div className="p-2 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary/20 group-hover:to-primary/10 transition-all duration-300">
             <BookOpen strokeWidth={2.5} className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
           </div>
-          <CardTitle className="text-sm sm:text-base font-bold text-primary">Total Classes</CardTitle>
+          <CardTitle className="text-sm sm:text-base font-semibold text-primary">Total Classes</CardTitle>
         </div>
         {totalClasses > 0 && (
           <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700">

@@ -89,7 +89,6 @@ const rolePageMap: Record<string, Partial<Record<PageType, () => Promise<{ defau
     people: () => import("./principal/people/page").then(mod => ({ default: mod.default })),
     academic: () => import("./principal/academic/page").then(mod => ({ default: mod.default })),
     operations: () => import("./principal/operations/page").then(mod => ({ default: mod.default })),
-    communication: () => import("./principal/communication/page").then(mod => ({ default: mod.default })),
     settings: () => import("./principal/settings/page").then(mod => ({ default: mod.default })),
   },
   PARENT: {

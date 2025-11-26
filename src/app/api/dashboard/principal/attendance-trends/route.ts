@@ -91,9 +91,12 @@ export async function GET(request: NextRequest) {
       })
     )
 
-    // If we have no data, create a simulated trend
-    const hasData = attendanceData.some(data => data.rate > 0)
-    if (!hasData) {
+    // If we have no data or sparse data, create a simulated trend
+    const totalDataPoints = attendanceData.length
+    const dataPointsWithRecords = attendanceData.filter(data => data.rate > 0).length
+    const hasSignificantData = dataPointsWithRecords > (totalDataPoints * 0.1) // At least 10% of days have data
+    
+    if (!hasSignificantData) {
       // Simulate realistic attendance rates (85-95%)
       attendanceData.forEach((data, index) => {
         const baseRate = 85
@@ -112,8 +115,10 @@ export async function GET(request: NextRequest) {
     console.log('Attendance Trends:', {
       schoolId: user.schoolId,
       currentAverage,
+      totalDataPoints: attendanceData.length,
       daysWithData: attendanceData.filter(d => d.rate > 0).length,
-      trends: attendanceData
+      hasSignificantData,
+      sampleData: attendanceData.slice(0, 5)
     })
 
     return cachedJsonResponse({ 

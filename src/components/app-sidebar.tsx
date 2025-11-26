@@ -58,11 +58,6 @@ export const getRoleBasedNavigation = (userRole: string) => {
           icon: Users,
         },
         {
-          title: "Communication",
-          url: "#",
-          icon: MessageCirclePlus,
-        },
-        {
           title: "Operations",
           url: "#",
           icon: Settings,
@@ -86,11 +81,6 @@ export const getRoleBasedNavigation = (userRole: string) => {
           title: "People",
           url: "#",
           icon: Users,
-        },
-        {
-          title: "Communication",
-          url: "#",
-          icon: MessageCirclePlus,
         },
         {
           title: "Operations",
@@ -118,11 +108,6 @@ export const getRoleBasedNavigation = (userRole: string) => {
           icon: Users,
         },
         {
-          title: "Communication",
-          url: "#",
-          icon: MessageCirclePlus,
-        },
-        {
           title: "Operations",
           url: "#",
           icon: Settings,
@@ -148,11 +133,6 @@ export const getRoleBasedNavigation = (userRole: string) => {
           icon: Users,
         },
         {
-          title: "Communication",
-          url: "#",
-          icon: MessageCirclePlus,
-        },
-        {
           title: "Operations",
           url: "#",
           icon: Settings,
@@ -176,11 +156,6 @@ export const getRoleBasedNavigation = (userRole: string) => {
           title: "People",
           url: "#",
           icon: Users,
-        },
-        {
-          title: "Communication",
-          url: "#",
-          icon: MessageCirclePlus,
         },
         {
           title: "Operations",

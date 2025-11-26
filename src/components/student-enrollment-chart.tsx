@@ -88,40 +88,52 @@ export function StudentEnrollmentChart({
   // Enhanced Loading State
   if (isLoading) {
     return (
-      <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-slate-50/50 overflow-hidden">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3">
+      <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-slate-50/50 overflow-hidden relative">
+        {/* Animated gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r hidden from-transparent via-blue-100/20 to-transparent animate-shimmer -z-10" />
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 relative z-10">
           <div className="flex flex-row items-center gap-2">
-            <div>
-              <Users strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <div className="p-2 rounded-xl bg-slate-100">
+              <Users strokeWidth={2} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
             </div>
-           <CardTitle className="text-sm sm:text-base font-bold text-slate-900">Student Enrollment Trend</CardTitle>
+            <CardTitle className="text-sm sm:text-base font-bold text-slate-900">Student Enrollment Trend</CardTitle>
           </div>
         </CardHeader>
-
-        <CardContent className="px-4 sm:px-6 pb-4">
+        <CardContent className="px-4 sm:px-6 pb-4 relative z-10">
           <div className="h-[180px] flex flex-col items-center justify-center gap-4 text-center">
-            {/* Empty state illustration */}
+            {/* Loading illustration */}
             <div className="relative">
-              <div className="absolute inset-0 bg-slate-200/50 rounded-full blur-2xl" />
-              <div className="relative p-5 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 border-2 border-dashed border-slate-300">
-                <Users strokeWidth={2} className="h-10 w-10 text-slate-400" />
+              <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
+              <div className="relative p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-dashed border-primary/30 backdrop-blur-sm">
+                <Users strokeWidth={2} className="h-10 w-10 text-primary animate-pulse" />
               </div>
             </div>
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <div className="text-center">
-              <p className="text-sm font-medium text-foreground">Loading enrollment data...</p>
-              <p className="text-xs text-muted-foreground mt-1">Please wait while we fetch the latest statistics</p>
+
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm justify-center">
+                <div className="h-2 w-2 rounded-full bg-primary animate-bounce" />
+                <p className="text-sm font-semibold text-foreground">Loading enrollment data</p>
+                <div className="h-2 w-2 rounded-full bg-primary animate-bounce [animation-delay:0.2s]" />
+              </div>
+              <p className="text-xs text-muted-foreground max-w-[220px]">Please wait while we fetch the latest statistics</p>
+            </div>
+
+            {/* Decorative dots */}
+            <div className="flex gap-1.5 mt-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-primary/40 animate-pulse" />
+              <div className="h-1.5 w-1.5 rounded-full bg-primary/40 animate-pulse [animation-delay:0.2s]" />
+              <div className="h-1.5 w-1.5 rounded-full bg-primary/40 animate-pulse [animation-delay:0.4s]" />
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-slate-50/50">
+
+        <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-blue-50/30 relative z-10">
           <div className="flex items-baseline gap-2">
             <span className="text-xs sm:text-sm font-medium text-muted-foreground">Total Students:</span>
-            <span className="text-lg sm:text-lg font-bold text-muted-foreground/50">
-              <span className="text-primary/50">---</span>
-            </span>
+            <div className="h-6 w-12 bg-primary/10 rounded animate-pulse" />
           </div>
-          <p className="text-xs text-muted-foreground/70 mt-1">Active enrollments</p>
+          <p className="text-xs text-muted-foreground/70 mt-1">Loading statistics...</p>
         </CardFooter>
       </Card>
     )
@@ -132,10 +144,12 @@ export function StudentEnrollmentChart({
     return (
       <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-red-50/20 overflow-hidden">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3">
-          <div className="flex flex-row items-center gap-2">
-            <Users strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-            <CardTitle className="text-sm sm:text-base font-bold text-primary">Student Enrollment Trend</CardTitle>
+        <div className="flex flex-row items-center gap-2">
+          <div className="p-2 rounded-xl bg-slate-100">
+            <Users strokeWidth={2} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
           </div>
+          <CardTitle className="text-sm sm:text-base font-bold text-slate-900">Student Enrollment Trend</CardTitle>
+        </div>
         </CardHeader>
         <CardContent className="px-3 sm:px-5">
           <div className="h-[200px] flex items-center justify-center">
@@ -175,16 +189,17 @@ export function StudentEnrollmentChart({
   // Enhanced Empty State
   if (!data || data.length === 0) {
     return (
-    <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white via-white to-primary/5 overflow-hidden hover:shadow-md transition-all duration-300 group">
+    <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-slate-50/50 overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3">
         <div className="flex flex-row items-center gap-2">
-          <div>
-            <Users strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+          <div className="p-2 rounded-xl bg-slate-100">
+            <Users strokeWidth={2} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
           </div>
-          <CardTitle className="text-sm sm:text-base font-bold text-primary">Student Enrollment Trend</CardTitle>
+          <CardTitle className="text-sm sm:text-base font-bold text-slate-900">Student Enrollment Trend</CardTitle>
         </div>
         </CardHeader>
-        <CardContent className="px-3 sm:px-5">
+
+        <CardContent className="px-4 sm:px-6 pb-4">
             <div className="h-[180px] flex flex-col items-center justify-center gap-4 text-center">
             {/*Empty state illustration*/}
             <div>
@@ -220,15 +235,17 @@ export function StudentEnrollmentChart({
     )
   }
 
+  // Default state
   return (
-    <Card className="bg-transparent border-none shadow-none h-full" >
+    <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white via-white to-primary/5 overflow-hidden hover:shadow-md transition-all duration-300 group" >
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b px-1 sm:flex-row">
         <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
-          <Users strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-          <CardDescription className="text-sm sm:text-sm w-full font-bold text-primary">
-            Student Enrollment Trend
-          </CardDescription>
+          <div className="p-2 rounded-xl bg-slate-100">
+            <Users strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
+          </div>
+          <CardTitle className="text-sm sm:text-sm w-full font-semibold text-black">Student Enrollment Trend</CardTitle>
         </div>
+
         <div className="flex">
           <div className="relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-1 py-1  sm:border-l sm:border-t-0 sm:px-2 sm:py-1">
             <Select value={timeRange} onValueChange={setTimeRange}>
@@ -265,7 +282,7 @@ export function StudentEnrollmentChart({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-3 sm:px-5">
+      <CardContent className="px-4 sm:px-6 pb-4">
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[200px] w-full"
@@ -315,7 +332,7 @@ export function StudentEnrollmentChart({
           </AreaChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 px-6 pt-0 pb-0 ">
+      <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-slate-50/30">
         <div className="flex w-full flex-col gap-1">
           <div className="text-lg sm:text-lg font-bold">
             Total Students: <span className="text-primary">{totalStudents}</span>
