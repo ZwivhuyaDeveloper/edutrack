@@ -308,7 +308,7 @@ export function AttendanceChart({
   }
 
   return (
-    <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white via-white to-slate-100 overflow-hidden hover:shadow-md transition-all duration-300 group">
+    <Card className="shadow-sm border-none h-full rounded-2xl bg-gradient-to-br from-white via-white to-slate-100 overflow-hidden hover:shadow-md transition-all duration-300 group">
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b px-1 sm:flex-row">
         <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
           <div className="p-2 rounded-xl bg-slate-100">
@@ -353,14 +353,13 @@ export function AttendanceChart({
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-4 sm:px-6 pb-4">
+      <CardContent className="px-4 sm:px-6 h-fit pb-4">
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[200px] w-full"
         >
           <BarChart
             accessibilityLayer
-            height={80}
             data={validChartData}
             margin={{
               left: 12,
