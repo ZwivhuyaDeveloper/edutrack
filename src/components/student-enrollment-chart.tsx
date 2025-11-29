@@ -88,13 +88,12 @@ export function StudentEnrollmentChart({
   // Enhanced Loading State
   if (isLoading) {
     return (
-      <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-slate-50/50 overflow-hidden relative">
+      <Card className="shadow-sm border-none rounded-2xl bg-white overflow-hidden relative">
         {/* Animated gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r hidden from-transparent via-blue-100/20 to-transparent animate-shimmer -z-10" />
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 relative z-10">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 relative">
           <div className="flex flex-row items-center gap-2">
-            <div className="p-2 rounded-xl bg-slate-100">
-              <Users strokeWidth={2} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
+            <div className="p-2 rounded-xl">
+              <Users strokeWidth={2.5} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
             </div>
             <CardTitle className="text-sm sm:text-base font-bold text-slate-900">Student Enrollment Trend</CardTitle>
           </div>
@@ -104,12 +103,10 @@ export function StudentEnrollmentChart({
             {/* Loading illustration */}
             <div className="relative">
               <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
-              <div className="relative p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-dashed border-primary/30 backdrop-blur-sm">
+              <div className="relative p-5 rounded-2xl bg-primary/5 border-2 border-dashed border-primary/30 backdrop-blur-sm">
                 <Users strokeWidth={2} className="h-10 w-10 text-primary animate-pulse" />
               </div>
-            </div>
-
-            
+            </div>            
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm justify-center">
                 <div className="h-2 w-2 rounded-full bg-primary animate-bounce" />
@@ -128,7 +125,7 @@ export function StudentEnrollmentChart({
           </div>
         </CardContent>
 
-        <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-blue-50/30 relative z-10">
+        <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-white relative">
           <div className="flex items-baseline gap-2">
             <span className="text-xs sm:text-sm font-medium text-muted-foreground">Total Students:</span>
             <div className="h-6 w-12 bg-primary/10 rounded animate-pulse" />
@@ -142,20 +139,21 @@ export function StudentEnrollmentChart({
   // Enhanced Error State
   if (error) {
     return (
-      <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-red-50/20 overflow-hidden">
+      <Card className="shadow-sm border-none rounded-2xl bg-white overflow-hidden">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3">
         <div className="flex flex-row items-center gap-2">
-          <div className="p-2 rounded-xl bg-slate-100">
-            <Users strokeWidth={2} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
+          <div className="p-2 rounded-xl bg-red-100">
+            <Users strokeWidth={2.5} className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
           </div>
-          <CardTitle className="text-sm sm:text-base font-bold text-slate-900">Student Enrollment Trend</CardTitle>
+          <CardTitle className="text-sm sm:text-base font-bold text-red-900">Student Enrollment Trend</CardTitle>
         </div>
         </CardHeader>
-        <CardContent className="px-3 sm:px-5">
+
+        <CardContent className="px-4 sm:px-6 pb-4">
           <div className="h-[200px] flex items-center justify-center">
             <Alert variant="destructive" className="max-w-md">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="ml-2">
+              <AlertDescription className="ml-2 text-red-900">
                 <p className="font-medium">Failed to load enrollment data</p>
                 <p className="text-xs mt-1">{error}</p>
                 {onRetry && (
@@ -163,7 +161,7 @@ export function StudentEnrollmentChart({
                     onClick={onRetry} 
                     variant="outline" 
                     size="sm" 
-                    className="mt-3 w-full"
+                    className="mt-2 h-9 text-sm font-medium border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800 hover:border-red-300 transition-all duration-200"
                   >
                     Try Again
                   </Button>
@@ -172,7 +170,7 @@ export function StudentEnrollmentChart({
             </Alert>
           </div>
         </CardContent>
-        <CardFooter className="flex-col h-fit items-start gap-2 px-6 pt-0">
+        <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-red-50/30">
           <div className="flex w-full h-fit flex-col gap-0">
             <div className="text-lg sm:text-lg font-bold text-muted-foreground/50">
               Total Students: <span className="text-primary/50">---</span>
@@ -189,7 +187,7 @@ export function StudentEnrollmentChart({
   // Enhanced Empty State
   if (!data || data.length === 0) {
     return (
-    <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-slate-50/50 overflow-hidden">
+    <Card className="shadow-sm border-none rounded-2xl bg-white overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3">
         <div className="flex flex-row items-center gap-2">
           <div className="p-2 rounded-xl bg-slate-100">
@@ -204,8 +202,8 @@ export function StudentEnrollmentChart({
             {/*Empty state illustration*/}
             <div>
               <div className="absolute inset-0 bg-slate-200/50 rounded-full blur-2xl" />
-              <div className="relative p-5 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 border-2 border-dashed border-slate-300">
-                <TrendingUp className="h-8 w-8 text-primary" />
+              <div className="relative p-5 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-300">
+                <TrendingUp strokeWidth={2.5} className="h-8 w-8 text-primary" />
               </div>
             </div>
 
@@ -224,7 +222,7 @@ export function StudentEnrollmentChart({
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-slate-50/50">
+        <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-white">
           <div className="flex items-baseline gap-2">
             <span className="text-xs sm:text-sm font-medium text-muted-foreground">Total Students:</span>
             <span className="text-2xl font-bold text-slate-900">0</span>
@@ -237,11 +235,11 @@ export function StudentEnrollmentChart({
 
   // Default state
   return (
-    <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white via-white to-slate-100 overflow-hidden hover:shadow-md transition-all duration-300 group" >
+    <Card className="shadow-sm border-none rounded-2xl bg-white overflow-hidden hover:shadow-md transition-all duration-300 group" >
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b px-1 sm:flex-row">
         <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
           <div className="p-2 rounded-xl bg-slate-100">
-            <Users strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
+            <Users strokeWidth={2.5} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
           </div>
           <CardTitle className="text-md sm:text-md w-full font-semibold text-black">Student Enrollment Trend</CardTitle>
         </div>
@@ -332,7 +330,7 @@ export function StudentEnrollmentChart({
           </AreaChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-slate-50/30">
+      <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-white">
         <div className="flex w-full flex-col gap-1">
           <div className="text-2xl sm:text-2xl font-bold">
             Total Students: <span className="text-primary">{totalStudents}</span>

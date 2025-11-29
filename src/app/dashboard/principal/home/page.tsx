@@ -720,7 +720,7 @@ export default function PrincipalHomePage() {
       {/* Header */}
       <header className="flex items-center p-3 rounded-2xl shadow-sm bg-white mb-3 justify-between">
         <div className="p-3 gap-2">
-          <h1 className="text-3xl text-primary font-bold tracking-tight">Principal Dashboard</h1>
+          <h1 className="text-3xl text-black font-bold tracking-tight">Principal Dashboard</h1>
           <p className="text-muted-foreground">
             Welcome back! Here&apos;s what&apos;s happening at your school today.
           </p>
@@ -755,10 +755,10 @@ export default function PrincipalHomePage() {
 
       {/* Content Container */}
 
-      <div className="grid space-y-3 sm:space-y-4 max-w-full  h-full bg-transparent rounded-2xl sm:rounded-3xl lg:grid-cols-1">
+      <div className="grid space-y-3 sm:space-y-4 max-w-full h-full rounded-2xl sm:rounded-3xl lg:grid-cols-1">
 
       {/* Stats Cards */}
-      <div className="grid md:gap-3 grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3 sm:gap-3 w-full">
+      <div className="grid md:gap-3 grid-cols-1 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-3 sm:gap-3 w-full">
 
         <StudentEnrollmentChart
           data={enrollmentTrends}
@@ -768,6 +768,22 @@ export default function PrincipalHomePage() {
           data={attendanceTrends}
           isLoading={isLoading}
         />
+        <div className='flex flex-col gap-2'>
+          <ClassesOverviewCard
+            classes={classes}
+            totalClasses={stats.totalClasses}
+            totalSubjects={stats.totalSubjects}
+            isLoading={isLoading}
+            maxDisplay={4}
+          />
+          <StaffOverviewCard
+            staff={staff}
+            totalTeachers={stats.totalTeachers}
+            totalClerks={totalClerks}
+            isLoading={isLoading}
+            maxDisplay={4}
+          />
+        </div>
         {/*
         <FeePaymentsChart
           data={paymentTrends}
@@ -799,20 +815,6 @@ export default function PrincipalHomePage() {
             maxDisplay={3}
           />
           */}
-          <ClassesOverviewCard
-            classes={classes}
-            totalClasses={stats.totalClasses}
-            totalSubjects={stats.totalSubjects}
-            isLoading={isLoading}
-            maxDisplay={4}
-          />
-          <StaffOverviewCard
-            staff={staff}
-            totalTeachers={stats.totalTeachers}
-            totalClerks={totalClerks}
-            isLoading={isLoading}
-            maxDisplay={4}
-          />
 
       </div>
 

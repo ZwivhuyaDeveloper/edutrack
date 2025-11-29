@@ -7,6 +7,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -106,25 +107,17 @@ export function RecentActivityCard({
   // Enhanced Loading State
   if (isLoading) {
     return (
-      <Card className="border-none shadow-sm bg-white">
-        <CardHeader className="space-y-3 sm:space-y-4 border-b pb-3 sm:pb-4 p-3 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+      <Card className="shadow-sm border-none rounded-2xl bg-white overflow-hidden relative">
+        <CardHeader className="">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justispace-y-3 sm:space-y-4 border-b pb-3 sm:pb-4 p-3 sm:p-6fy-between gap-3 sm:gap-4">
             <div className="flex flex-col gap-1 sm:gap-2">
-              <CardTitle className="text-base sm:text-base lg:text-lg font-bold flex flex-row items-center gap-2 text-primary">
+              <div>
                 <ActivityIcon strokeWidth={3} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                Recent Activity
-              </CardTitle>
+              </div>
+              <CardTitle className="text-sm sm:text-base font-bold text-slate-900">Recent Activity</CardTitle>
               <CardDescription className="text-sm sm:text-md font-medium text-muted-foreground">
                 Latest updates from your school
               </CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm sm:text-md text-muted-foreground hidden sm:inline">Period:</span>
-              <Select value={period} onValueChange={onPeriodChange} disabled>
-                <SelectTrigger className="w-full sm:w-fit gap-2 h-8 sm:h-9 text-xs sm:text-sm bg-primary text-white border-primary [&>svg]:text-white">
-                  <SelectValue placeholder="Select period" />
-                </SelectTrigger>
-              </Select>
             </div>
           </div>
         </CardHeader>
@@ -186,45 +179,56 @@ export function RecentActivityCard({
   // Enhanced Empty State
   if (!activities || activities.length === 0) {
     return (
-      <Card className="border-none shadow-sm bg-white">
-        <CardHeader className="space-y-3 sm:space-y-4 border-b pb-3 sm:pb-4 p-3 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-            <div className="flex flex-col gap-1 sm:gap-2">
-              <CardTitle className="text-base sm:text-base lg:text-lg font-bold flex flex-row items-center gap-2 text-primary">
-                <ActivityIcon strokeWidth={3} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                Recent Activity
-              </CardTitle>
-              <CardDescription className="text-sm sm:text-md font-medium text-muted-foreground">
-                Latest updates from your school
-              </CardDescription>
+      <Card className="shadow-sm border-none rounded-2xl bg-white overflow-hidden">
+        <CardHeader className="flex flex-row w-full items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3">
+         <div className="flex flex-row items-center gap-2">
+           <div className="p-2 rounded-xl bg-slate-100">
+             <ActivityIcon strokeWidth={2} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
+           </div>
+           <CardTitle className="text-sm sm:text-base font-bold text-slate-900">Recent Activity</CardTitle>
+         </div>
+
+          {onPeriodChange && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm sm:text-md text-muted-foreground hidden sm:inline">Period:</span>
+              <Select value={period} onValueChange={onPeriodChange}>
+                <SelectTrigger className="w-full sm:w-fit gap-2 h-8 sm:h-9 text-xs sm:text-sm bg-primary text-white border-primary [&>svg]:text-white">
+                  <SelectValue placeholder="Select period" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">Today</SelectItem>
+                  <SelectItem value="7">Last 7 days</SelectItem>
+                  <SelectItem value="14">Last 14 days</SelectItem>
+                  <SelectItem value="30">Last 30 days</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            {onPeriodChange && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm sm:text-md text-muted-foreground hidden sm:inline">Period:</span>
-                <Select value={period} onValueChange={onPeriodChange}>
-                  <SelectTrigger className="w-full sm:w-fit gap-2 h-8 sm:h-9 text-xs sm:text-sm bg-primary text-white border-primary [&>svg]:text-white">
-                    <SelectValue placeholder="Select period" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">Today</SelectItem>
-                    <SelectItem value="7">Last 7 days</SelectItem>
-                    <SelectItem value="14">Last 14 days</SelectItem>
-                    <SelectItem value="30">Last 30 days</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
+          )}
+
         </CardHeader>
-        <CardContent className="p-3 sm:p-6 pt-0">
-          <div className="text-center py-6 sm:py-8">
-            <div className="rounded-full bg-muted p-2 sm:p-3 w-fit mx-auto mb-2 sm:mb-3">
-              <Clock strokeWidth={3} className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+        <CardContent className="px-4 sm:px-6 pb-4">
+            <div className="h-[180px] flex flex-col items-center justify-center gap-4 text-center">
+            {/*Empty state illustration*/}
+            <div>
+              <div className="absolute inset-0 bg-slate-200/50 rounded-full blur-2xl" />
+              <div className="relative p-5 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-300">
+                <ActivityIcon strokeWidth={2.5} className="h-8 w-8 text-primary" />
+              </div>
             </div>
-            <p className="text-sm font-medium mb-1">No recent activity</p>
-            <p className="text-xs text-muted-foreground">
-              Activity from {getPeriodLabel(period).toLowerCase()} will appear here
-            </p>
+
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-slate-700">No recent data available</p>
+              <p className="text-xs text-muted-foreground max-w-[220px]">
+                Your recent data will appear here
+              </p>
+            </div>
+            
+            {/* Decorative dots */}
+            <div className="flex gap-1.5 mt-2">
+              <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+              <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+              <div className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -232,18 +236,13 @@ export function RecentActivityCard({
   }
 
   return (
-    <Card className="border-none shadow-sm bg-white">
-      <CardHeader className="space-y-3 sm:space-y-4 border-b pb-3 sm:pb-4 p-3 sm:p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-          <div className="flex flex-col gap-1 sm:gap-2">
-            <CardTitle className="text-base sm:text-base lg:text-lg font-bold flex flex-row items-center gap-2 text-primary">
-              <ActivityIcon strokeWidth={3} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-              Recent Activity
-            </CardTitle>
-            <CardDescription className="text-sm sm:text-md font-medium text-muted-foreground">
-              Latest updates from your school
-            </CardDescription>
+    <Card className="shadow-sm border-none rounded-2xl bg-white overflow-hidden hover:shadow-md transition-all duration-300 group" >
+      <CardHeader className="flex flex-col items-stretch space-y-0 border-b px-1 sm:flex-row">
+        <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
+          <div className="p-2 rounded-xl bg-slate-100">
+            <ActivityIcon strokeWidth={2.5} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
           </div>
+            <CardDescription className="text-sm sm:text-md font-medium text-muted-foreground">Recent Activity</CardDescription>
           
           {/* Period Filter */}
           {onPeriodChange && (

@@ -64,11 +64,11 @@ export function ClassesOverviewCard({
   // Enhanced Loading State
   if (isLoading) {
     return (
-      <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-slate-50/50 overflow-hidden relative">
+      <Card className="shadow-sm border-none rounded-2xl bg-white overflow-hidden relative">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 relative z-10">
           <div className="flex flex-row items-center gap-2">
             <div className="p-2 rounded-xl bg-slate-100">
-              <BookOpen strokeWidth={2} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
+              <BookOpen strokeWidth={2.5} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
             </div>
             <CardTitle className="text-sm sm:text-base font-bold text-slate-900">Classes Overview</CardTitle>
           </div>
@@ -86,8 +86,8 @@ export function ClassesOverviewCard({
             {/* Loading illustration */}
             <div className="relative">
               <div className="absolute inset-0 bg-slate-100 rounded-full blur-xl animate-pulse" />
-              <div className="relative p-5 rounded-2xl bg-gradient-to-br from-slate-200/10 to-slate-200/5 border-2 border-dashed border-slate-100/30 backdrop-blur-sm">
-                <Users strokeWidth={2} className="h-10 w-10 text-primary animate-pulse" />
+              <div className="relative p-5 rounded-2xl bg-slate-200/5 border-2 border-dashed border-slate-100/30 backdrop-blur-sm">
+                <Users strokeWidth={2.5} className="h-10 w-10 text-primary animate-pulse" />
               </div>
             </div>
 
@@ -109,7 +109,7 @@ export function ClassesOverviewCard({
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-blue-50/30 relative z-10">
+        <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-white relative z-10">
           <div className="flex items-baseline gap-2">
             <span className="text-xs sm:text-sm font-medium text-muted-foreground">Total Classes:</span>
             <div className="h-6 w-12 bg-primary/10 rounded animate-pulse" />
@@ -123,11 +123,11 @@ export function ClassesOverviewCard({
   // Enhanced Error State
   if (error) {
     return (
-      <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-red-50/20 overflow-hidden">
+      <Card className="shadow-sm border-none rounded-2xl bg-white overflow-hidden">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3">
         <div className="flex flex-row items-center gap-2">
           <div className="p-2 rounded-xl bg-slate-100">
-            <BookOpen strokeWidth={2} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
+            <BookOpen strokeWidth={2.5} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
           </div>
           <CardTitle className="text-sm sm:text-base font-bold text-slate-900">Classes Overview</CardTitle>
         </div>
@@ -170,11 +170,11 @@ export function ClassesOverviewCard({
   // Enhanced Empty State
   if (!classes || classes.length === 0) {
     return (
-      <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-slate-50/50 overflow-hidden">
+      <Card className="shadow-sm border-none rounded-2xl bg-white overflow-hidden">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3">
         <div className="flex flex-row items-center gap-2">
           <div className="p-2 rounded-xl bg-slate-100">
-            <BookOpen strokeWidth={2} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
+            <BookOpen strokeWidth={2.5} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
           </div>
           <CardTitle className="text-sm sm:text-base font-bold text-slate-900">Classes Overview</CardTitle>
         </div>
@@ -213,22 +213,24 @@ export function ClassesOverviewCard({
   }
 
   return (
-    <Card className="border-none shadow-none justify-start h-full gap-5 h-full pt-0">
-      <CardHeader className="flex flex-row border-b items-center justify-between space-y-0 px-6 pt-6 pb-3">
+    <Card className="border-none shadow-none bg-white justify-start h-full gap-5 pt-0">
+      <CardHeader className="flex flex-row border-b items-center justify-between space-y-0 px-2 pt-6 pb-3">
         <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
           <div className="p-2 rounded-xl bg-slate-100">
-            <BookOpen strokeWidth={3} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
+            <BookOpen strokeWidth={2.5} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
           </div>
           <CardTitle className="text-sm sm:text-sm w-full font-semibold text-black">Classes Overview</CardTitle>
         </div>
-        <Button 
-          variant="default" 
-          size="sm" 
-          className="border-primary text-xs h-7 px-2 sm:px-3"
-          onClick={onSeeAll}
-        >
-          See All
-        </Button>
+        <div className="flex pr-5">
+          <Button 
+            variant="default" 
+            size="sm" 
+            className="border-primary text-xs h-7 px-2 sm:px-3"
+            onClick={onSeeAll}
+          >
+            See All
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="px-4 hidden sm:px-6 pb-4">
         {/* Classes List */}
@@ -272,9 +274,9 @@ export function ClassesOverviewCard({
       </CardContent>
 
       {/* Total Count Footer */}
-      <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-slate-50/30">
+      <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3  bg-white">
       <div className="flex w-full flex-col gap-1">
-        <div className="text-lg sm:text-lg font-bold">
+        <div className="text-2xl sm:text-2xl font-bold">
           Total Classes: <span className="text-primary">{totalClasses}</span>
         </div>
         <p className="text-xs sm:text-sm font-medium text-muted-foreground">

@@ -57,39 +57,21 @@ export function StaffOverviewCard({
   // Enhanced Loading State
   if (isLoading) {
     return (
-      <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
-        <CardHeader className="flex flex-row border-b items-center justify-between space-y-0 px-6 pt-6 pb-3">
-          <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-            <GraduationCap strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-            <CardTitle className="text-sm sm:text-sm font-semibold text-primary">Staff Overview</CardTitle>
-          </div>
-          <Button 
-            variant="default" 
-            size="sm" 
-            className="border-primary hidden text-xs h-7 px-2 sm:px-3"
-            onClick={onSeeAll}
-          >
-            See All
-          </Button>
-        </CardHeader>
-        <CardContent className="px-6 pb-6 pt-0">
-          <div className="h-[200px] flex flex-col items-center justify-center gap-3">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <div className="text-center">
-              <p className="text-sm font-medium text-foreground">Loading staff...</p>
-              <p className="text-xs text-muted-foreground mt-1">Please wait while we fetch staff information</p>
+      <Card className="shadow-sm border-none rounded-2xl bg-white overflow-hidden relative">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 relative z-10">
+          <div className="flex flex-row items-center gap-2">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <GraduationCap strokeWidth={2.5} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
             </div>
+            <CardTitle className="text-sm sm:text-base font-bold text-slate-900">Staff Overview</CardTitle>
           </div>
-        </CardContent>
-        <CardFooter className="flex flex-col items-start px-6">
-          <div className="text-sm sm:text-sm font-bold text-muted-foreground/50">
-            Total Staff: <span className="text-primary/50">---</span>
+        </CardHeader>
+        <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-white relative z-10">
+          <div className="flex items-baseline gap-2">
+            <span className="text-xs sm:text-sm font-medium text-muted-foreground">Total Staff:</span>
+            <div className="h-6 w-12 bg-primary/10 rounded animate-pulse" />
           </div>
-          <div className="flex items-center gap-3 text-xs sm:text-sm font-medium text-muted-foreground">
-            <span>--- Teachers</span>
-            <span>•</span>
-            <span>--- Clerks</span>
-          </div>
+          <p className="text-xs text-muted-foreground/70 mt-1">Loading statistics...</p>
         </CardFooter>
       </Card>
     )
@@ -101,7 +83,9 @@ export function StaffOverviewCard({
       <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
         <CardHeader className="flex flex-row border-b items-center justify-between space-y-0 px-6 pt-6 pb-3">
           <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-            <GraduationCap strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <div className="p-2 rounded-xl bg-slate-100 ">
+              <GraduationCap strokeWidth={2.5} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            </div>
             <CardTitle className="text-sm sm:text-sm font-semibold text-primary">Staff Overview</CardTitle>
           </div>
           <Button 
@@ -152,7 +136,7 @@ export function StaffOverviewCard({
       <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
         <CardHeader className="flex flex-row items-center border-b justify-between space-y-0 px-6 pt-6 pb-3">
           <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-            <GraduationCap strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+            <GraduationCap strokeWidth={2.5} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
             <CardTitle className="text-sm sm:text-sm font-semibold text-primary">Staff Overview</CardTitle>
           </div>
           <Button 
@@ -190,11 +174,13 @@ export function StaffOverviewCard({
   }
 
   return (
-    <Card className="border-none shadow-none justify-between gap-5 h-full pt-0">
+    <Card className="border-none shadow-none bg-white justify-start h-full gap-5 pt-0">
       <CardHeader className="flex flex-row border-b items-center justify-between space-y-0 px-6 pt-6 pb-3">
         <div className="flex flex-row items-center gap-1.5 sm:gap-2">
-          <GraduationCap strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-          <CardTitle className="text-sm sm:text-sm font-bold text-primary">Staff Overview</CardTitle>
+          <div className="p-2 rounded-xl bg-slate-100">
+            <GraduationCap strokeWidth={2.5} className="h-5 w-5 sm:h-6 sm:w-6 text-slate-800" />
+          </div>
+          <CardTitle className="text-sm sm:text-sm w-full font-semibold text-black">Staff Overview</CardTitle>
         </div>
         <Button 
           variant="default" 
@@ -205,7 +191,7 @@ export function StaffOverviewCard({
           See All
         </Button>
       </CardHeader>
-      <CardContent className="px-6 pb-6 pt-0">
+      <CardContent className="px-4 hidden sm:px-6 pb-4">
         {/* Staff List */}
         <div className="space-y-2">
           {staff.slice(0, maxDisplay).map((member) => (
@@ -258,9 +244,11 @@ export function StaffOverviewCard({
       </CardContent>
 
       {/* Total Count Footer */}
-      <CardFooter className="flex flex-col items-start px-6">
-        <div className="text-lg sm:text-lg font-bold">
-          Total Staff: <span className="text-primary">{totalStaff}</span>
+      <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3  bg-white">
+        <div className="flex w-full flex-col gap-1">
+          <div className="text-2xl sm:text-2xl font-bold">
+            Total Staff: <span className="text-primary">{totalStaff}</span>
+          </div>
         </div>
         <div className="flex items-center gap-3 text-xs sm:text-sm font-medium text-muted-foreground">
           <span>{totalTeachers} Teachers</span>

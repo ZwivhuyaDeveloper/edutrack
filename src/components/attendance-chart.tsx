@@ -147,13 +147,13 @@ export function AttendanceChart({
   // Enhanced Loading State
   if (isLoading) {
     return (
-      <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-blue-50/30 overflow-hidden relative">
+      <Card className="shadow-sm border-none rounded-2xl bg-white overflow-hidden relative">
       {/* Animated gradient overlay */}
         <div className="absolute inset-0 hidden bg-gradient-to-r from-transparent via-blue-100/20 to-transparent animate-shimmer" />
         <CardHeader className="flex flex-col items-stretch space-y-0 border-b px-1 sm:flex-row">
           <div className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 relative z-10">
             <div className="p-2 rounded-xl bg-slate-100">
-              <TrendingUp strokeWidth={2} className="h-5 w-5 sm:h-6 sm:w-6 text-slate-600" />
+              <TrendingUp strokeWidth={2.5} className="h-5 w-5 sm:h-6 sm:w-6 text-slate-600" />
             </div>
             <CardTitle className="text-sm sm:text-sm w-full font-bold text-slate-900">Attendance Trend</CardTitle>
           </div>
@@ -163,8 +163,8 @@ export function AttendanceChart({
             {/* Loading state illustration */}
             <div className="relative">
               <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
-              <div className="relative p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border-2 border-dashed border-primary/30 backdrop-blur-sm">
-                <TrendingUp className="h-10 w-10 text-primary animate-pulse" strokeWidth={2} />
+              <div className="relative p-5 rounded-2xl bg-primary/5 border-2 border-dashed border-primary/30 backdrop-blur-sm">
+                <TrendingUp strokeWidth={2.5} className="h-10 w-10 text-primary animate-pulse" />
               </div>
             </div>
 
@@ -186,7 +186,7 @@ export function AttendanceChart({
 
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-blue-50/30 relative z-10">
+        <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-white relative z-10">
           <div className="flex items-baseline gap-2">
             <span className="text-xs sm:text-sm font-medium text-muted-foreground">Attendance Rate:</span>
             <div className="h-6 w-12 bg-primary/10 rounded animate-pulse" />
@@ -200,7 +200,7 @@ export function AttendanceChart({
   // Enhanced Error State
   if (error) {
     return (
-      <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-red-50/20 overflow-hidden">
+      <Card className="shadow-sm border-none rounded-2xl bg-white overflow-hidden">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3">
           <div className="flex flex-row items-center gap-2">
             <div className="p-2 rounded-xl bg-red-100">
@@ -215,8 +215,8 @@ export function AttendanceChart({
             {/* Error state illustration */}
             <div className="relative">
               <div className="absolute inset-0 bg-red-200/50 rounded-full blur-2xl" />
-              <div className="relative p-5 rounded-2xl bg-gradient-to-br from-red-100 to-red-50 border-2 border-dashed border-red-300">
-                <AlertCircle className="h-10 w-10 text-red-600" strokeWidth={2} />
+              <div className="relative p-5 rounded-2xl bg-red-50 border-2 border-dashed border-red-300">
+                <AlertCircle  className="h-10 w-10 text-red-600" strokeWidth={2} />
               </div>
             </div>
             
@@ -261,11 +261,11 @@ export function AttendanceChart({
   // Enhanced Empty State
   if (!data || data.length === 0) {
     return (
-      <Card className="shadow-sm border-none rounded-2xl bg-gradient-to-br from-white to-slate-50/50 overflow-hidden">
+      <Card className="shadow-sm border-none rounded-2xl bg-white overflow-hidden">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3">
           <div className="flex flex-row items-center gap-2">
             <div className="p-2 rounded-xl bg-slate-100">
-              <TrendingUp strokeWidth={2} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
+              <TrendingUp strokeWidth={2.5} className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
             </div>
             <CardTitle className="text-sm sm:text-base font-bold text-slate-900">Attendance Trend</CardTitle>
           </div>
@@ -276,7 +276,7 @@ export function AttendanceChart({
             {/* Empty state illustration */}
             <div className="relative">
               <div className="absolute inset-0 bg-slate-200/50 rounded-full blur-2xl" />
-              <div className="relative p-5 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 border-2 border-dashed border-slate-300">
+              <div className="relative p-5 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-300">
                 <BarChart3 className="h-8 w-8 text-primary" />
               </div>
             </div>
@@ -296,7 +296,7 @@ export function AttendanceChart({
           </div>
         </CardContent>
 
-        <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-slate-50/50">
+        <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-white">
           <div className="flex items-baseline gap-2">
             <span className="text-xs sm:text-sm font-medium text-muted-foreground">Attendance Rate:</span>
             <span className="text-2xl font-bold text-slate-900">0%</span>
@@ -308,7 +308,7 @@ export function AttendanceChart({
   }
 
   return (
-    <Card className="shadow-sm border-none h-full rounded-2xl bg-gradient-to-br from-white via-white to-slate-100 overflow-hidden hover:shadow-md transition-all duration-300 group">
+    <Card className="shadow-sm border-none h-full rounded-2xl bg-white overflow-hidden hover:shadow-md transition-all duration-300 group">
       <CardHeader className="flex flex-col items-stretch space-y-0 border-b px-1 sm:flex-row">
         <div className="flex flex-1 flex-row w-full items-center justify-start gap-2 pl-4 py-1 sm:py-1">
           <div className="p-2 rounded-xl bg-slate-100">
@@ -356,7 +356,7 @@ export function AttendanceChart({
       <CardContent className="px-4 sm:px-6 h-fit pb-4">
         <ChartContainer
           config={chartConfig}
-          className="aspect-auto h-[200px] w-full"
+          className="aspect-auto h-[251px] w-full"
         >
           <BarChart
             accessibilityLayer
@@ -393,9 +393,9 @@ export function AttendanceChart({
           </BarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex flex-col items-start px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-slate-50/30">
+      <CardFooter className="flex flex-col items-start -mt-13 px-4 sm:px-6 pb-4 sm:pb-6 pt-3 border-t bg-white">
         <div className="flex w-full flex-col gap-1">
-          <div className="text-lg sm:text-lg font-bold">
+          <div className="text-2xl sm:text-2xl font-bold">
             Attendance Rate: <span className="text-primary">{averageRate}%</span>
           </div>
           <p className="text-xs sm:text-sm font-medium text-muted-foreground">
